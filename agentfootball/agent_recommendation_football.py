@@ -10,11 +10,10 @@ client = Groq(api_key=api_key)
 model = os.getenv("MODEL_NAME")
 
 class FootballCoachAI:
-    def __init__(self, api_key, context, user_prompt, match_data):
+    def __init__(self, api_key, context, user_prompt):
         self.api_key = api_key
         self.context = context
         self.user_prompt = user_prompt
-        self.match_data = match_data
 
     def generate_recommendations(self, match_data):
         """
@@ -40,14 +39,14 @@ class FootballCoachAI:
 def main():
     #get the context, user_prompt and match_data
 
-    with open('example_entry.json', 'r', encoding='utf-8') as fichier:
+    with open('agentfootball/example_entry.json') as fichier:
         match_stats = json.load(fichier)
 
-    f = open('context_football.txt', 'r')
+    f = open('agentfootball/context_football.txt', 'r')
     context = f.read()
     f.close()
 
-    f = open('user_prompt_football.txt', 'r')
+    f = open('agentfootball/user_prompt_football.txt', 'r')
     prompt = f.read()
     f.close()
 
@@ -57,7 +56,7 @@ def main():
     coach = FootballCoachAI(api_key, context, user_prompt)
     recommandations = coach.generate_recommendations(match_stats)
     
-    # 3. Afficher le résultat
+    # 2. Afficher le résultat
     print("\n" + "="*30)
     print(recommandations)
     print("="*30)
