@@ -1,0 +1,46 @@
+{
+  "match_id": "FR-2026-001",
+  "joueur_analyse": {
+    "id": 10,
+    "nom": "Lucas Martin",
+    "poste": "Milieu Offensif"
+  },
+  "donnees_sequences": [
+    {
+      "id_sequence": "seq_001",
+      "timestamp_debut": "24:10",
+      "timestamp_fin": "24:20",
+      "evenement_cle": "Perte de balle",
+      "metriques_video": {
+        "orientation_corps_degres": 45,
+        "champ_vision_libre": "limité",
+        "nb_scans_3s_avant": 0,
+        "distance_adversaire_proche": 0.8,
+        "coordonnees_ballon": {"x": 72, "y": 45},
+        "options_passes_manquees": [
+          {"joueur_id": 7, "distance": 12.5, "probabilite_reussite": 0.85}
+        ]
+      },
+      "contexte_tactique": "Transition offensive, bloc adverse en repli bas."
+    },
+    {
+      "id_sequence": "seq_002",
+      "timestamp_debut": "38:35",
+      "timestamp_fin": "38:45",
+      "evenement_cle": "Tir non cadré",
+      "metriques_video": {
+        "inclinaison_buste_degres": -15, 
+        "distance_pied_appui_cm": 35,
+        "vitesse_ballon_kmh": 88,
+        "xG_action": 0.45
+      },
+      "contexte_tactique": "Face-à-face avec le gardien, angle ouvert."
+    }
+  ],
+  "stats_globales_match": {
+    "distance_totale": 8.4,
+    "vitesse_max": 31.2,
+    "passes_reussies": 22,
+    "passes_totales": 28
+  }
+}
