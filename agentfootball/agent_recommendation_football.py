@@ -2,6 +2,7 @@ import os
 from groq import Groq
 import json
 from dotenv import load_dotenv
+from afficher_rapport import afficher_rapport
 
 # Charge les variables d'environnement du fichier .env
 load_dotenv()
@@ -58,7 +59,7 @@ def main():
     
     # 2. Afficher le résultat
     print("\n" + "="*30)
-    print(recommandations)
+    afficher_rapport(recommandations)
     print("="*30)
 
 if __name__ == "__main__":
