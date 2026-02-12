@@ -1,0 +1,7 @@
+match_id,minute,second,team,player,type,x,y,phase,description
+1,12,10,PSG,Dembele,SHOT,88,40,build-up,Tir cadré depuis l'aile droite
+1,34,5,Barcelona,Yamal,SHOT,90,35,transition,Tir après récupération haute
+1,57,15,Barcelona,Vinicius,GOAL,92,38,transition,But après contre-attaque côté gauche
+1,68,22,PSG,Hakimi,TURNOVER,60,55,transition,Perte de balle au milieu sous pression
+1,74,10,Barcelona,Bellingham,SHOT,89,44,build-up,Frappe après combinaison dans l'axe
+1,83,30,PSG,Mbappe,SHOT,91,42,transition,Frappe en transition après appel dans le dos
