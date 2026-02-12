@@ -36,8 +36,8 @@ API spécialisée pour l'analyse de vidéos et les recommandations de performanc
 
 ```bash
 # 1. Cloner le projet
-git clone [https://github.com/votre-repo/tactique-ia.git](https://github.com/votre-repo/tactique-ia.git)
-cd tactique-ia
+git clone [https://github.com/Loulou441/nextmove.git](https://github.com/Loulou441/nextmove.git)
+cd nextmove
 
 # 2. Créer l'environnement virtuel
 python -m venv venv
