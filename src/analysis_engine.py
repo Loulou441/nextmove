@@ -145,3 +145,24 @@ def analyze_key_event(event_row: Dict[str, Any], match_events: pd.DataFrame) -> 
         recommendations=recommendations,
         confidence=confidence
     )
+
+
+def generate_tactical_narrative(result, event_row):
+    """Génère un diagnostic textuel basé sur les scores de responsabilité."""
+    
+    # Analyse de la dominance
+    if result.tactical > result.individual and result.tactical > result.collective:
+        dominance = "une défaillance stratégique majeure. Le plan de jeu n'était pas adapté."
+    elif result.collective > result.individual:
+        dominance = "un manque de coordination collective. Le bloc était mal aligné."
+    else:
+        dominance = "une erreur d'exécution individuelle qui aurait pu être évitée."
+
+    narrative = (
+        f"**Diagnostic Tactique :** Cette action ({event_row['type']}) à la {event_row['minute']}e minute "
+        f"révèle {dominance} \n\n"
+        f"**Analyse de phase :** En phase de {event_row['phase']}, l'équipe a laissé trop d'espace "
+        f"dans la zone x={event_row['x']}. "
+    )
+    
+    return narrative

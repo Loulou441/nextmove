@@ -3,8 +3,9 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime
 
-from src.analysis_engine import analyze_key_event
-
+# Import des fonctions moteur
+from src.analysis_engine import analyze_key_event, generate_tactical_narrative
+from src.viz import create_tactical_pitch
 
 st.set_page_config(page_title="Video Action Analysis", page_icon="🎬", layout="wide")
 
@@ -28,118 +29,106 @@ st.title("🎬 Analyse d’action via vidéo (POC)")
 
 st.write(
     "Cette page permet d’uploader un clip, d’annoter l’action, puis de générer une analyse IA explicative. "
-    "L’analyse est semi-automatique : la vidéo sert de support, l’utilisateur fournit le contexte minimal."
+    "L’analyse est semi-automatique : la vidéo sert de support, l’utilisateur fournit le contexte."
 )
 
 matches = load_matches()
 events = load_events()
 
+# --- 1) SELECTION DU MATCH ---
 st.subheader("1) Associer le clip à un match")
-
 match_label = matches.apply(
-    lambda r: f"{r['home_team']} {r['home_score']} - {r['away_score']} {r['away_team']} | {r['date']} | {r['competition']}",
+    lambda r: f"{r['home_team']} {r['home_score']} - {r['away_score']} {r['away_team']} | {r['date']}",
     axis=1
 )
-selected = st.selectbox("Match", match_label)
-
+selected = st.selectbox("Sélectionnez le match concerné", match_label)
 selected_row = matches.loc[match_label == selected].iloc[0]
 match_id = int(selected_row["match_id"])
 match_events = events[events["match_id"] == match_id].copy()
-match_events = match_events.sort_values(["minute", "second"])
 
 st.divider()
 
+# --- 2) UPLOAD ---
 st.subheader("2) Uploader un clip vidéo")
-
 uploaded = st.file_uploader("Clip vidéo (mp4, mov)", type=["mp4", "mov", "m4v"])
 
 saved_path = None
 if uploaded is not None:
+    # Sauvegarde locale pour le POC
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"match_{match_id}_{timestamp}_{uploaded.name}".replace(" ", "_")
     saved_path = VIDEO_DIR / filename
-
     with open(saved_path, "wb") as f:
         f.write(uploaded.getbuffer())
-
-    st.success("Clip uploadé et enregistré pour le POC.")
+    
     st.video(uploaded)
 
 st.divider()
 
+# --- 3) ANNOTATION ---
 st.subheader("3) Annotation de l’action")
-
 colA, colB, colC = st.columns(3)
 
 with colA:
-    minute = st.number_input("Minute", min_value=0, max_value=130, value=60, step=1)
-    second = st.number_input("Seconde", min_value=0, max_value=59, value=0, step=1)
-
+    minute = st.number_input("Minute", min_value=0, max_value=130, value=60)
+    second = st.number_input("Seconde", min_value=0, max_value=59, value=0)
 with colB:
-    team = st.text_input("Équipe (libre)", value=str(selected_row["away_team"]))
-    player = st.text_input("Joueur (optionnel)", value="Unknown")
-
+    team = st.text_input("Équipe en action", value=str(selected_row["away_team"]))
+    player = st.text_input("Nom du joueur impliqué", value="Joueur X")
 with colC:
     event_type = st.selectbox("Type d’événement", ["GOAL", "SHOT", "TURNOVER"])
     phase = st.selectbox("Phase de jeu", ["transition", "build-up", "set-piece"])
 
-st.write("Localisation approximative sur le terrain (format StatsBomb-like : x 0→100, y 0→100)")
+st.write("**Localisation de l'événement (X/Y)**")
 colX, colY = st.columns(2)
 with colX:
-    x = st.slider("x", min_value=0, max_value=100, value=85)
+    x = st.slider("Position X (0=Défense, 100=Attaque)", 0, 100, 85)
 with colY:
-    y = st.slider("y", min_value=0, max_value=100, value=40)
-
-description = st.text_area(
-    "Description libre (optionnel)",
-    value="Action issue du clip vidéo, annotée pour analyse IA."
-)
+    y = st.slider("Position Y (Vertical)", 0, 100, 40)
 
 st.divider()
 
-st.subheader("4) Lancer l’analyse IA")
-
-run = st.button("Analyser l’action")
+# --- 4) ANALYSE ---
+run = st.button("🚀 Lancer l’analyse IA", use_container_width=True)
 
 if run:
+    # Création de l'objet de donnée
     event_row = {
-        "match_id": match_id,
-        "minute": int(minute),
-        "second": int(second),
-        "team": team,
-        "player": player,
-        "type": event_type,
-        "x": float(x),
-        "y": float(y),
-        "phase": phase,
-        "description": description
+        "match_id": match_id, "minute": int(minute), "second": int(second),
+        "team": team, "player": player, "type": event_type,
+        "x": float(x), "y": float(y), "phase": phase,
+        "description": "Analyse manuelle sur clip vidéo"
     }
 
+    # Appel du moteur d'analyse
     result = analyze_key_event(event_row, match_events)
+    narrative = generate_tactical_narrative(result, event_row)
 
-    st.success("Analyse générée.")
+    st.success("Analyse générée avec succès !")
 
-    col1, col2 = st.columns([1, 1])
+    # AFFICHAGE DES RÉSULTATS EN DEUX COLONNES
+    res_col1, res_col2 = st.columns([1, 1])
 
-    with col1:
-        st.markdown("### Responsabilité estimée")
-        st.metric("Individuelle", f"{result.individual} %")
-        st.metric("Collective", f"{result.collective} %")
-        st.metric("Tactique", f"{result.tactical} %")
-        st.caption(f"Niveau de confiance : {result.confidence}")
+    with res_col1:
+        st.markdown("### 🧠 Diagnostic de l'IA")
+        st.markdown(narrative)
+        
+        st.write("**Répartition des responsabilités :**")
+        st.progress(result.individual / 100, text=f"Individuelle : {result.individual}%")
+        st.progress(result.collective / 100, text=f"Collective : {result.collective}%")
+        st.progress(result.tactical / 100, text=f"Tactique (Coach) : {result.tactical}%")
+        
+        st.info(f"Niveau de confiance de l'analyse : **{result.confidence}**")
 
-    with col2:
-        st.markdown("### Explication IA")
-        st.write(result.explanation)
+    with res_col2:
+        st.markdown("### 📍 Modélisation 2D")
+        pitch_fig = create_tactical_pitch(event_row['x'], event_row['y'], event_row['player'], event_row['type'], event_row['phase'])
+        st.plotly_chart(pitch_fig, use_container_width=True)
 
-    st.markdown("### Recommandations")
-    for rec in result.recommendations:
-        st.write(f"• {rec}")
-
-    st.markdown("### Métadonnées de l’action (POC)")
-    st.json(event_row)
-
-    if saved_path is not None:
-        st.caption(f"Fichier vidéo enregistré : {saved_path.name}")
-    else:
-        st.warning("Aucun fichier vidéo n’a été uploadé. L’analyse a été faite uniquement sur l’annotation.")
+    st.divider()
+    
+    # Recommandations
+    st.subheader("📋 Recommandations pour l'entraînement")
+    recs = st.columns(len(result.recommendations))
+    for i, rec in enumerate(result.recommendations):
+        recs[i].warning(rec)
