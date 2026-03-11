@@ -9,7 +9,7 @@
 
 ---
 
-## Lien vers le prototye fonctionnel.
+## Lien vers le prototype fonctionnel.
 https://nextmovetacticore.streamlit.app/
 *Attention, la partie coach du prototype ne fonctionnera pas car une clé API Groq est nécessaire.*
 
