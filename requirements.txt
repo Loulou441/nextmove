@@ -1,4 +1,8 @@
+streamlit
+pandas
+numpy
+plotly
 groq
-requests
 python-dotenv
+requests
 rich

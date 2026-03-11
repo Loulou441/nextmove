@@ -1,52 +1,54 @@
-# ⚽ NextMove - Coach Assistant & Job Engine
+# ⚽ NextMove (TactiCore) - SmartCoach IA
 
-> Assistant virtuel intelligent pour les passionnés et les professionnels du sport. Analyse vidéo par ordinateur (Computer Vision), recommandations tactiques et recherche d'opportunités dans le milieu sportif.
+> **Assistant virtuel intelligent pour les passionnés et les professionnels du sport.** > *Preuve de Concept (POC) : Combinaison de la Vision par Ordinateur (Computer Vision) et de l'IA Générative (LLMs) pour l'analyse tactique automatisée.*
 
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-
-## 🎯 Vue d'ensemble
-
-NextMove est une plateforme hybride conçue pour transformer la performance sur le terrain et la carrière hors terrain. Elle combine la puissance de la **Computer Vision** pour l'analyse de jeu et des **LLMs** pour le coaching personnalisé.
-
-### 💼 API SmartCoach (Port 8001)
-API spécialisée pour l'analyse de vidéos et les recommandations de performance :
-- 📄 **Analyse de vidéos automatique** : Détection des joueurs, du ballon et des événements via YOLOv8.
-- 🔍 **Recommandations structurées** : Génération de feedbacks (Constat, Analyse, Action, Pro-Tip) basés sur les données extraites.
+![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-FF4B4B.svg)
+![Groq](https://img.shields.io/badge/AI-Groq_Llama_3-black.svg)
+![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 
 ---
 
-## ✨ Fonctionnalités principales
+## 🎯 La Mission
+NextMove a pour objectif d'automatiser l'analyse sportive, quel que soit le niveau (amateur ou pro) ou le sport (Football, Pickleball). 
+Ce projet démontre qu'il est possible de transformer un flux vidéo brut en **recommandations tactiques et techniques actionnables**, grâce à un pipeline en 3 étapes :
+1. **Vision** : Tracking des joueurs et du ballon (YOLOv8).
+2. **Logique Métier** : Calcul géométrique des KPIs (vitesses, distances, lignes de passes).
+3. **Cerveau IA** : Interprétation cognitive et coaching par un LLM spécialisé.
 
-### 🏟️ Analyse de vidéos (SmartCoach)
-- **Tracking Tactique** : Analyse des distances entre les lignes et du placement des joueurs.
-- **Biomécanique** : Analyse de la posture (inclinaison du buste, pied d'appui) lors des tirs.
-- **Extraction de KPIs** : Vitesse de pointe, taux de réussite des passes, et fréquence de "scans".
-- **Feedback JSON** : Sortie structurée prête pour intégration mobile/web.
+*(Note : Dans ce POC interactif, la partie Computer Vision est simulée via des jeux de données pré-extraits afin de démontrer en temps réel la puissance du moteur d'analyse IA).*
 
 ---
 
-## 🚀 Installation rapide
+## ✨ Fonctionnalités du Dashboard (POC)
 
-### Prérequis
-- Python 3.9+
-- Clé API Groq & RapidAPI (pour le cerveau du Coach)
+L'application est divisée en 5 modules clés, habillés d'un design personnalisé "Dark Mode Sportif" :
 
-### Installation
+* 📊 **Dashboard Global** : Vue d'ensemble des statistiques du match, radar de performance (Technique, Tactique, Physique, Mental) et répartition des zones de jeu.
+* 🎬 **Analyse d'Action Vidéo** : Interface permettant d'isoler une action (ex: perte de balle, tir), d'ajuster les coordonnées X/Y, et de générer un rapport de coaching IA instantané avec modélisation 2D du terrain.
+* 🎥 **Analyse Séquentielle (Timeline)** : Navigation dans la timeline complète des événements du match extraits par la Vision.
+* 📈 **Tendances & Patterns** : Analyse macroscopique des comportements de l'équipe (Zones de danger, vulnérabilité en transition).
+* 📋 **Programme d'Entraînement** : Synthèse globale générant une "To-Do List" d'exercices personnalisés basés sur les erreurs du match.
 
+---
+
+## 🛠️ Stack Technique
+
+* **Interface Web :** [Streamlit](https://streamlit.io/)
+* **Visualisation de Données :** Plotly Express & Plotly Graph Objects
+* **Intelligence Artificielle :** API Groq (Modèle `llama-3.3-70b-versatile`)
+* **Manipulation de Données :** Pandas, JSON
+* **Styling :** CSS injecté & Configuration `.toml`
+
+---
+
+## 🚀 Installation & Lancement en local
+
+### 1. Prérequis
+* Python 3.9 ou supérieur.
+* Une clé API gratuite [Groq](https://console.groq.com/).
+
+### 2. Cloner le dépôt
 ```bash
-# 1. Cloner le projet
 git clone [https://github.com/Loulou441/nextmove.git](https://github.com/Loulou441/nextmove.git)
 cd nextmove
-
-# 2. Créer l'environnement virtuel
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 3. Installer les dépendances
-pip install -r requirements.txt
-```
-
-## 📝 Licence
-
-Ce projet est sous licence Apache 2.0. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
