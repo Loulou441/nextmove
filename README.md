@@ -7,6 +7,9 @@
 ![Groq](https://img.shields.io/badge/AI-Groq_Llama_3-black.svg)
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 
+> **Lien vers le prototye fonctionnel.**
+https://nextmovetacticore.streamlit.app/
+*Attention, la partie coach du prototype ne fonctionnera pas car une clé API Groq est nécessaire.*
 ---
 
 ## 🎯 La Mission
