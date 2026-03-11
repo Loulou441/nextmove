@@ -2,14 +2,21 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 import plotly.express as px
-
-# Import du moteur existant dans ton dossier src/
 import sys
+
+# 1. Configuration de la page EN PREMIER (obligatoire)
+st.set_page_config(page_title="Match Patterns | NextMove", page_icon="📈", layout="wide")
+
+# 2. Ajout du path pour les imports locaux
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
-from src.patterns_engine import compute_match_patterns
 
-st.set_page_config(page_title="Match Patterns | NextMove", page_icon="📈", layout="wide")
+# 3. Imports locaux
+from src.patterns_engine import compute_match_patterns
+from src.design import set_pro_design
+
+# 4. Application du CSS magique
+set_pro_design()
 
 DATA_DIR = ROOT / "data"
 
@@ -61,14 +68,27 @@ with col_graph1:
     st.subheader("Distribution par phase de jeu")
     phase_df = pd.DataFrame(list(patterns["phase_distribution"].items()), columns=["Phase", "Count"])
     fig_phase = px.bar(phase_df, x="Phase", y="Count", color="Phase", title="Phases les plus actives")
-    fig_phase.update_layout(template="plotly_dark", showlegend=False)
+    
+    # Intégration transparente pour le fond sombre
+    fig_phase.update_layout(
+        template="plotly_dark", 
+        showlegend=False,
+        paper_bgcolor="rgba(0,0,0,0)", # Contour transparent
+        plot_bgcolor="rgba(0,0,0,0)"   # Fond transparent
+    )
     st.plotly_chart(fig_phase, use_container_width=True)
 
 with col_graph2:
     st.subheader("Zones de danger (Pitch Grid)")
     zone_df = pd.DataFrame(list(patterns["zone_distribution"].items()), columns=["Zone", "Count"])
     fig_zone = px.pie(zone_df, values="Count", names="Zone", hole=0.4, title="Où se passe l'action ?")
-    fig_zone.update_layout(template="plotly_dark")
+    
+    # Intégration transparente pour le fond sombre
+    fig_zone.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)", # Contour transparent
+        plot_bgcolor="rgba(0,0,0,0)"   # Fond transparent
+    )
     st.plotly_chart(fig_zone, use_container_width=True)
 
 st.divider()

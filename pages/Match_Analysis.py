@@ -8,17 +8,24 @@ from pathlib import Path
 import plotly.express as px
 from dotenv import load_dotenv
 
-# Ajout du path pour importer l'IA d'Ayoub
+# 1. Configuration de la page EN PREMIER (obligatoire)
+st.set_page_config(page_title="Match Analysis | NextMove", page_icon="🎥", layout="wide")
+
+# 2. Ajout du path pour les imports locaux
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
-from agentfootball.agent_recommendation_football import FootballCoachAI
 
-# Chargement API
+# 3. Imports de tes modules locaux
+from agentfootball.agent_recommendation_football import FootballCoachAI
+from src.design import set_pro_design
+
+# 4. Application du CSS
+set_pro_design()
+
+# Chargement API et dossiers
 load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
 DATA_DIR = ROOT / "data"
-
-st.set_page_config(page_title="Match Analysis | NextMove", page_icon="🎥", layout="wide")
 
 @st.cache_data
 def load_matches():
@@ -64,7 +71,14 @@ fig = px.scatter(
     hover_data=["label", "phase", "description"],
     title="Détection automatique des actions (Simulation Vision)"
 )
-fig.update_layout(template="plotly_dark", xaxis_title="Minute du match", yaxis_title="Type d'action")
+# Intégration parfaite avec le fond sombre du site
+fig.update_layout(
+    template="plotly_dark", 
+    xaxis_title="Minute du match", 
+    yaxis_title="Type d'action",
+    paper_bgcolor="rgba(0,0,0,0)", # Contour transparent
+    plot_bgcolor="rgba(0,0,0,0)"   # Fond transparent
+)
 st.plotly_chart(fig, use_container_width=True)
 
 st.divider()

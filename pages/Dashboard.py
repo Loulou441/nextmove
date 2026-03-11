@@ -2,13 +2,20 @@ import streamlit as st
 import pandas as pd
 import json
 import plotly.graph_objects as go
+import sys
 from pathlib import Path
 
+# Configuration de la page EN PREMIER (obligatoire dans Streamlit)
 st.set_page_config(page_title="Dashboard | NextMove", page_icon="📊", layout="wide")
 
-# Configuration des chemins
+# 1. Configuration des chemins pour trouver le dossier src/
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
 DATA_DIR = ROOT / "data"
+
+# 2. Maintenant on peut importer notre design et l'appliquer
+from src.design import set_pro_design
+set_pro_design()
 
 @st.cache_data
 def load_matches():
@@ -78,10 +85,13 @@ with col_viz1:
     fig_radar.update_layout(
         polar=dict(
             radialaxis=dict(visible=True, range=[0, 100], color="gray"),
-            angularaxis=dict(color="white")
+            angularaxis=dict(color="white"),
+            bgcolor="rgba(0,0,0,0)" # Fond du radar transparent
         ),
         showlegend=False,
         template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)", # Contour transparent
+        plot_bgcolor="rgba(0,0,0,0)",  # Fond de la zone de tracé transparent
         margin=dict(l=40, r=40, t=20, b=20),
         height=350
     )
@@ -99,6 +109,8 @@ with col_viz2:
     )])
     fig_passes.update_layout(
         template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)", # Contour transparent
+        plot_bgcolor="rgba(0,0,0,0)",  # Fond transparent
         margin=dict(l=20, r=20, t=20, b=20),
         height=350
     )

@@ -8,22 +8,29 @@ from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
 
+# 1. Configuration de la page EN PREMIER
+st.set_page_config(page_title="Video Action Analysis", page_icon="🎬", layout="wide")
+
+# 2. Ajout de la racine au path pour importer les modules
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
+
+# 3. Imports locaux
+from src.viz import create_tactical_pitch
+from agentfootball.agent_recommendation_football import FootballCoachAI
+from src.design import set_pro_design
+
+# 4. Application du CSS
+set_pro_design()
+
 # Chargement de la clé API
 load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
 
 # Configuration des chemins
-ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
 VIDEO_DIR = DATA_DIR / "videos"
 VIDEO_DIR.mkdir(parents=True, exist_ok=True)
-
-# Ajout de la racine au path pour importer les modules
-sys.path.append(str(ROOT))
-from src.viz import create_tactical_pitch
-from agentfootball.agent_recommendation_football import FootballCoachAI
-
-st.set_page_config(page_title="Video Action Analysis", page_icon="🎬", layout="wide")
 
 @st.cache_data
 def load_matches():
@@ -144,6 +151,13 @@ if st.button("🚀 Lancer l’analyse NextMove IA", use_container_width=True, ty
             st.markdown("### 📍 Modélisation 2D")
             # Appel à ta fonction de visualisation existante
             pitch_fig = create_tactical_pitch(x, y, player, event_type, phase="Analyse IA")
+            
+            # 🪄 ON REND LE GRAPHIQUE TRANSPARENT ICI
+            pitch_fig.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", 
+                plot_bgcolor="rgba(0,0,0,0)"
+            )
+            
             st.plotly_chart(pitch_fig, use_container_width=True)
 
     except Exception as e:
