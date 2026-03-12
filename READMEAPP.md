@@ -1,13 +1,12 @@
-README.md
 
-# NextMove
 
-Analyse vidéo de pickleball avec insights, dashboards et recommandations de type coach.
+                                                                     # NextMove
+
+                                Analyse vidéo de pickleball avec insights, dashboards et recommandations de type coach.
 
 NextMove est une application iOS développée en SwiftUI qui analyse de courtes vidéos de pickleball pour transformer les séquences de jeu en insights compréhensibles, métriques simples et conseils d’amélioration.
 
-![App Demo](frame 1.png)
----
+![frame](frame%201.png)---
 
 # Overview
 
