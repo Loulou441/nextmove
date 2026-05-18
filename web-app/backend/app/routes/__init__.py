@@ -1,3 +1,0 @@
-"""
-Routes API pour TactiCore
-"""

@@ -1,3 +1,0 @@
-"""
-Services métier pour TactiCore
-"""
