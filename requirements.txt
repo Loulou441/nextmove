@@ -1,4 +1,3 @@
-streamlit
 pandas
 numpy
 plotly
@@ -6,3 +5,4 @@ groq
 python-dotenv
 requests
 rich
+streamlit>=1.30
