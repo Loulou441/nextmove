@@ -1,0 +1,4 @@
+game_id,title,sport,date,duration,status,rating,rallies,winners,errors,coverage
+1,Démo,Pickleball,2026-03-12 04:18,3:06,ready,4.2,45,21,12,86
+2,Match amical,Pickleball,2026-03-10 18:30,4:22,ready,3.8,38,17,15,79
+3,Tournoi club,Pickleball,2026-03-08 10:00,5:45,ready,4.5,62,28,9,91
