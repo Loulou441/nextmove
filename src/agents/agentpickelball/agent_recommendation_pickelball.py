@@ -1,18 +1,12 @@
-import os
-from groq import Groq
+from src.agents.agentmanager.agent import Agent
 import json
-from dotenv import load_dotenv
-from afficher_rapport import afficher_rapport
+from src.agents.agentpickelball.afficher_rapport import afficher_rapport
 
-# Charge les variables d'environnement du fichier .env
-load_dotenv()
-api_key = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=api_key)
-model = os.getenv("MODEL_NAME")
+from src.config import MODEL_NAME_PICKELBALL
 
-class PickelballCoachAI:
-    def __init__(self, api_key, context, user_prompt):
-        self.api_key = api_key
+class PickelballCoachAI(Agent):
+    def __init__(self, context, user_prompt):
+        super().__init__()
         self.context = context
         self.user_prompt = user_prompt
 
@@ -23,17 +17,20 @@ class PickelballCoachAI:
         """
 
         # Get the GROQ API response:
-        advices_response = client.chat.completions.create(
+        advices_response = self.client.chat.completions.create(
             messages = [
                 {"role": "system", "content": self.context},
                 {"role": "user", "content": self.user_prompt},
         ],
-        model=model,
+        model=MODEL_NAME_PICKELBALL,
         temperature=0.0,
         response_format={"type": "json_object"}
         )
 
         advices = advices_response.choices[0].message.content
+        if advices is None:
+            raise ValueError("The model returned an empty response.")
+        
         return json.loads(advices)
 
 # --- MAIN PROCESS ---
@@ -54,7 +51,7 @@ def main():
     user_prompt = f"{prompt}\nVoici les données du match : {match_stats}"
 
     # 1. Envoyer au Coach IA
-    coach = PickelballCoachAI(api_key, context, user_prompt)
+    coach = PickelballCoachAI(context, user_prompt)
     recommandations = coach.generate_recommendations(match_stats)
     
     # 2. Afficher le résultat

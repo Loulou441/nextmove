@@ -77,7 +77,7 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
         }
     else:
         try:
-            from agentfootball.agent_recommendation_football import FootballCoachAI
+            from src.agents.agentfootball.agent_recommendation_football import FootballCoachAI
             with open(ROOT / "agentfootball/example_entry.json", "r") as f:
                 match_data = json.load(f)
             match_data["joueur_analyse"]["nom"] = player

@@ -85,7 +85,7 @@ if st.button("🧠 Generate Weekly Training Plan", type="primary", use_container
             }
         else:
             try:
-                from agentfootball.agent_recommendation_football import FootballCoachAI
+                from src.agents.agentfootball.agent_recommendation_football import FootballCoachAI
                 with open(ROOT / "agentfootball/context_football.txt") as f:  context = f.read()
                 with open(ROOT / "agentfootball/user_prompt_football.txt") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici l'intégralité des données du match : {match_data}"
