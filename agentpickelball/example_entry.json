@@ -1,0 +1,33 @@
+{
+  "match_id": "PB-2026-USA",
+  "joueur_analyse": {
+    "nom": "Alice Rivera",
+    "position_predilection": "Droite"
+  },
+  "donnees_sequences": [
+    {
+      "id_sequence": "seq_001",
+      "timestamp": "08:12",
+      "evenement_cle": "Faute au filet (Kitchen Violation)",
+      "metriques_video": {
+        "position_pieds": {"x": 2.1, "y": 0.05}, 
+        "distance_ligne_non_volee": -0.05,
+        "type_coup": "Volley",
+        "equilibre_corps": "vers_l_avant"
+      },
+      "contexte_tactique": "Échange soutenu en Dinks, Alice tente une accélération."
+    },
+    {
+      "id_sequence": "seq_002",
+      "timestamp": "12:45",
+      "evenement_cle": "Lobe intercepté",
+      "metriques_video": {
+        "hauteur_balle_max": 3.2,
+        "vitesse_balle": 45,
+        "position_adversaire": "Transition zone",
+        "angle_raquette": 65
+      },
+      "contexte_tactique": "Alice tente un lobe de défense mais l'adversaire n'était pas assez engagé au filet."
+    }
+  ]
+}
