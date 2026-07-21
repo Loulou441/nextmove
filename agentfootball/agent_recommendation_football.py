@@ -2,7 +2,7 @@ import os
 from groq import Groq
 import json
 from dotenv import load_dotenv
-from afficher_rapport import afficher_rapport
+from agentfootball.afficher_rapport import afficher_rapport
 
 # Charge les variables d'environnement du fichier .env
 load_dotenv()

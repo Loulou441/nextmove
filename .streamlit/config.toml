@@ -1,0 +1,19 @@
+[theme]
+# Vert Néon sportif (assorti aux boutons de ton design)
+primaryColor = "#00FFAA" 
+
+# Fond principal très sombre (Bleu Nuit / Noir profond)
+backgroundColor = "#0A0E17" 
+
+# Fond secondaire (pour la barre latérale sur la gauche)
+secondaryBackgroundColor = "#151B2B" 
+
+# Couleur du texte (Gris très clair pour une lisibilité parfaite)
+textColor = "#E0E0E0" 
+
+# Police moderne et épurée
+font = "sans serif"
+
+[client]
+# Masque le gros bouton "Deploy" en haut à droite pour faire "Vraie Application SaaS"
+# toolbarMode = "minimal"
