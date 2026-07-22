@@ -1,0 +1,33 @@
+{
+  "match_id": "PD-2026-ESP",
+  "joueur_analyse": {
+    "nom": "Marco Duran",
+    "position_predilection": "Revés"
+  },
+  "donnees_sequences": [
+    {
+      "id_sequence": "seq_001",
+      "timestamp": "14:20",
+      "evenement_cle": "Faute directe au filet",
+      "metriques_video": {
+        "position_pieds": {"x": 3.4, "y": 1.2},
+        "type_coup": "Volée",
+        "angle_raquette": 40,
+        "equilibre_corps": "vers_l_avant"
+      },
+      "contexte_tactique": "Le couple adverse enchaîne les lobs, Marco monte trop tôt au filet."
+    },
+    {
+      "id_sequence": "seq_002",
+      "timestamp": "27:05",
+      "evenement_cle": "Sortie de vitre manquée",
+      "metriques_video": {
+        "hauteur_balle_max": 2.1,
+        "vitesse_balle": 38,
+        "position_adversaire": "Fond de court",
+        "angle_raquette": 55
+      },
+      "contexte_tactique": "Marco tente une sortie de mur mais anticipe mal le rebond après la vitre."
+    }
+  ]
+}
