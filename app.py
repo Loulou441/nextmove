@@ -46,7 +46,8 @@ with st.sidebar:
 if page == "👤  Me":
     page_header("Me")
 
-    sport_label = "🏓 Pickleball" if st.session_state["sport"] == "pickleball" else "⚽ Football"
+    _sport_labels = {"pickleball": "🏓 Pickleball", "football": "⚽ Football", "padel": "🎾 Padel"}
+    sport_label = _sport_labels.get(st.session_state["sport"], "🏓 Pickleball")
 
     # Profile card
     st.markdown(f"""
@@ -97,15 +98,17 @@ if page == "👤  Me":
     """, unsafe_allow_html=True)
 
     st.markdown('<div style="font-size:15px;font-weight:500;color:#34C759;margin:4px 0 8px;">🏆 Change Sport</div>', unsafe_allow_html=True)
+    _sport_options = ["🏓 Pickleball", "⚽ Football", "🎾 Padel"]
+    _sport_values = ["pickleball", "football", "padel"]
     sport_choice = st.radio(
         "Change Sport",
-        ["🏓 Pickleball", "⚽ Football"],
-        index=0 if st.session_state["sport"] == "pickleball" else 1,
+        _sport_options,
+        index=_sport_values.index(st.session_state["sport"]) if st.session_state["sport"] in _sport_values else 0,
         horizontal=True,
         label_visibility="collapsed",
         key="sport_radio_me"
     )
-    st.session_state["sport"] = "pickleball" if "Pickleball" in sport_choice else "football"
+    st.session_state["sport"] = _sport_values[_sport_options.index(sport_choice)]
 
 elif page == "📚  Library":
     exec(open(ROOT / "src/streamlit_app/1_Library.py", encoding="utf-8").read())
