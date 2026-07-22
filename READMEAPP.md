@@ -1,186 +1,67 @@
 <div align="center">
 
-# NextMove
+# NextMove — Guide de l'application
 
-Analyse vidéo de pickleball avec insights, dashboards et recommandations de type coach.
+Analyse de matchs multi-sport (Pickleball, Football, Padel) avec insights, dashboards et recommandations de type coach IA.
 
-NextMove est une application iOS développée en SwiftUI qui analyse de courtes vidéos de pickleball pour transformer les séquences de jeu en insights compréhensibles, métriques simples et conseils d’amélioration.
+NextMove est une application **Streamlit (Python)** qui transforme des données de match (importées ou de démo) en métriques simples, visualisations et conseils de coaching générés par un modèle de langage (Groq).
 
 </div>
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Loulou441/nextmove/asmae/frame%201.PNG">
-</p>
 
 ---
 
 # Overview
 
-NextMove vise à rendre l’analyse de performance sportive plus accessible grâce à la vision par ordinateur et aux technologies mobiles.
+NextMove vise à rendre l'analyse de performance sportive plus accessible. À partir des données d'un match, l'application génère automatiquement :
 
-À partir d’une courte vidéo de pickleball, l’application détecte les éléments clés du jeu, analyse les mouvements et génère automatiquement :
-
-- des métriques simples de performance  
-- des visualisations et dashboards  
-- des recommandations de type coach en langage naturel  
-
-L’objectif est de permettre aux joueurs d’obtenir un retour rapide sur leurs séquences de jeu sans équipement spécialisé ni analyse complexe.
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Loulou441/nextmove/asmae/frame%203.PNG">
-</p>
+- des métriques simples de performance
+- des visualisations et dashboards
+- la détection de patterns de jeu récurrents
+- des recommandations de type coach en langage naturel, propres à chaque sport
 
 ---
 
-# How It Works
+# Pages de l'application
 
-NextMove utilise un pipeline d’analyse vidéo en plusieurs étapes.
+L'application est organisée en pages accessibles depuis la barre latérale ([app.py](app.py)) :
 
-1. L’utilisateur importe une courte vidéo de pickleball  
-2. L’application extrait des images à partir de la vidéo  
-3. Un modèle de vision par ordinateur analyse chaque frame  
-4. Les objets détectés sont suivis dans le temps  
-5. Des métriques de jeu sont calculées  
-6. Les résultats sont transformés en insights et recommandations  
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Loulou441/nextmove/asmae/frame%202.PNG">
-</p>
-
-### Pipeline d’analyse
-
-Vidéo utilisateur  
-↓  
-Extraction des frames  
-↓  
-Détection d’objets via Core ML  
-↓  
-Tracking des objets  
-↓  
-Extraction de métriques  
-↓  
-Insights et recommandations  
-↓  
-Dashboard dans l’application
-
-Le modèle est entraîné pour détecter différents éléments du jeu :
-
-- la balle  
-- le joueur  
-- la raquette  
-- le filet  
-- les poteaux  
-- certaines structures du terrain  
-
-Ces détections permettent ensuite d’estimer des informations utiles sur le positionnement, les déplacements et la dynamique du rallye.
+- **Me** — profil joueur, statistiques de progression.
+- **Library** ([1_Library.py](src/streamlit_app/1_Library.py)) — liste des matchs analysés ou en attente d'analyse.
+- **Upload** ([2_Upload.py](src/streamlit_app/2_Upload.py)) — import d'une nouvelle vidéo/d'un nouveau match.
+- **Dashboard** ([3_Dashboard.py](src/streamlit_app/3_Dashboard.py)) — métriques clés et visualisations d'un match sélectionné.
+- **AI Analysis** ([4_AI_Analysis.py](src/streamlit_app/4_AI_Analysis.py)) — génère un rapport de coaching IA pour une action précise, pour le sport choisi (Pickleball ou Football).
+- **Patterns** ([5_Patterns.py](src/streamlit_app/5_Patterns.py)) — détection de tendances récurrentes dans le jeu.
+- **Training Plan** ([6_Training_Plan.py](src/streamlit_app/6_Training_Plan.py)) — programme d'entraînement hebdomadaire personnalisé généré par l'agent IA.
 
 ---
 
-# Features
+# Coaching IA multi-sport
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/Loulou441/nextmove/asmae/frame%204.PNG">
-</p>
+Chaque sport dispose de son propre agent de coaching sous [src/agents/](src/agents) :
 
-### Analyse vidéo
+- `agentpickelball/` — contexte, prompt et données d'exemple pour le pickleball.
+- `agentfootball/` — équivalent pour le football.
+- `agentpadel/` — équivalent pour le padel.
+- `agentmanager/` — classe de base partagée (client Groq).
 
-- import d’une vidéo depuis la galerie  
-- traitement des clips courts  
-- préparation de la vidéo pour l’analyse  
+Tous les agents renvoient le même schéma JSON (`constat`, `analyse`, `action_corrective`, `pro_tip`), affiché de façon identique dans l'UI Streamlit et en CLI (`afficher_rapport.py`).
 
-### Détection visuelle
-
-- détection du joueur et du contexte terrain  
-- détection de la balle lorsque possible  
-- identification de plusieurs éléments du jeu  
-
-### Génération d’insights
-
-Les données extraites de la vidéo sont transformées en informations compréhensibles, par exemple :
-
-- durée estimée du rallye  
-- position moyenne sur le terrain  
-- tendances de déplacement  
-- zones de couverture du joueur  
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Loulou441/nextmove/asmae/frame%205.PNG">
-</p>
-
-### Recommandations coach
-
-Les métriques sont reformulées en langage simple afin de fournir des conseils actionnables :
-
-- améliorer le positionnement  
-- ajuster les déplacements  
-- anticiper certaines phases du jeu  
-
-### Dashboard de session
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Loulou441/nextmove/asmae/frame%206.PNG">
-</p>
-
-Chaque analyse génère un résumé visuel comprenant :
-
-- métriques clés  
-- graphiques simples  
-- recommandations principales  
+Sans clé `GROQ_API_KEY` configurée, les pages "AI Analysis" et "Training Plan" basculent automatiquement en mode démo avec un rapport statique.
 
 ---
 
 # Technical Details
 
-## Application iOS
+- **Frontend/Backend** : Streamlit (Python), pas de séparation front/back — tout tourne dans le processus `streamlit run app.py`.
+- **Données** : CSV de démo ([data/demo_games.csv](data/demo_games.csv)) et fichiers JSON d'exemple par sport.
+- **IA** : API Groq (modèles type `llama-3.3-70b-versatile`) pour la génération des recommandations.
+- **Visualisation** : Plotly pour les graphiques et le terrain tactique ([src/viz.py](src/viz.py)).
 
-NextMove est développé avec les technologies suivantes :
-
-- Swift  
-- SwiftUI  
-- AVFoundation pour le traitement vidéo  
-- Vision pour la gestion des requêtes de vision par ordinateur  
-- Core ML pour l’inférence du modèle  
-- Swift Charts pour les visualisations  
-- SwiftData / Core Data pour le stockage des sessions  
-
-## Modèle de machine learning
-
-Le modèle de détection est entraîné séparément en Python avant d’être converti au format Core ML pour l’application.
-
-Pipeline d’entraînement :
-
-- préparation et annotation des clips vidéo  
-- entraînement du modèle  
-- évaluation des performances  
-- conversion vers Core ML  
-- intégration dans l’application iOS  
-
-Technologies utilisées :
-
-- Python  
-- PyTorch ou YOLO  
-- OpenCV  
-- outils d’annotation vidéo  
-
-Le modèle n’est pas entraîné dans l’application.  
-Seule l’inférence est exécutée sur l’appareil mobile.
-
----
-
-# Requirements
-
-Pour exécuter le projet :
-
-- macOS  
-- Xcode récent  
-- iOS 16 ou version ultérieure  
-- appareil iOS compatible ou simulateur  
-- modèle Core ML intégré au projet  
+Voir [README.md](README.md) pour les instructions d'installation et de lancement.
 
 ---
 
 # License
 
-Ce projet est distribué sous licence MIT.
+Ce projet est distribué sous licence MIT. Voir le fichier LICENSE pour plus d'informations.
 
-Voir le fichier LICENSE pour plus d’informations.
