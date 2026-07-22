@@ -1,7 +1,6 @@
 from src.agents.agentmanager.agent import Agent
 import json
 from pathlib import Path
-from src.agents.agentpadel.afficher_rapport import afficher_rapport
 
 from src.config import MODEL_NAME_PADEL
 
@@ -56,7 +55,7 @@ def main():
 
     # 2. Afficher le résultat
     print("\n" + "="*30)
-    afficher_rapport(recommandations)
+    coach.afficher_rapport(recommandations)
     print("="*30)
 
 if __name__ == "__main__":

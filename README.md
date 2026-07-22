@@ -69,7 +69,7 @@ Chaque sport dispose de son propre agent de coaching sous [src/agents/](src/agen
 - `agentpadel/` — équivalent pour le padel.
 - `agentmanager/` — classe de base partagée (client Groq).
 
-Tous les agents renvoient le même schéma JSON (`constat`, `analyse`, `action_corrective`, `pro_tip`), affiché de façon identique dans l'UI Streamlit et en CLI (`afficher_rapport.py`).
+Tous les agents renvoient le même schéma JSON (`constat`, `analyse`, `action_corrective`, `pro_tip`), affiché de façon identique dans l'UI Streamlit et en CLI (méthode `Agent.afficher_rapport()`, héritée par les 3 coachs).
 
 ## Prérequis
 
