@@ -6,9 +6,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 
+from src.config import APP_PAGE_TITLE, APP_PAGE_ICON, DEFAULT_SPORT
+
 st.set_page_config(
-    page_title="NextMove",
-    page_icon="🏓",
+    page_title=APP_PAGE_TITLE,
+    page_icon=APP_PAGE_ICON,
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -18,7 +20,7 @@ from src.design import set_ios_design, section_title, page_header
 set_ios_design()
 
 # ── Shared session state defaults ────────────────────────────────────
-st.session_state.setdefault("sport", "pickleball")
+st.session_state.setdefault("sport", DEFAULT_SPORT)
 st.session_state.setdefault("current_game_id", None)
 
 # Apply any pending navigation request BEFORE the radio widget is instantiated

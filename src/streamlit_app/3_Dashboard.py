@@ -9,10 +9,9 @@ ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import (set_ios_design, page_header, section_title,
                          skill_bar, performance_ring, kpi_grid, strengths_focus)
+from src.config import DATA_DIR
 
 set_ios_design()
-
-DATA_DIR = ROOT / "data"
 
 @st.cache_data
 def load_games():

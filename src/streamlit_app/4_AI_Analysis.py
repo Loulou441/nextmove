@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title
 from src.viz import create_tactical_pitch
+from src.config import PROMPT_PATH_FOOTBALL, PROMPT_PATH_PADEL, PROMPT_PATH_PICKELBALL
 
 set_ios_design()
 load_dotenv()
@@ -92,45 +93,45 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
             if "Football" in sport:
                 from src.agents.agentfootball.agent_recommendation_football import FootballCoachAI
 
-                with open(ROOT / "src/agents/agentfootball/example_entry.json", "r", encoding="utf-8") as f:
+                with open(PROMPT_PATH_FOOTBALL / "example_entry.json", "r", encoding="utf-8") as f:
                     match_data = json.load(f)
                 match_data["joueur_analyse"]["nom"] = player
                 match_data["donnees_sequences"][0]["timestamp_debut"] = f"{minute}:00"
                 match_data["donnees_sequences"][0]["evenement_cle"] = event_type
                 match_data["donnees_sequences"][0]["metriques_video"]["coordonnees_ballon"] = {"x": x, "y": y}
 
-                with open(ROOT / "src/agents/agentfootball/context_football.txt", encoding="utf-8") as f: context = f.read()
-                with open(ROOT / "src/agents/agentfootball/user_prompt_football.txt", encoding="utf-8") as f: prompt = f.read()
+                with open(PROMPT_PATH_FOOTBALL / "context_football.txt", encoding="utf-8") as f: context = f.read()
+                with open(PROMPT_PATH_FOOTBALL / "user_prompt_football.txt", encoding="utf-8") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
 
                 coach = FootballCoachAI(context, user_prompt)
             elif "Padel" in sport:
                 from src.agents.agentpadel.agent_recommendation_padel import PadelCoachAI
 
-                with open(ROOT / "src/agents/agentpadel/example_entry.json", "r", encoding="utf-8") as f:
+                with open(PROMPT_PATH_PADEL / "example_entry.json", "r", encoding="utf-8") as f:
                     match_data = json.load(f)
                 match_data["joueur_analyse"]["nom"] = player
                 match_data["donnees_sequences"][0]["timestamp"] = f"{minute}:00"
                 match_data["donnees_sequences"][0]["evenement_cle"] = event_type
                 match_data["donnees_sequences"][0]["metriques_video"]["position_pieds"] = {"x": x, "y": y}
 
-                with open(ROOT / "src/agents/agentpadel/context_padel.txt", encoding="utf-8") as f: context = f.read()
-                with open(ROOT / "src/agents/agentpadel/user_prompt_padel.txt", encoding="utf-8") as f: prompt = f.read()
+                with open(PROMPT_PATH_PADEL / "context_padel.txt", encoding="utf-8") as f: context = f.read()
+                with open(PROMPT_PATH_PADEL / "user_prompt_padel.txt", encoding="utf-8") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
 
                 coach = PadelCoachAI(context, user_prompt)
             else:
                 from src.agents.agentpickelball.agent_recommendation_pickelball import PickelballCoachAI
 
-                with open(ROOT / "src/agents/agentpickelball/example_entry.json", "r", encoding="utf-8") as f:
+                with open(PROMPT_PATH_PICKELBALL / "example_entry.json", "r", encoding="utf-8") as f:
                     match_data = json.load(f)
                 match_data["joueur_analyse"]["nom"] = player
                 match_data["donnees_sequences"][0]["timestamp"] = f"{minute}:00"
                 match_data["donnees_sequences"][0]["evenement_cle"] = event_type
                 match_data["donnees_sequences"][0]["metriques_video"]["position_pieds"] = {"x": x, "y": y}
 
-                with open(ROOT / "src/agents/agentpickelball/context_pickelball.txt", encoding="utf-8") as f: context = f.read()
-                with open(ROOT / "src/agents/agentpickelball/user_prompt_pickelball.txt", encoding="utf-8") as f: prompt = f.read()
+                with open(PROMPT_PATH_PICKELBALL / "context_pickelball.txt", encoding="utf-8") as f: context = f.read()
+                with open(PROMPT_PATH_PICKELBALL / "user_prompt_pickelball.txt", encoding="utf-8") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
 
                 coach = PickelballCoachAI(context, user_prompt)

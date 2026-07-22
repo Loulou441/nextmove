@@ -2,7 +2,7 @@ from src.agents.agentmanager.agent import Agent
 import json
 from pathlib import Path
 
-from src.config import MODEL_NAME_PICKELBALL
+from src.config import MODEL_NAME_PICKELBALL, GROQ_TEMPERATURE
 
 class PickelballCoachAI(Agent):
     def __init__(self, context, user_prompt):
@@ -23,7 +23,7 @@ class PickelballCoachAI(Agent):
                 {"role": "user", "content": self.user_prompt},
         ],
         model=MODEL_NAME_PICKELBALL,
-        temperature=0.0,
+        temperature=GROQ_TEMPERATURE,
         response_format={"type": "json_object"}
         )
 

@@ -2,7 +2,7 @@ from src.agents.agentmanager.agent import Agent
 import json
 from pathlib import Path
 
-from src.config import MODEL_NAME_PADEL
+from src.config import MODEL_NAME_PADEL, GROQ_TEMPERATURE
 
 class PadelCoachAI(Agent):
     def __init__(self, context, user_prompt):
@@ -23,7 +23,7 @@ class PadelCoachAI(Agent):
                 {"role": "user", "content": self.user_prompt},
         ],
         model=MODEL_NAME_PADEL,
-        temperature=0.0,
+        temperature=GROQ_TEMPERATURE,
         response_format={"type": "json_object"}
         )
 

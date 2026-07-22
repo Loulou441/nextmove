@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title
+from src.config import PROMPT_PATHS
 
 set_ios_design()
 load_dotenv()
@@ -18,13 +19,11 @@ page_header("Training Plan", "Your personalized weekly program")
 section_title("Select Sport")
 _sport_options = ["🏓 Pickleball", "⚽ Football", "🎾 Padel"]
 _sport_values = ["pickleball", "football", "padel"]
-_agent_folders = {"pickleball": "agentpickelball", "football": "agentfootball", "padel": "agentpadel"}
 _file_suffixes = {"pickleball": "pickelball", "football": "football", "padel": "padel"}
 default_sport_index = _sport_values.index(st.session_state.get("sport", "pickleball")) if st.session_state.get("sport", "pickleball") in _sport_values else 0
 sport = st.radio("Sport", _sport_options, index=default_sport_index, horizontal=True, label_visibility="collapsed", key="sport_radio_training")
 st.session_state["sport"] = _sport_values[_sport_options.index(sport)]
 sport_value = st.session_state["sport"]
-agent_folder = _agent_folders[sport_value]
 file_suffix = _file_suffixes[sport_value]
 sport_badge = sport
 
@@ -32,7 +31,7 @@ st.markdown("<hr>", unsafe_allow_html=True)
 
 # ── Player info ──────────────────────────────────────────────────────
 try:
-    with open(ROOT / f"src/agents/{agent_folder}/example_entry.json", encoding="utf-8") as f:
+    with open(PROMPT_PATHS[sport_value] / "example_entry.json", encoding="utf-8") as f:
         match_data = json.load(f)
     joueur = match_data["joueur_analyse"]
 except FileNotFoundError:
@@ -155,8 +154,8 @@ if st.button("🧠 Generate Weekly Training Plan", type="primary", use_container
                 else:
                     from src.agents.agentpickelball.agent_recommendation_pickelball import PickelballCoachAI as CoachClass
 
-                with open(ROOT / f"src/agents/{agent_folder}/context_{file_suffix}.txt", encoding="utf-8") as f:  context = f.read()
-                with open(ROOT / f"src/agents/{agent_folder}/user_prompt_{file_suffix}.txt", encoding="utf-8") as f: prompt = f.read()
+                with open(PROMPT_PATHS[sport_value] / f"context_{file_suffix}.txt", encoding="utf-8") as f:  context = f.read()
+                with open(PROMPT_PATHS[sport_value] / f"user_prompt_{file_suffix}.txt", encoding="utf-8") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici l'intégralité des données du match : {match_data}"
                 coach = CoachClass(context, user_prompt)
                 recommandations = coach.generate_recommendations(match_data)
