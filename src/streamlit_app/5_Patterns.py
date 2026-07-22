@@ -4,15 +4,14 @@ import plotly.express as px
 from pathlib import Path
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title
 from src.patterns_engine import compute_match_patterns
+from src.config import DATA_DIR
 
 set_ios_design()
 page_header("Patterns", "Tactical trends & collective behaviour")
-
-DATA_DIR = ROOT / "data"
 
 @st.cache_data
 def load_games():   return pd.read_csv(DATA_DIR / "demo_games.csv")
@@ -30,24 +29,32 @@ except FileNotFoundError:
     has_events = False
 
 games = load_games()
-selected = st.selectbox("Select Game", games["title"].tolist(), label_visibility="collapsed")
+game_options = games["title"].tolist()
+current_id = st.session_state.get("current_game_id")
+if current_id in games["game_id"].values:
+    default_index = game_options.index(games[games["game_id"] == current_id].iloc[0]["title"])
+else:
+    default_index = 0
+
+selected = st.selectbox("Select Game", game_options, index=default_index, label_visibility="collapsed", key="patterns_game_select")
+st.session_state["current_game_id"] = int(games[games["title"] == selected].iloc[0]["game_id"])
 
 if not has_events:
     st.info("📊 Demo mode — event data file not found. Using simulated patterns.")
 
     # Simulated summary
     patterns = {
-        "total_events": 48,
-        "total_goals": 0,
-        "total_shots": 12,
-        "total_turnovers": 6,
-        "phase_distribution": {"Transition": 18, "Set-piece": 10, "Open play": 20},
-        "zone_distribution":  {"Dernier tiers": 16, "Milieu offensif": 20, "Milieu": 8, "Tiers défensif": 4},
-        "transition_risk_ratio": 0.37,
+        "total_events": 21,
+        "total_winners": 9,
+        "total_shots": 6,
+        "total_errors": 6,
+        "phase_distribution": {"Transition": 8, "Service": 4, "Kitchen": 9},
+        "zone_distribution":  {"Zone du filet (Kitchen)": 10, "Zone de transition avant": 6, "Zone médiane": 2, "Zone de fond de court (service)": 3},
+        "transition_risk_ratio": 0.38,
         "priority_level": "Moyenne",
         "insights": [
-            "Volume élevé d'actions adverses dans le dernier tiers.",
-            "Nombre important de pertes de balle potentiellement dangereuses.",
+            "Volume élevé d'échanges dans la zone du filet (Kitchen).",
+            "Nombre important d'erreurs non forcées potentiellement évitables.",
         ]
     }
 else:
@@ -59,9 +66,9 @@ else:
 section_title("Volume")
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Events tracked",  patterns["total_events"])
-c2.metric("Goals",           patterns["total_goals"])
+c2.metric("Winners",         patterns["total_winners"])
 c3.metric("Shots",           patterns["total_shots"])
-c4.metric("Turnovers",       patterns["total_turnovers"])
+c4.metric("Unforced Errors", patterns["total_errors"])
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
