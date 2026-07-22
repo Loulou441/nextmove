@@ -8,7 +8,13 @@ def set_ios_design():
     .stApp { background-color: #F2F2F7 !important; }
     #MainMenu, footer, header { visibility: hidden; }
     .stDeployButton { display: none; }
-    [data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E5E5EA !important; }
+    [data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E5E5EA !important; min-width: 260px !important; }
+    [data-testid="stSidebar"] [role="radiogroup"] { gap: 2px !important; }
+    [data-testid="stSidebar"] [role="radiogroup"] label { padding: 10px 14px !important; border-radius: 12px !important; transition: background 0.15s ease; }
+    [data-testid="stSidebar"] [role="radiogroup"] label:hover { background: #F2F2F7 !important; }
+    [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) { background: #EAFBF0 !important; }
+    [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) div p { color: #1A7F3C !important; font-weight: 700 !important; }
+    [data-testid="stSidebar"] [role="radiogroup"] label > div:first-child { display: none !important; }
     h1 { font-size: 34px !important; font-weight: 700 !important; color: #1C1C1E !important; }
     h2 { font-size: 22px !important; font-weight: 600 !important; color: #1C1C1E !important; margin-top: 24px !important; margin-bottom: 8px !important; }
     .nm-card { background: #FFFFFF; border-radius: 16px; padding: 20px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }

@@ -3,39 +3,40 @@ import pandas as pd
 
 
 def compute_match_patterns(match_events: pd.DataFrame) -> Dict[str, Any]:
+    """Analyse des patterns tactiques d'un match de pickleball."""
 
     summary = {}
 
     total_events = len(match_events)
-    total_goals = (match_events["type"].str.upper() == "GOAL").sum()
+    total_winners = (match_events["type"].str.upper() == "WINNER").sum()
     total_shots = (match_events["type"].str.upper() == "SHOT").sum()
-    total_turnovers = (match_events["type"].str.upper() == "TURNOVER").sum()
+    total_errors = (match_events["type"].str.upper() == "ERROR").sum()
 
     summary["total_events"] = int(total_events)
-    summary["total_goals"] = int(total_goals)
+    summary["total_winners"] = int(total_winners)
     summary["total_shots"] = int(total_shots)
-    summary["total_turnovers"] = int(total_turnovers)
+    summary["total_errors"] = int(total_errors)
 
-    # Phases dangereuses
+    # Phases de jeu dangereuses (service, transition, filet/kitchen)
     phase_counts = match_events["phase"].value_counts().to_dict()
     summary["phase_distribution"] = phase_counts
 
-    # Zones à risque (basées sur x)
+    # Zones à risque (basées sur la distance au filet, x=100 -> au filet)
     def zone(x):
         if x >= 80:
-            return "Dernier tiers"
+            return "Zone du filet (Kitchen)"
         elif x >= 55:
-            return "Milieu offensif"
+            return "Zone de transition avant"
         elif x >= 35:
-            return "Milieu"
+            return "Zone médiane"
         else:
-            return "Tiers défensif"
+            return "Zone de fond de court (service)"
 
     match_events["zone"] = match_events["x"].apply(zone)
     zone_counts = match_events["zone"].value_counts().to_dict()
     summary["zone_distribution"] = zone_counts
 
-    # Détection simple vulnérabilité transition
+    # Détection simple de vulnérabilité en phase de transition
     transition_events = match_events[
         match_events["phase"].str.lower() == "transition"
     ]
@@ -48,13 +49,13 @@ def compute_match_patterns(match_events: pd.DataFrame) -> Dict[str, Any]:
     insights = []
 
     if summary["transition_risk_ratio"] > 0.4:
-        insights.append("Forte exposition en phase de transition.")
+        insights.append("Forte exposition en phase de transition avant le filet.")
 
-    if summary["zone_distribution"].get("Dernier tiers", 0) > total_events * 0.3:
-        insights.append("Volume élevé d'actions adverses dans le dernier tiers.")
+    if summary["zone_distribution"].get("Zone du filet (Kitchen)", 0) > total_events * 0.3:
+        insights.append("Volume élevé d'échanges dans la zone du filet (Kitchen).")
 
-    if total_turnovers > 2:
-        insights.append("Nombre important de pertes de balle potentiellement dangereuses.")
+    if total_errors > 2:
+        insights.append("Nombre important d'erreurs non forcées potentiellement évitables.")
 
     if not insights:
         insights.append("Pas de vulnérabilité structurelle majeure détectée sur ce match (selon règles POC).")
@@ -70,3 +71,4 @@ def compute_match_patterns(match_events: pd.DataFrame) -> Dict[str, Any]:
         summary["priority_level"] = "Faible"
 
     return summary
+
