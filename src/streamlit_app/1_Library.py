@@ -3,7 +3,7 @@ import streamlit as st
 from pathlib import Path
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title, skill_bar, performance_ring, kpi_grid, strengths_focus
 
@@ -48,7 +48,9 @@ for _, g in games.iterrows():
 
         if st.button(f"📊 Open Analysis — {g['title']}", key=f"open_{g['game_id']}", use_container_width=True, type="primary"):
             st.session_state["selected_game"] = g.to_dict()
-            st.success(f"Opening {g['title']}... navigate to Dashboard →")
+            st.session_state["current_game_id"] = int(g["game_id"])
+            st.session_state["nav_target"] = "📊  Dashboard"
+            st.rerun()
     else:
         if st.button(f"🔍 Analyze Game — {g['title']}", key=f"analyze_{g['game_id']}", use_container_width=True):
             with st.spinner("Analyzing..."):

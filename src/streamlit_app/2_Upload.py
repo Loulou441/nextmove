@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 from datetime import datetime
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title
 
@@ -56,6 +56,7 @@ if uploaded is not None:
     save_path = VIDEO_DIR / f"{ts}_{uploaded.name.replace(' ', '_')}"
     with open(save_path, "wb") as f:
         f.write(uploaded.getbuffer())
+    st.session_state["last_uploaded_video"] = str(save_path)
 
     # Confirmation modal style
     st.markdown("""
@@ -73,7 +74,8 @@ if uploaded is not None:
     col1, col2 = st.columns(2)
     with col1:
         if st.button("📚 Go to Library", use_container_width=True, type="primary"):
-            st.info("Navigate to Library in the sidebar →")
+            st.session_state["nav_target"] = "📚  Library"
+            st.rerun()
     with col2:
         if st.button("🔍 Analyze Now", use_container_width=True):
             with st.status("Analyzing your game...", expanded=True) as status:

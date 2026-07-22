@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title
 from src.viz import create_tactical_pitch
@@ -18,7 +18,9 @@ page_header("AI Analysis", "Get instant coaching insights")
 
 # ── Sport selector ──────────────────────────────────────────────────
 section_title("Select Sport")
-sport = st.radio("", ["🏓 Pickleball", "⚽ Football"], horizontal=True, label_visibility="collapsed")
+default_sport_index = 0 if st.session_state.get("sport", "pickleball") == "pickleball" else 1
+sport = st.radio("Sport", ["🏓 Pickleball", "⚽ Football"], index=default_sport_index, horizontal=True, label_visibility="collapsed", key="sport_radio_analysis")
+st.session_state["sport"] = "pickleball" if "Pickleball" in sport else "football"
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -77,19 +79,37 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
         }
     else:
         try:
-            from src.agents.agentfootball.agent_recommendation_football import FootballCoachAI
-            with open(ROOT / "agentfootball/example_entry.json", "r") as f:
-                match_data = json.load(f)
-            match_data["joueur_analyse"]["nom"] = player
-            match_data["donnees_sequences"][0]["timestamp_debut"] = f"{minute}:00"
-            match_data["donnees_sequences"][0]["evenement_cle"] = event_type
-            match_data["donnees_sequences"][0]["metriques_video"]["coordonnees_ballon"] = {"x": x, "y": y}
+            if "Football" in sport:
+                from src.agents.agentfootball.agent_recommendation_football import FootballCoachAI
 
-            with open(ROOT / "agentfootball/context_football.txt") as f: context = f.read()
-            with open(ROOT / "agentfootball/user_prompt_football.txt") as f: prompt = f.read()
-            user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
+                with open(ROOT / "src/agents/agentfootball/example_entry.json", "r", encoding="utf-8") as f:
+                    match_data = json.load(f)
+                match_data["joueur_analyse"]["nom"] = player
+                match_data["donnees_sequences"][0]["timestamp_debut"] = f"{minute}:00"
+                match_data["donnees_sequences"][0]["evenement_cle"] = event_type
+                match_data["donnees_sequences"][0]["metriques_video"]["coordonnees_ballon"] = {"x": x, "y": y}
 
-            coach = FootballCoachAI(api_key, context, user_prompt)
+                with open(ROOT / "src/agents/agentfootball/context_football.txt", encoding="utf-8") as f: context = f.read()
+                with open(ROOT / "src/agents/agentfootball/user_prompt_football.txt", encoding="utf-8") as f: prompt = f.read()
+                user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
+
+                coach = FootballCoachAI(context, user_prompt)
+            else:
+                from src.agents.agentpickelball.agent_recommendation_pickelball import PickelballCoachAI
+
+                with open(ROOT / "src/agents/agentpickelball/example_entry.json", "r", encoding="utf-8") as f:
+                    match_data = json.load(f)
+                match_data["joueur_analyse"]["nom"] = player
+                match_data["donnees_sequences"][0]["timestamp"] = f"{minute}:00"
+                match_data["donnees_sequences"][0]["evenement_cle"] = event_type
+                match_data["donnees_sequences"][0]["metriques_video"]["position_pieds"] = {"x": x, "y": y}
+
+                with open(ROOT / "src/agents/agentpickelball/context_pickelball.txt", encoding="utf-8") as f: context = f.read()
+                with open(ROOT / "src/agents/agentpickelball/user_prompt_pickelball.txt", encoding="utf-8") as f: prompt = f.read()
+                user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
+
+                coach = PickelballCoachAI(context, user_prompt)
+
             with st.spinner("SmartCoach is writing recommendations..."):
                 recommandations = coach.generate_recommendations(match_data)
         except Exception as e:
@@ -134,7 +154,10 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
 
     with col_pitch:
         section_title("📍 Tactical View")
-        pitch_fig = create_tactical_pitch(x, y, player, event_type, phase="AI Analysis")
+        pitch_fig = create_tactical_pitch(
+            x, y, player, event_type, phase="AI Analysis",
+            sport="football" if "Football" in sport else "pickleball"
+        )
         pitch_fig.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",

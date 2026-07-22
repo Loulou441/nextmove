@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title
 
@@ -16,11 +16,11 @@ page_header("Training Plan", "Your personalized weekly program")
 
 # ── Player info ──────────────────────────────────────────────────────
 try:
-    with open(ROOT / "agentfootball/example_entry.json") as f:
+    with open(ROOT / "src/agents/agentpickelball/example_entry.json", encoding="utf-8") as f:
         match_data = json.load(f)
     joueur = match_data["joueur_analyse"]
 except FileNotFoundError:
-    match_data = {"joueur_analyse": {"nom": "Player", "poste": "All-round"}, "donnees_sequences": [], "stats_globales_match": {}}
+    match_data = {"joueur_analyse": {"nom": "Player", "position_predilection": "All-round"}, "donnees_sequences": []}
     joueur = match_data["joueur_analyse"]
 
 st.markdown(f"""
@@ -28,7 +28,7 @@ st.markdown(f"""
   <div style="width:48px;height:48px;background:#34C759;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👤</div>
   <div>
     <div style="font-size:17px;font-weight:600;color:#1C1C1E;">{joueur['nom']}</div>
-    <div style="font-size:14px;color:#8E8E93;">{joueur['poste']}</div>
+    <div style="font-size:14px;color:#8E8E93;">{joueur['position_predilection']}</div>
   </div>
   <div style="margin-left:auto;">
     <span class="sport-badge">🏓 Pickleball</span>
@@ -85,11 +85,11 @@ if st.button("🧠 Generate Weekly Training Plan", type="primary", use_container
             }
         else:
             try:
-                from src.agents.agentfootball.agent_recommendation_football import FootballCoachAI
-                with open(ROOT / "agentfootball/context_football.txt") as f:  context = f.read()
-                with open(ROOT / "agentfootball/user_prompt_football.txt") as f: prompt = f.read()
+                from src.agents.agentpickelball.agent_recommendation_pickelball import PickelballCoachAI
+                with open(ROOT / "src/agents/agentpickelball/context_pickelball.txt", encoding="utf-8") as f:  context = f.read()
+                with open(ROOT / "src/agents/agentpickelball/user_prompt_pickelball.txt", encoding="utf-8") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici l'intégralité des données du match : {match_data}"
-                coach = FootballCoachAI(api_key, context, user_prompt)
+                coach = PickelballCoachAI(context, user_prompt)
                 recommandations = coach.generate_recommendations(match_data)
             except Exception as e:
                 st.error(f"AI Error: {e}")
