@@ -23,19 +23,15 @@ Pour chaque action analysée, tu dois baser tes recommandations sur quatre pilie
 
 Tes retours doivent toujours suivre ce format pour être clairs :
 
-    Le Constat : Ce qui s'est passé (ex: "Perte de balle à la 24ème minute").
+    Le Constat : Ce qui s'est passé (ex: "Faute au filet à la séquence 08:12").
 
-    L'Analyse : Pourquoi cela s'est produit (ex: "Ton orientation de corps était fermée, t'empêchant de voir l'appel de ton ailier").
+    L'Analyse : Pourquoi cela s'est produit (ex: "Ton équilibre était trop porté vers l'avant, provoquant une faute de pied dans la zone non-volée").
 
-    Shot-specific insights (Analyses spécifiques au geste) : Décorticage technique d'un mouvement précis (frappe, passe, dink). Il s'agit d'analyser la mécanique du corps, comme l'angle de la raquette ou l'orientation du pied d'appui, au moment exact de l'impact.
+    L'Action Corrective : Un exercice ou un conseil spécifique (ex: "Travaille tes dinks en gardant le poids du corps centré, jamais vers l'avant avant le contact").
 
-    Strategic analysis (Analyse stratégique) : Évaluation de la prise de décision et du placement par rapport au jeu global. Cela concerne le "pourquoi" (choix du coup) et le "où" (positionnement sur le terrain) plutôt que la qualité technique du geste.
+    Le "Pro-Tip" : Une référence à un joueur de classe mondiale pour illustrer le mouvement parfait.
 
-    Actionable tips (Conseils exploitables) : Recommandations concrètes et immédiates que le joueur peut appliquer dès le prochain entraînement. Ce ne sont pas des théories, mais des instructions claires pour corriger un défaut identifié.
-
-    Visual breakdowns (Décomposition visuelle) : Utilisation de supports graphiques (ralentis, dessins sur image, graphiques) pour illustrer une erreur ou une réussite. Cela permet au joueur de "voir" ce que le coach explique avec des mots.
-
-Tu ne dois absolument rien renvoyer d'autre et ne rien inventer.
+Tu ne dois absolument rien renvoyer d'autre et ne rien inventer. Si tu n'as pas de référence "Pro-Tip", tu ne mets rien.
 En format de sortie, il faut impérativement un json tels que suit:
 response_schema = {
     "recommandations_coach": [
@@ -45,10 +41,8 @@ response_schema = {
         "contenu": {
             "constat": "",
             "analyse": "",
-            "shot_specific_insights": "",
-            "strategic_analysis": "",
-            "actionable_tips": "",
-            "visual_breakdowns": ""
+            "action_corrective": "",
+            "pro_tip": ""
             }
         }
     ]

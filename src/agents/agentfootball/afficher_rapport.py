@@ -11,7 +11,7 @@ def afficher_rapport(data):
     for rec in data["recommandations_coach"]:
         # Création d'un tableau pour chaque action
         table = Table(title=f"\n[bold yellow]⏱ Séquence : {rec['timestamp']} - {rec['titre']}[/bold yellow]", show_header=True, header_style="bold magenta")
-        
+
         table.add_column("Catégorie", style="dim", width=20)
         table.add_column("Analyse du Coach")
 

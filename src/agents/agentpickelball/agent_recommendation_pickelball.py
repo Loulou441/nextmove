@@ -1,5 +1,6 @@
 from src.agents.agentmanager.agent import Agent
 import json
+from pathlib import Path
 from src.agents.agentpickelball.afficher_rapport import afficher_rapport
 
 from src.config import MODEL_NAME_PICKELBALL
@@ -36,17 +37,16 @@ class PickelballCoachAI(Agent):
 # --- MAIN PROCESS ---
 def main():
     #get the context, user_prompt and match_data
+    base_dir = Path(__file__).resolve().parent
 
-    with open('agentpickelball/example_entry.json') as fichier:
+    with open(base_dir / "example_entry.json", encoding="utf-8") as fichier:
         match_stats = json.load(fichier)
 
-    f = open('agentpickelball/context_pickelball.txt', 'r')
-    context = f.read()
-    f.close()
+    with open(base_dir / "context_pickelball.txt", "r", encoding="utf-8") as f:
+        context = f.read()
 
-    f = open('agentpickelball/user_prompt_pickelball.txt', 'r')
-    prompt = f.read()
-    f.close()
+    with open(base_dir / "user_prompt_pickelball.txt", "r", encoding="utf-8") as f:
+        prompt = f.read()
 
     user_prompt = f"{prompt}\nVoici les données du match : {match_stats}"
 
