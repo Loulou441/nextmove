@@ -14,24 +14,42 @@ api_key = os.getenv("GROQ_API_KEY")
 
 page_header("Training Plan", "Your personalized weekly program")
 
+# ── Sport selector ───────────────────────────────────────────────────
+section_title("Select Sport")
+_sport_options = ["🏓 Pickleball", "⚽ Football", "🎾 Padel"]
+_sport_values = ["pickleball", "football", "padel"]
+_agent_folders = {"pickleball": "agentpickelball", "football": "agentfootball", "padel": "agentpadel"}
+_file_suffixes = {"pickleball": "pickelball", "football": "football", "padel": "padel"}
+default_sport_index = _sport_values.index(st.session_state.get("sport", "pickleball")) if st.session_state.get("sport", "pickleball") in _sport_values else 0
+sport = st.radio("Sport", _sport_options, index=default_sport_index, horizontal=True, label_visibility="collapsed", key="sport_radio_training")
+st.session_state["sport"] = _sport_values[_sport_options.index(sport)]
+sport_value = st.session_state["sport"]
+agent_folder = _agent_folders[sport_value]
+file_suffix = _file_suffixes[sport_value]
+sport_badge = sport
+
+st.markdown("<hr>", unsafe_allow_html=True)
+
 # ── Player info ──────────────────────────────────────────────────────
 try:
-    with open(ROOT / "src/agents/agentpickelball/example_entry.json", encoding="utf-8") as f:
+    with open(ROOT / f"src/agents/{agent_folder}/example_entry.json", encoding="utf-8") as f:
         match_data = json.load(f)
     joueur = match_data["joueur_analyse"]
 except FileNotFoundError:
     match_data = {"joueur_analyse": {"nom": "Player", "position_predilection": "All-round"}, "donnees_sequences": []}
     joueur = match_data["joueur_analyse"]
 
+player_position = joueur.get("position_predilection") or joueur.get("poste") or "All-round"
+
 st.markdown(f"""
 <div class="nm-card" style="display:flex;align-items:center;gap:16px;">
   <div style="width:48px;height:48px;background:#34C759;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👤</div>
   <div>
     <div style="font-size:17px;font-weight:600;color:#1C1C1E;">{joueur['nom']}</div>
-    <div style="font-size:14px;color:#8E8E93;">{joueur['position_predilection']}</div>
+    <div style="font-size:14px;color:#8E8E93;">{player_position}</div>
   </div>
   <div style="margin-left:auto;">
-    <span class="sport-badge">🏓 Pickleball</span>
+    <span class="sport-badge">{sport_badge}</span>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -59,8 +77,8 @@ if st.button("🧠 Generate Weekly Training Plan", type="primary", use_container
         time.sleep(1.5)
 
         if demo_mode:
-            recommandations = {
-                "recommandations_coach": [
+            _demo_content = {
+                "pickleball": [
                     {
                         "timestamp": "24:00",
                         "titre": "Third Shot Drop",
@@ -81,15 +99,66 @@ if st.button("🧠 Generate Weekly Training Plan", type="primary", use_container
                             "pro_tip": "Ben Johns never rushes the dink — he waits for the ball to rise above net tape before any attack."
                         }
                     }
+                ],
+                "football": [
+                    {
+                        "timestamp": "24:10",
+                        "titre": "Decision Making in Transition",
+                        "contenu": {
+                            "constat": "Ball lost under pressure during a fast offensive transition.",
+                            "analyse": "Body orientation closed before receiving, limiting the field of vision and passing options.",
+                            "action_corrective": "Practice scanning drills: check over both shoulders every 2 seconds before receiving the ball.",
+                            "pro_tip": "Watch Kevin De Bruyne — he always scans the pitch before the ball even arrives at his feet."
+                        }
+                    },
+                    {
+                        "timestamp": "38:35",
+                        "titre": "Finishing Composure",
+                        "contenu": {
+                            "constat": "Shot on target rate too low in the final third.",
+                            "analyse": "Rushed shot selection under pressure, poor plant-foot placement.",
+                            "action_corrective": "Finishing drills: 30 shots per session focusing on plant-foot alignment and picking a corner before striking.",
+                            "pro_tip": "Erling Haaland always picks his target before the ball arrives — decide early, execute calmly."
+                        }
+                    }
+                ],
+                "padel": [
+                    {
+                        "timestamp": "14:20",
+                        "titre": "Net Positioning Discipline",
+                        "contenu": {
+                            "constat": "Direct fault at the net after moving in too early.",
+                            "analyse": "Court positioning too aggressive against a lobbing opponent pair.",
+                            "action_corrective": "Net approach drill: only move up after your partner's shot has crossed the net with a safe trajectory.",
+                            "pro_tip": "Juan Lebrón always confirms his partner's shot quality before committing to the net."
+                        }
+                    },
+                    {
+                        "timestamp": "27:05",
+                        "titre": "Off-the-Glass Anticipation",
+                        "contenu": {
+                            "constat": "Missed glass exit due to poor bounce anticipation.",
+                            "analyse": "Late reaction to ball height and speed after the glass rebound.",
+                            "action_corrective": "Glass exit drill: repeat controlled feeds off the back glass, focusing on early split-step and racket preparation.",
+                            "pro_tip": "Alejandra Salazar tracks the ball off the glass with small adjustment steps, never standing flat-footed."
+                        }
+                    }
                 ]
             }
+            recommandations = {"recommandations_coach": _demo_content[sport_value]}
         else:
             try:
-                from src.agents.agentpickelball.agent_recommendation_pickelball import PickelballCoachAI
-                with open(ROOT / "src/agents/agentpickelball/context_pickelball.txt", encoding="utf-8") as f:  context = f.read()
-                with open(ROOT / "src/agents/agentpickelball/user_prompt_pickelball.txt", encoding="utf-8") as f: prompt = f.read()
+                if sport_value == "football":
+                    from src.agents.agentfootball.agent_recommendation_football import FootballCoachAI as CoachClass
+                elif sport_value == "padel":
+                    from src.agents.agentpadel.agent_recommendation_padel import PadelCoachAI as CoachClass
+                else:
+                    from src.agents.agentpickelball.agent_recommendation_pickelball import PickelballCoachAI as CoachClass
+
+                with open(ROOT / f"src/agents/{agent_folder}/context_{file_suffix}.txt", encoding="utf-8") as f:  context = f.read()
+                with open(ROOT / f"src/agents/{agent_folder}/user_prompt_{file_suffix}.txt", encoding="utf-8") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici l'intégralité des données du match : {match_data}"
-                coach = PickelballCoachAI(context, user_prompt)
+                coach = CoachClass(context, user_prompt)
                 recommandations = coach.generate_recommendations(match_data)
             except Exception as e:
                 st.error(f"AI Error: {e}")

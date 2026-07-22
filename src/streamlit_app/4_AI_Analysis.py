@@ -18,9 +18,11 @@ page_header("AI Analysis", "Get instant coaching insights")
 
 # ── Sport selector ──────────────────────────────────────────────────
 section_title("Select Sport")
-default_sport_index = 0 if st.session_state.get("sport", "pickleball") == "pickleball" else 1
-sport = st.radio("Sport", ["🏓 Pickleball", "⚽ Football"], index=default_sport_index, horizontal=True, label_visibility="collapsed", key="sport_radio_analysis")
-st.session_state["sport"] = "pickleball" if "Pickleball" in sport else "football"
+_sport_options = ["🏓 Pickleball", "⚽ Football", "🎾 Padel"]
+_sport_values = ["pickleball", "football", "padel"]
+default_sport_index = _sport_values.index(st.session_state.get("sport", "pickleball")) if st.session_state.get("sport", "pickleball") in _sport_values else 0
+sport = st.radio("Sport", _sport_options, index=default_sport_index, horizontal=True, label_visibility="collapsed", key="sport_radio_analysis")
+st.session_state["sport"] = _sport_values[_sport_options.index(sport)]
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -30,10 +32,18 @@ section_title("Action Details")
 col1, col2 = st.columns(2)
 with col1:
     minute = st.number_input("Minute", min_value=0, max_value=130, value=24)
-    player = st.text_input("Player", value="Lucas Martin" if "Football" in sport else "Player 1")
+    if "Football" in sport:
+        default_player = "Lucas Martin"
+    elif "Padel" in sport:
+        default_player = "Marco Duran"
+    else:
+        default_player = "Player 1"
+    player = st.text_input("Player", value=default_player)
 with col2:
     if "Football" in sport:
         event_type = st.selectbox("Event", ["Perte de balle", "Tir non cadré", "Passe décisive"])
+    elif "Padel" in sport:
+        event_type = st.selectbox("Event", ["Faute directe au filet", "Sortie de vitre manquée", "Amortie gagnante", "Lob gagnant"])
     else:
         event_type = st.selectbox("Event", ["Rally Error", "Winner Shot", "Service Fault", "Poach"])
 
@@ -94,6 +104,21 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
                 user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
 
                 coach = FootballCoachAI(context, user_prompt)
+            elif "Padel" in sport:
+                from src.agents.agentpadel.agent_recommendation_padel import PadelCoachAI
+
+                with open(ROOT / "src/agents/agentpadel/example_entry.json", "r", encoding="utf-8") as f:
+                    match_data = json.load(f)
+                match_data["joueur_analyse"]["nom"] = player
+                match_data["donnees_sequences"][0]["timestamp"] = f"{minute}:00"
+                match_data["donnees_sequences"][0]["evenement_cle"] = event_type
+                match_data["donnees_sequences"][0]["metriques_video"]["position_pieds"] = {"x": x, "y": y}
+
+                with open(ROOT / "src/agents/agentpadel/context_padel.txt", encoding="utf-8") as f: context = f.read()
+                with open(ROOT / "src/agents/agentpadel/user_prompt_padel.txt", encoding="utf-8") as f: prompt = f.read()
+                user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
+
+                coach = PadelCoachAI(context, user_prompt)
             else:
                 from src.agents.agentpickelball.agent_recommendation_pickelball import PickelballCoachAI
 
@@ -156,7 +181,7 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
         section_title("📍 Tactical View")
         pitch_fig = create_tactical_pitch(
             x, y, player, event_type, phase="AI Analysis",
-            sport="football" if "Football" in sport else "pickleball"
+            sport="football" if "Football" in sport else ("padel" if "Padel" in sport else "pickleball")
         )
         pitch_fig.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
