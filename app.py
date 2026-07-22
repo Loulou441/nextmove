@@ -10,12 +10,21 @@ st.set_page_config(
     page_title="NextMove",
     page_icon="🏓",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 from src.design import set_ios_design, section_title, page_header
 
 set_ios_design()
+
+# ── Shared session state defaults ────────────────────────────────────
+st.session_state.setdefault("sport", "pickleball")
+st.session_state.setdefault("current_game_id", None)
+
+# Apply any pending navigation request BEFORE the radio widget is instantiated
+# (session_state for a widget's key can't be set after that widget has rendered).
+if "nav_target" in st.session_state:
+    st.session_state["nav_radio"] = st.session_state.pop("nav_target")
 
 # ── Sidebar navigation ───────────────────────────────────────────────
 with st.sidebar:
@@ -27,21 +36,24 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     page = st.radio(
-        "",
+        "Navigation",
         ["👤  Me", "📚  Library", "⬆️  Upload", "📊  Dashboard", "🧠  AI Analysis", "📈  Patterns", "📋  Training Plan"],
-        label_visibility="collapsed"
+        label_visibility="collapsed",
+        key="nav_radio"
     )
 
 # ── Route pages ──────────────────────────────────────────────────────
 if page == "👤  Me":
     page_header("Me")
 
+    sport_label = "🏓 Pickleball" if st.session_state["sport"] == "pickleball" else "⚽ Football"
+
     # Profile card
-    st.markdown("""
+    st.markdown(f"""
     <div class="nm-card" style="text-align:center;padding:28px 20px;">
       <div style="width:72px;height:72px;background:#34C759;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:32px;">👤</div>
       <div style="font-size:20px;font-weight:700;color:#1C1C1E;">Player Profile</div>
-      <div class="sport-badge" style="margin:8px auto 0;width:fit-content;">🏓 Pickleball</div>
+      <div class="sport-badge" style="margin:8px auto 0;width:fit-content;">{sport_label}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -68,41 +80,47 @@ if page == "👤  Me":
         """, unsafe_allow_html=True)
 
     if st.button("View Detailed Stats", use_container_width=True):
-        st.session_state["goto"] = "library"
+        st.session_state["nav_target"] = "📚  Library"
+        st.rerun()
 
     section_title("Settings")
 
     st.markdown("""
     <div class="nm-card" style="padding:0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #F2F2F7;">
-        <div style="display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;color:#34C759;">
-          ⚙️ App Settings
-        </div>
-        <span style="color:#C7C7CC;">›</span>
-      </div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;">
         <div style="display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;color:#34C759;">
-          🏆 Change Sport
+          ⚙️ App Settings
         </div>
         <span style="color:#C7C7CC;">›</span>
       </div>
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown('<div style="font-size:15px;font-weight:500;color:#34C759;margin:4px 0 8px;">🏆 Change Sport</div>', unsafe_allow_html=True)
+    sport_choice = st.radio(
+        "Change Sport",
+        ["🏓 Pickleball", "⚽ Football"],
+        index=0 if st.session_state["sport"] == "pickleball" else 1,
+        horizontal=True,
+        label_visibility="collapsed",
+        key="sport_radio_me"
+    )
+    st.session_state["sport"] = "pickleball" if "Pickleball" in sport_choice else "football"
+
 elif page == "📚  Library":
-    exec(open(ROOT / "pages/1_Library.py").read())
+    exec(open(ROOT / "src/streamlit_app/1_Library.py", encoding="utf-8").read())
 
 elif page == "⬆️  Upload":
-    exec(open(ROOT / "pages/2_Upload.py").read())
+    exec(open(ROOT / "src/streamlit_app/2_Upload.py", encoding="utf-8").read())
 
 elif page == "📊  Dashboard":
-    exec(open(ROOT / "pages/3_Dashboard.py").read())
+    exec(open(ROOT / "src/streamlit_app/3_Dashboard.py", encoding="utf-8").read())
 
 elif page == "🧠  AI Analysis":
-    exec(open(ROOT / "pages/4_AI_Analysis.py").read())
+    exec(open(ROOT / "src/streamlit_app/4_AI_Analysis.py", encoding="utf-8").read())
 
 elif page == "📈  Patterns":
-    exec(open(ROOT / "pages/5_Patterns.py").read())
+    exec(open(ROOT / "src/streamlit_app/5_Patterns.py", encoding="utf-8").read())
 
 elif page == "📋  Training Plan":
-    exec(open(ROOT / "pages/6_Training_Plan.py").read())
+    exec(open(ROOT / "src/streamlit_app/6_Training_Plan.py", encoding="utf-8").read())
