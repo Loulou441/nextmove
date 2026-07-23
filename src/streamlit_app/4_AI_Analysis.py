@@ -10,6 +10,7 @@ sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title
 from src.viz import create_tactical_pitch
 from src.config import PROMPT_PATH_FOOTBALL, PROMPT_PATH_PADEL, PROMPT_PATH_PICKELBALL
+from src.agents.agentmoderator.agent_moderator import Moderator
 
 set_ios_design()
 load_dotenv()
@@ -56,6 +57,17 @@ with col_y:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
+# ── Ask the AI coach ─────────────────────────────────────────────────
+section_title("💬 Ask Your AI Coach (optional)")
+coach_question = st.text_area(
+    "Question for the coach",
+    placeholder="e.g. Why do I keep losing the ball on my left side?",
+    label_visibility="collapsed",
+    key="coach_question",
+)
+
+st.markdown("<hr>", unsafe_allow_html=True)
+
 # ── Run analysis ─────────────────────────────────────────────────────
 if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type="primary"):
 
@@ -64,6 +76,20 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
         demo_mode = True
     else:
         demo_mode = False
+
+    question = coach_question.strip()
+
+    if question and not demo_mode:
+        try:
+            moderation = Moderator().moderate(question)
+        except Exception as e:
+            st.warning(f"⚠️ Could not verify your question ({e}). Ignoring it for this report.")
+            moderation = {"is_prompt_injection": False}
+            question = ""
+
+        if moderation.get("is_prompt_injection"):
+            st.error("🚫 Your question looks like it's trying to manipulate the AI coach and was blocked. Please rephrase it as a normal coaching question.")
+            st.stop()
 
     with st.status("Processing...", expanded=True) as status:
         st.write("🎯 Detecting key elements...")
@@ -103,6 +129,8 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
                 with open(PROMPT_PATH_FOOTBALL / "context_football.txt", encoding="utf-8") as f: context = f.read()
                 with open(PROMPT_PATH_FOOTBALL / "user_prompt_football.txt", encoding="utf-8") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
+                if question:
+                    user_prompt += f"\n\nQuestion posée par le joueur : {question}"
 
                 coach = FootballCoachAI(context, user_prompt)
             elif "Padel" in sport:
@@ -118,6 +146,8 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
                 with open(PROMPT_PATH_PADEL / "context_padel.txt", encoding="utf-8") as f: context = f.read()
                 with open(PROMPT_PATH_PADEL / "user_prompt_padel.txt", encoding="utf-8") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
+                if question:
+                    user_prompt += f"\n\nQuestion posée par le joueur : {question}"
 
                 coach = PadelCoachAI(context, user_prompt)
             else:
@@ -133,6 +163,8 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
                 with open(PROMPT_PATH_PICKELBALL / "context_pickelball.txt", encoding="utf-8") as f: context = f.read()
                 with open(PROMPT_PATH_PICKELBALL / "user_prompt_pickelball.txt", encoding="utf-8") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
+                if question:
+                    user_prompt += f"\n\nQuestion posée par le joueur : {question}"
 
                 coach = PickelballCoachAI(context, user_prompt)
 

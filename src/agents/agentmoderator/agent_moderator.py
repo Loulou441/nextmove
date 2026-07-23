@@ -37,7 +37,7 @@ class Moderator(Agent):
 if __name__ == "__main__":
 	moderator_object = Moderator()
 
-	result = moderator_object.moderate(question="Quelle est la durée légale du préavis pour un CDI ?")
+	result = moderator_object.moderate(question="Pourquoi est-ce que je perds autant de balles sur mon côté gauche ?")
 	print(result)
 
 	result = moderator_object.moderate(
