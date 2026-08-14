@@ -14,6 +14,13 @@ textColor = "#1C1C1E"
 # Police (DM Sans est chargée via Google Fonts dans design.py, ceci est le fallback)
 font = "sans serif"
 
+[server]
+# Cohérent avec la limite réelle du plan gratuit Supabase (50MB, voir
+# src/services/video_storage.py) — évite qu'un utilisateur tente un upload
+# que Streamlit accepterait mais que Supabase rejetterait ensuite.
+maxUploadSize = 50
+
+
 [client]
 # Masque le gros bouton "Deploy" en haut à droite
 toolbarMode = "minimal"

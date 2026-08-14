@@ -53,13 +53,20 @@ class Match(Base):
     errors = Column(Integer, nullable=True)
     coverage = Column(Integer, nullable=True)
 
+    # Détail par match généré à l'analyse (cf. match_service.mark_match_ready) —
+    # simulé en attendant le vrai pipeline YOLOv8, mais réellement persisté,
+    # pas recalculé aléatoirement à chaque affichage.
+    skills = Column(JSON, nullable=True)      # [{label, icon, score, color}, ...]
+    highlights = Column(JSON, nullable=True)  # [{title, time, tag, tag_class}, ...]
+    insights = Column(JSON, nullable=True)    # [{color, text}, ...]
+    patterns_summary = Column(JSON, nullable=True)  # {total_events, phase_distribution, zone_distribution, ...}
+
     video_storage_path = Column(String(500), nullable=True)  # chemin dans le bucket Supabase Storage
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="matches")
     events = relationship("MatchEvent", back_populates="match", cascade="all, delete-orphan")
     analyses = relationship("Analysis", back_populates="match", cascade="all, delete-orphan")
-    patterns = relationship("Pattern", back_populates="match", cascade="all, delete-orphan")
 
 
 class MatchEvent(Base):
@@ -95,21 +102,6 @@ class Analysis(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     match = relationship("Match", back_populates="analyses")
-
-
-class Pattern(Base):
-    """Tendance récurrente détectée dans le jeu (page Patterns)."""
-    __tablename__ = "patterns"
-
-    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
-    match_id = Column(UUID(as_uuid=False), ForeignKey("matches.id"), nullable=False, index=True)
-
-    pattern_type = Column(String(100), nullable=True)
-    description = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    match = relationship("Match", back_populates="patterns")
-
 
 class TrainingPlan(Base):
     """Programme d'entraînement hebdomadaire généré par l'IA."""

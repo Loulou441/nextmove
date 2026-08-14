@@ -8,10 +8,15 @@ ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title
 from src.config import PROMPT_PATHS
+from src.auth.session_manager import get_current_user
+from src.db.session import get_db_session
+from src.services.training_plan_service import save_training_plan, get_user_training_plans
 
 set_ios_design()
 load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
+
+current_user = get_current_user()
 
 page_header("Training Plan", "Your personalized weekly program")
 
@@ -44,7 +49,7 @@ st.markdown(f"""
 <div class="nm-card" style="display:flex;align-items:center;gap:16px;">
   <div style="width:48px;height:48px;background:#34C759;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👤</div>
   <div>
-    <div style="font-size:17px;font-weight:600;color:#1C1C1E;">{joueur['nom']}</div>
+    <div style="font-size:17px;font-weight:600;color:#1C1C1E;">{current_user.email}</div>
     <div style="font-size:14px;color:#8E8E93;">{player_position}</div>
   </div>
   <div style="margin-left:auto;">
@@ -163,7 +168,11 @@ if st.button("🧠 Generate Weekly Training Plan", type="primary", use_container
                 st.error(f"AI Error: {e}")
                 st.stop()
 
-    st.success("✅ Program generated!")
+    # ── Persist to DB, linked to the user and sport ─────────────────────
+    with get_db_session() as db:
+        save_training_plan(db, current_user.id, sport_value, recommandations)
+
+    st.success("✅ Program generated and saved!")
 
     # ── Training cards ─────────────────────────────────────────────────
     section_title("🎯 Priority Workshops")
@@ -221,3 +230,20 @@ else:
       </div>
     </div>
     """, unsafe_allow_html=True)
+
+# ── History of past plans for this sport ──────────────────────────────
+with get_db_session() as db:
+    past_plans = get_user_training_plans(db, current_user.id, sport=sport_value)
+    for p in past_plans:
+        db.expunge(p)
+
+if past_plans:
+    st.markdown("<hr>", unsafe_allow_html=True)
+    section_title(f"📜 Past {sport_badge} plans")
+    for p in past_plans:
+        date_str = p.created_at.strftime("%b %d, %Y %H:%M") if p.created_at else ""
+        recs = p.content.get("recommandations_coach", []) if p.content else []
+        titles = ", ".join(r.get("titre", "") for r in recs) if recs else "Plan"
+        with st.expander(f"{date_str} — {titles}"):
+            for r in recs:
+                st.write(f"**{r.get('titre')}** — {r.get('contenu', {}).get('analyse', '')}")
