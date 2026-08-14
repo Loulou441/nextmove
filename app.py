@@ -19,6 +19,16 @@ from src.design import set_ios_design, section_title, page_header
 
 set_ios_design()
 
+# ── Authentification : bloque tout accès tant que non connecté ────────
+from src.auth.session_manager import get_current_user, logout
+from src.auth.login_page import render_login_page
+
+current_user = get_current_user()
+
+if current_user is None:
+    render_login_page()
+    st.stop()
+
 # ── Shared session state defaults ────────────────────────────────────
 st.session_state.setdefault("sport", DEFAULT_SPORT)
 st.session_state.setdefault("current_game_id", None)
@@ -43,6 +53,12 @@ with st.sidebar:
         label_visibility="collapsed",
         key="nav_radio"
     )
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown(f"<div style='font-size:13px;color:#8E8E93;padding:0 4px;'>{current_user.email}</div>", unsafe_allow_html=True)
+    if st.button("Se déconnecter", use_container_width=True):
+        logout()
+        st.rerun()
 
 # ── Route pages ──────────────────────────────────────────────────────
 if page == "👤  Me":
@@ -129,3 +145,4 @@ elif page == "📈  Patterns":
 
 elif page == "📋  Training Plan":
     exec(open(ROOT / "src/streamlit_app/6_Training_Plan.py", encoding="utf-8").read())
+    
