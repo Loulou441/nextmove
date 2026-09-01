@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 import json, os, time
 from pathlib import Path
 import sys
@@ -11,20 +10,56 @@ from src.design import set_ios_design, page_header, section_title
 from src.viz import create_tactical_pitch
 from src.config import PROMPT_PATH_FOOTBALL, PROMPT_PATH_PADEL, PROMPT_PATH_PICKELBALL
 from src.agents.agentmoderator.agent_moderator import Moderator
+from src.auth.session_manager import get_current_user
+from src.db.session import get_db_session
+from src.services.match_service import get_user_matches
+from src.services.analysis_service import save_analysis, get_match_analyses
 
 set_ios_design()
 load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
 
+current_user = get_current_user()
+
+with get_db_session() as db:
+    all_matches = get_user_matches(db, current_user.id)
+    for m in all_matches:
+        db.expunge(m)
+
+if not all_matches:
+    page_header("AI Analysis")
+    st.markdown("""
+    <div class="nm-card" style="text-align:center;padding:32px 20px;">
+      <div style="font-size:32px;margin-bottom:8px;">🧠</div>
+      <div style="font-size:17px;font-weight:600;color:#1C1C1E;">No matches yet</div>
+      <div style="font-size:14px;color:#8E8E93;margin-top:4px;">Upload a match first to generate a coaching report for it.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.stop()
+
 page_header("AI Analysis", "Get instant coaching insights")
 
-# ── Sport selector ──────────────────────────────────────────────────
-section_title("Select Sport")
-_sport_options = ["🏓 Pickleball", "⚽ Football", "🎾 Padel"]
-_sport_values = ["pickleball", "football", "padel"]
-default_sport_index = _sport_values.index(st.session_state.get("sport", "pickleball")) if st.session_state.get("sport", "pickleball") in _sport_values else 0
-sport = st.radio("Sport", _sport_options, index=default_sport_index, horizontal=True, label_visibility="collapsed", key="sport_radio_analysis")
-st.session_state["sport"] = _sport_values[_sport_options.index(sport)]
+# ── Match selector (le rapport sera lié à ce match) ───────────────────
+section_title("Select Match")
+match_by_title = {m.title: m for m in all_matches}
+titles = list(match_by_title.keys())
+current_id = st.session_state.get("current_game_id")
+default_index = 0
+for i, m in enumerate(all_matches):
+    if m.id == current_id:
+        default_index = i
+        break
+
+selected_title = st.selectbox(
+    "Match", titles, index=default_index,
+    label_visibility="collapsed", key="ai_analysis_match_select"
+)
+match = match_by_title[selected_title]
+st.session_state["current_game_id"] = match.id
+
+sport = match.sport
+_sport_labels = {"pickleball": "🏓 Pickleball", "football": "⚽ Football", "padel": "🎾 Padel"}
+st.markdown(f'<span class="sport-badge">{_sport_labels.get(sport, sport)}</span>', unsafe_allow_html=True)
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -34,17 +69,17 @@ section_title("Action Details")
 col1, col2 = st.columns(2)
 with col1:
     minute = st.number_input("Minute", min_value=0, max_value=130, value=24)
-    if "Football" in sport:
+    if sport == "football":
         default_player = "Lucas Martin"
-    elif "Padel" in sport:
+    elif sport == "padel":
         default_player = "Marco Duran"
     else:
         default_player = "Player 1"
     player = st.text_input("Player", value=default_player)
 with col2:
-    if "Football" in sport:
+    if sport == "football":
         event_type = st.selectbox("Event", ["Perte de balle", "Tir non cadré", "Passe décisive"])
-    elif "Padel" in sport:
+    elif sport == "padel":
         event_type = st.selectbox("Event", ["Faute directe au filet", "Sortie de vitre manquée", "Amortie gagnante", "Lob gagnant"])
     else:
         event_type = st.selectbox("Event", ["Rally Error", "Winner Shot", "Service Fault", "Poach"])
@@ -99,7 +134,6 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
         status.update(label="Generating AI report...", state="complete", expanded=False)
 
     if demo_mode:
-        # Demo output matching iOS app style
         recommandations = {
             "recommandations_coach": [
                 {
@@ -116,7 +150,7 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
         }
     else:
         try:
-            if "Football" in sport:
+            if sport == "football":
                 from src.agents.agentfootball.agent_recommendation_football import FootballCoachAI
 
                 with open(PROMPT_PATH_FOOTBALL / "example_entry.json", "r", encoding="utf-8") as f:
@@ -133,7 +167,7 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
                     user_prompt += f"\n\nQuestion posée par le joueur : {question}"
 
                 coach = FootballCoachAI(context, user_prompt)
-            elif "Padel" in sport:
+            elif sport == "padel":
                 from src.agents.agentpadel.agent_recommendation_padel import PadelCoachAI
 
                 with open(PROMPT_PATH_PADEL / "example_entry.json", "r", encoding="utf-8") as f:
@@ -174,6 +208,10 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
             st.error(f"AI Error: {e}")
             st.stop()
 
+    # ── Persist to DB, linked to the selected match ────────────────────
+    with get_db_session() as db:
+        save_analysis(db, match.id, recommandations)
+
     # ── Results display ───────────────────────────────────────────────
     col_rec, col_pitch = st.columns([1, 1])
 
@@ -210,11 +248,12 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
                 </div>
                 """, unsafe_allow_html=True)
 
+        st.success(f"✅ Report saved to \"{match.title}\"")
+
     with col_pitch:
         section_title("📍 Tactical View")
         pitch_fig = create_tactical_pitch(
-            x, y, player, event_type, phase="AI Analysis",
-            sport="football" if "Football" in sport else ("padel" if "Padel" in sport else "pickleball")
+            x, y, player, event_type, phase="AI Analysis", sport=sport
         )
         pitch_fig.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
@@ -222,3 +261,17 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
             font=dict(family="DM Sans")
         )
         st.plotly_chart(pitch_fig, use_container_width=True)
+
+# ── History of past reports for this match ────────────────────────────
+with get_db_session() as db:
+    past_analyses = get_match_analyses(db, match.id)
+    for a in past_analyses:
+        db.expunge(a)
+
+if past_analyses:
+    st.markdown("<hr>", unsafe_allow_html=True)
+    section_title(f"📜 Past reports for \"{match.title}\"")
+    for a in past_analyses:
+        date_str = a.created_at.strftime("%b %d, %Y %H:%M") if a.created_at else ""
+        with st.expander(f"{date_str} — {a.explanation[:60] if a.explanation else 'Report'}..."):
+            st.write(a.explanation or "No summary available.")

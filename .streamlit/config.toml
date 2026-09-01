@@ -1,19 +1,26 @@
 [theme]
-# Vert Néon sportif (assorti aux boutons de ton design)
-primaryColor = "#00FFAA" 
+# Vert NextMove (assorti aux boutons/accents du design iOS existant)
+primaryColor = "#34C759"
 
-# Fond principal très sombre (Bleu Nuit / Noir profond)
-backgroundColor = "#0A0E17" 
+# Fond clair iOS (assorti à src/design.py)
+backgroundColor = "#F2F2F7"
 
-# Fond secondaire (pour la barre latérale sur la gauche)
-secondaryBackgroundColor = "#151B2B" 
+# Fond secondaire (cartes, sidebar) — blanc
+secondaryBackgroundColor = "#FFFFFF"
 
-# Couleur du texte (Gris très clair pour une lisibilité parfaite)
-textColor = "#E0E0E0" 
+# Texte sombre pour lisibilité sur fond clair
+textColor = "#1C1C1E"
 
-# Police moderne et épurée
+# Police (DM Sans est chargée via Google Fonts dans design.py, ceci est le fallback)
 font = "sans serif"
 
+[server]
+# Cohérent avec la limite réelle du plan gratuit Supabase (50MB, voir
+# src/services/video_storage.py) — évite qu'un utilisateur tente un upload
+# que Streamlit accepterait mais que Supabase rejetterait ensuite.
+maxUploadSize = 50
+
+
 [client]
-# Masque le gros bouton "Deploy" en haut à droite pour faire "Vraie Application SaaS"
-# toolbarMode = "minimal"
+# Masque le gros bouton "Deploy" en haut à droite
+toolbarMode = "minimal"
