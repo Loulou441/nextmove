@@ -7,67 +7,54 @@ import sys
 ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title
-from src.patterns_engine import compute_match_patterns
-from src.config import DATA_DIR
+from src.auth.session_manager import get_current_user
+from src.db.session import get_db_session
+from src.services.match_service import get_user_matches
 
 set_ios_design()
 page_header("Patterns", "Tactical trends & collective behaviour")
 
-@st.cache_data
-def load_games():   return pd.read_csv(DATA_DIR / "demo_games.csv")
+current_user = get_current_user()
 
-try:
-    @st.cache_data
-    def load_events(): 
-        df = pd.read_csv(DATA_DIR / "demo_events.csv")
-        df["type"]  = df["type"].astype(str)
-        df["phase"] = df["phase"].astype(str)
-        return df
-    events = load_events()
-    has_events = True
-except FileNotFoundError:
-    has_events = False
+with get_db_session() as db:
+    all_matches = get_user_matches(db, current_user.id)
+    for m in all_matches:
+        db.expunge(m)
 
-games = load_games()
-game_options = games["title"].tolist()
+ready_matches = [m for m in all_matches if m.status == "ready" and m.patterns_summary]
+
+if not ready_matches:
+    st.markdown("""
+    <div class="nm-card" style="text-align:center;padding:32px 20px;">
+      <div style="font-size:32px;margin-bottom:8px;">📈</div>
+      <div style="font-size:17px;font-weight:600;color:#1C1C1E;">No pattern data yet</div>
+      <div style="font-size:14px;color:#8E8E93;margin-top:4px;">Analyze a match from the Library to see its patterns here.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.stop()
+
+# ── Game selector ───────────────────────────────────────────────────
+match_by_title = {m.title: m for m in ready_matches}
+titles = list(match_by_title.keys())
 current_id = st.session_state.get("current_game_id")
-if current_id in games["game_id"].values:
-    default_index = game_options.index(games[games["game_id"] == current_id].iloc[0]["title"])
-else:
-    default_index = 0
+default_index = 0
+for i, m in enumerate(ready_matches):
+    if m.id == current_id:
+        default_index = i
+        break
 
-selected = st.selectbox("Select Game", game_options, index=default_index, label_visibility="collapsed", key="patterns_game_select")
-st.session_state["current_game_id"] = int(games[games["title"] == selected].iloc[0]["game_id"])
+selected = st.selectbox("Select Game", titles, index=default_index, label_visibility="collapsed", key="patterns_game_select")
+match = match_by_title[selected]
+st.session_state["current_game_id"] = match.id
 
-if not has_events:
-    st.info("📊 Demo mode — event data file not found. Using simulated patterns.")
-
-    # Simulated summary
-    patterns = {
-        "total_events": 21,
-        "total_winners": 9,
-        "total_shots": 6,
-        "total_errors": 6,
-        "phase_distribution": {"Transition": 8, "Service": 4, "Kitchen": 9},
-        "zone_distribution":  {"Zone du filet (Kitchen)": 10, "Zone de transition avant": 6, "Zone médiane": 2, "Zone de fond de court (service)": 3},
-        "transition_risk_ratio": 0.38,
-        "priority_level": "Moyenne",
-        "insights": [
-            "Volume élevé d'échanges dans la zone du filet (Kitchen).",
-            "Nombre important d'erreurs non forcées potentiellement évitables.",
-        ]
-    }
-else:
-    game_row = games[games["title"] == selected].iloc[0]
-    match_events = events[events["match_id"] == int(game_row["game_id"])].copy()
-    patterns = compute_match_patterns(match_events)
+patterns = match.patterns_summary
 
 # ── KPIs ─────────────────────────────────────────────────────────────
 section_title("Volume")
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Events tracked",  patterns["total_events"])
-c2.metric("Winners",         patterns["total_winners"])
-c3.metric("Shots",           patterns["total_shots"])
+c1.metric("Events tracked", patterns["total_events"])
+c2.metric("Winners", patterns["total_winners"])
+c3.metric("Shots", patterns["total_shots"])
 c4.metric("Unforced Errors", patterns["total_errors"])
 
 st.markdown("<hr>", unsafe_allow_html=True)
