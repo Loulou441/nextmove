@@ -1,8 +1,14 @@
-from src.agents.agentmanager.agent import Agent
 import json
+import logging
 from pathlib import Path
 
+from src.agents.agentmanager.agent import Agent
+from src.agents.agentmanager.schemas import RecommandationsCoach
+from src.agents.agentmanager.exceptions import EmptyResponseError, InvalidResponseError
 from src.config import MODEL_NAME_PICKELBALL, GROQ_TEMPERATURE
+
+logger = logging.getLogger("nextmove.agents.pickelball")
+
 
 class PickelballCoachAI(Agent):
     def __init__(self, context, user_prompt):
@@ -10,32 +16,31 @@ class PickelballCoachAI(Agent):
         self.context = context
         self.user_prompt = user_prompt
 
-    def generate_recommendations(self, match_data):
+    def generate_recommendations(self, match_data) -> RecommandationsCoach:
         """
-        Script get advices from match analysis
-        Get the analysis as a json as a list and return advices as a json
+        Interroge le coach IA pickleball et renvoie des recommandations
+        validées structurellement (RecommandationsCoach). Voir FootballCoachAI
+        pour le détail du mécanisme de résilience partagé.
         """
+        messages = [
+            {"role": "system", "content": self.context},
+            {"role": "user", "content": self.user_prompt},
+        ]
 
-        # Get the GROQ API response:
-        advices_response = self.client.chat.completions.create(
-            messages = [
-                {"role": "system", "content": self.context},
-                {"role": "user", "content": self.user_prompt},
-        ],
-        model=MODEL_NAME_PICKELBALL,
-        temperature=GROQ_TEMPERATURE,
-        response_format={"type": "json_object"}
-        )
+        try:
+            return self.call_and_validate(
+                messages=messages,
+                model=MODEL_NAME_PICKELBALL,
+                temperature=GROQ_TEMPERATURE,
+                schema=RecommandationsCoach,
+            )
+        except (EmptyResponseError, InvalidResponseError):
+            logger.exception("Échec de génération des recommandations pickleball.")
+            raise
 
-        advices = advices_response.choices[0].message.content
-        if advices is None:
-            raise ValueError("The model returned an empty response.")
-        
-        return json.loads(advices)
 
 # --- MAIN PROCESS ---
 def main():
-    #get the context, user_prompt and match_data
     base_dir = Path(__file__).resolve().parent
 
     with open(base_dir / "example_entry.json", encoding="utf-8") as fichier:
@@ -49,14 +54,13 @@ def main():
 
     user_prompt = f"{prompt}\nVoici les données du match : {match_stats}"
 
-    # 1. Envoyer au Coach IA
     coach = PickelballCoachAI(context, user_prompt)
     recommandations = coach.generate_recommendations(match_stats)
-    
-    # 2. Afficher le résultat
-    print("\n" + "="*30)
+
+    print("\n" + "=" * 30)
     coach.afficher_rapport(recommandations)
-    print("="*30)
+    print("=" * 30)
+
 
 if __name__ == "__main__":
     main()

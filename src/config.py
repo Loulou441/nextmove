@@ -8,9 +8,10 @@ load_dotenv()
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 # Model name for GROQ (les valeurs par défaut doivent être des modèles Groq valides)
-MODEL_NAME_PICKELBALL = os.environ.get("MODEL_NAME_PICKELBALL", "llama-3.3-70b-versatile")
-MODEL_NAME_FOOTBALL = os.environ.get("MODEL_NAME_FOOTBALL", "llama-3.3-70b-versatile")
-MODEL_NAME_PADEL = os.environ.get("MODEL_NAME_PADEL", "llama-3.3-70b-versatile")
+MODEL_NAME_PICKELBALL = "openai/gpt-oss-safeguard-20b"
+MODEL_NAME_FOOTBALL = "openai/gpt-oss-safeguard-20b"
+MODEL_NAME_PADEL = "openai/gpt-oss-safeguard-20b"
+MODEL_NAME_MODERATOR = "openai/gpt-oss-safeguard-20b"
 
 # Température des complétions Groq (0.0 = réponses déterministes/reproductibles)
 GROQ_TEMPERATURE = float(os.environ.get("GROQ_TEMPERATURE", "0.0"))
@@ -21,12 +22,14 @@ GROQ_TEMPERATURE = float(os.environ.get("GROQ_TEMPERATURE", "0.0"))
 PROMPT_PATH_PICKELBALL = Path(__file__).resolve().parent / "agents" / "agentpickelball"
 PROMPT_PATH_FOOTBALL = Path(__file__).resolve().parent / "agents" / "agentfootball"
 PROMPT_PATH_PADEL = Path(__file__).resolve().parent / "agents" / "agentpadel"
+PROMPT_PATH_MODERATOR = Path(__file__).resolve().parent / "agents" / "agentmoderator"
 
 # Accès pratique par clé de sport (utilisé par les pages Streamlit)
 PROMPT_PATHS = {
     "pickleball": PROMPT_PATH_PICKELBALL,
     "football": PROMPT_PATH_FOOTBALL,
     "padel": PROMPT_PATH_PADEL,
+    "moderator": PROMPT_PATH_MODERATOR,
 }
 
 # Dossier de données (surchageable pour pointer vers un autre volume, ex. en conteneur)
