@@ -1,13 +1,20 @@
 import json
 import logging
+import sys
 from pathlib import Path
+
+if __name__ == "__main__":
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from src.agents.agentmanager.agent import Agent
 from src.agents.agentmanager.schemas import RecommandationsCoach
 from src.agents.agentmanager.exceptions import EmptyResponseError, InvalidResponseError
+from src.agents.agentmanager.rag import get_knowledge_base, enrich_match_data_with_drills
 from src.config import MODEL_NAME_PADEL, GROQ_TEMPERATURE
 
 logger = logging.getLogger("nextmove.agents.padel")
+
+KNOWLEDGE_PATH = Path(__file__).resolve().parent / "knowledge_padel.json"
 
 
 class PadelCoachAI(Agent):
@@ -15,16 +22,28 @@ class PadelCoachAI(Agent):
         super().__init__()
         self.context = context
         self.user_prompt = user_prompt
+        self.knowledge_base = get_knowledge_base("padel", KNOWLEDGE_PATH)
 
     def generate_recommendations(self, match_data) -> RecommandationsCoach:
         """
         Interroge le coach IA padel et renvoie des recommandations validées
-        structurellement (RecommandationsCoach). Voir FootballCoachAI pour
-        le détail du mécanisme de résilience partagé.
+        structurellement (RecommandationsCoach), ancrées sur des exercices
+        réels retrouvés par recherche vectorielle dans la base de
+        connaissances padel (RAG / ChromaDB). Voir FootballCoachAI pour le
+        détail du mécanisme partagé.
         """
+        enriched_match_data = enrich_match_data_with_drills(match_data, self.knowledge_base)
+
+        full_user_prompt = (
+            f"{self.user_prompt}\n"
+            f"Voici les données du match, enrichies pour chaque séquence "
+            f"d'exercices de référence validés (champ 'exercices_references') : "
+            f"{json.dumps(enriched_match_data, ensure_ascii=False)}"
+        )
+
         messages = [
             {"role": "system", "content": self.context},
-            {"role": "user", "content": self.user_prompt},
+            {"role": "user", "content": full_user_prompt},
         ]
 
         try:
@@ -52,9 +71,7 @@ def main():
     with open(base_dir / "user_prompt_padel.txt", "r", encoding="utf-8") as f:
         prompt = f.read()
 
-    user_prompt = f"{prompt}\nVoici les données du match : {match_stats}"
-
-    coach = PadelCoachAI(context, user_prompt)
+    coach = PadelCoachAI(context, prompt)
     recommandations = coach.generate_recommendations(match_stats)
 
     print("\n" + "=" * 30)
