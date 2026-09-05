@@ -1,0 +1,96 @@
+# ─────────────────────────────────────────────────────────────
+# Editor / tooling workspaces
+# ─────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.code-workspace
+
+# ─────────────────────────────────────────────────────────────
+# macOS
+# ─────────────────────────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+
+# ─────────────────────────────────────────────────────────────
+# Secrets / environment
+# ─────────────────────────────────────────────────────────────
+.env
+.env.local
+**/.env
+**/.env.local
+!.env.example
+
+# ─────────────────────────────────────────────────────────────
+# Xcode
+# ─────────────────────────────────────────────────────────────
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.xcuserstate
+*.xcscmblueprint
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# CocoaPods / Carthage
+Pods/
+Carthage/Build/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# ─────────────────────────────────────────────────────────────
+# CV / Core ML models — committed separately from another account.
+# Excludes the compiled model packages in BOTH locations
+# (top-level Models/ and the bundled nextmove/Models/), while
+# keeping the Swift source and per-sport README files.
+# ─────────────────────────────────────────────────────────────
+*.mlpackage/
+*.mlmodel
+*.mlmodelc/
+Models/**/*.mlpackage/
+nextmove/Models/**/*.mlpackage/
+
+# ─────────────────────────────────────────────────────────────
+# Training — keep scripts, configs, notebooks and docs; exclude
+# heavy artifacts (datasets, virtualenv, model weights).
+# ─────────────────────────────────────────────────────────────
+training/venv/
+training/data/
+training/models/checkpoints/
+training/models/exported/
+training/models/pretrained/
+training/**/*.pt
+training/**/*.pth
+training/**/*.onnx
+training/**/*.weights
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# ─────────────────────────────────────────────────────────────
+# Demo media — keep the referenced hero assets, drop the heavy
+# intermediate/raw render variants.
+# ─────────────────────────────────────────────────────────────
+docs/media/demo_padel_raw.mp4
+docs/media/demo_padel_raw copy.mp4
+docs/media/demo_padel_try.mp4
+docs/media/demo_padel_v2.mp4
+docs/media/demo_padel_v3.mp4
+docs/media/demo_padel_FIXED_*.mp4
