@@ -56,18 +56,6 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 # ─────────────────────────────────────────────────────────────
-# CV / Core ML models — committed separately from another account.
-# Excludes the compiled model packages in BOTH locations
-# (top-level Models/ and the bundled nextmove/Models/), while
-# keeping the Swift source and per-sport README files.
-# ─────────────────────────────────────────────────────────────
-*.mlpackage/
-*.mlmodel
-*.mlmodelc/
-Models/**/*.mlpackage/
-nextmove/Models/**/*.mlpackage/
-
-# ─────────────────────────────────────────────────────────────
 # Training — keep scripts, configs, notebooks and docs; exclude
 # heavy artifacts (datasets, virtualenv, model weights).
 # ─────────────────────────────────────────────────────────────
