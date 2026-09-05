@@ -15,7 +15,7 @@ NextMove transforme de courtes vidéos de padel, pickleball, tennis et football 
 
 <p align="center">
   <em>Détection et suivi en temps réel : chaque joueur reçoit un identifiant stable (player 1, player 2, ...), en plus de la balle et du terrain.</em><br>
-  <sub>Clip complet : <a href="docs/media/demo_padel.mp4"><code>docs/media/demo_padel.mp4</code></a></sub>
+  <sub>Clip complet : <a href="docs/media/demo_padel_raw.mp4"><code>docs/media/demo_padel_raw.mp4</code></a></sub>
 </p>
 
 ---

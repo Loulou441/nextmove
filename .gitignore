@@ -76,7 +76,6 @@ __pycache__/
 # Demo media — keep the referenced hero assets, drop the heavy
 # intermediate/raw render variants.
 # ─────────────────────────────────────────────────────────────
-docs/media/demo_padel_raw.mp4
 docs/media/demo_padel_raw copy.mp4
 docs/media/demo_padel_try.mp4
 docs/media/demo_padel_v2.mp4
