@@ -5,7 +5,7 @@
 
 **Analyse vidéo de sports de raquette par vision par ordinateur — insights, dashboards et recommandations de type coach.**
 
-NextMove transforme de courtes vidéos de padel, pickleball, tennis et football en métriques compréhensibles et conseils d'amélioration. Le projet regroupe **deux applications complètes et indépendantes**, construites sur les **mêmes modèles de vision par ordinateur finetunés** : une **application iOS** native (SwiftUI + Core ML, inférence 100 % sur l'appareil) et une **application web** (Python / Streamlit) pour l'analyse de matchs, les dashboards de performance, la détection de patterns et le coaching IA. Aucune n'est un simple complément de l'autre — ce sont deux produits à part entière qui exploitent la même base de modèles CV.
+NextMove transforme de courtes vidéos de padel, pickleball, tennis et football en métriques compréhensibles et conseils d'amélioration. C'est **un seul et même projet**, décliné sur **deux plateformes** : une **application iOS** native (SwiftUI + Core ML, inférence 100 % sur l'appareil) et une **application web** (Python / Streamlit) pour l'analyse de matchs, les dashboards de performance, la détection de patterns et le coaching IA. Les deux partagent les **mêmes modèles de vision par ordinateur finetunés** et la même logique produit — seule la plateforme change.
 
 </div>
 
@@ -117,9 +117,9 @@ Le framework se compose de modules bien délimités :
 
 ---
 
-## Les deux applications
+## Les deux plateformes
 
-NextMove se décline en **deux applications complètes**, toutes deux propulsées par les **mêmes modèles CV finetunés** (YOLO entraînés par sport). L'app iOS exécute l'inférence sur l'appareil ; l'app web offre une expérience d'analyse de matchs, de dashboards et de coaching IA côté serveur. Aucune n'est secondaire par rapport à l'autre.
+Un seul projet NextMove, deux plateformes propulsées par les **mêmes modèles CV finetunés** (YOLO entraînés par sport) et la même logique produit. L'app iOS exécute l'inférence sur l'appareil ; l'app web offre la même expérience d'analyse de matchs, de dashboards et de coaching IA côté serveur.
 
 ### 📱 Application iOS (`nextmove/`)
 
