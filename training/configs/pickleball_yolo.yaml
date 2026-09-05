@@ -1,0 +1,66 @@
+# YOLOv8 Configuration for Pickleball Detection
+
+# Model architecture
+model: yolo11n  # nano model for mobile deployment (YOLO11: best Core ML support)
+
+# Dataset paths (relative to this config file)
+path: ../data
+train: train/images
+val: val/images
+test: test/images
+
+# Class names (must match the racket-ai/pickleball-iiv9m v5 dataset order)
+# When training off the downloaded dataset, its own data.yaml drives this.
+names:
+  0: ball
+  1: paddle
+  2: player
+
+# Number of classes
+nc: 3
+
+# Training hyperparameters
+epochs: 100
+batch: 16
+imgsz: 640
+patience: 20  # early stopping patience
+
+# Optimizer
+optimizer: AdamW
+lr0: 0.001  # initial learning rate
+lrf: 0.01   # final learning rate (lr0 * lrf)
+momentum: 0.937
+weight_decay: 0.0005
+
+# Data augmentation
+hsv_h: 0.015  # HSV-Hue augmentation
+hsv_s: 0.7    # HSV-Saturation augmentation
+hsv_v: 0.4    # HSV-Value augmentation
+degrees: 0.0  # rotation (+/- deg)
+translate: 0.1  # translation (+/- fraction)
+scale: 0.5    # scale (+/- gain)
+shear: 0.0    # shear (+/- deg)
+perspective: 0.0  # perspective (+/- fraction)
+flipud: 0.0   # vertical flip probability
+fliplr: 0.5   # horizontal flip probability
+mosaic: 1.0   # mosaic augmentation probability
+mixup: 0.0    # mixup augmentation probability
+
+# Validation
+conf: 0.3     # confidence threshold
+iou: 0.5      # IoU threshold for NMS
+max_det: 100  # maximum detections per image
+
+# Device
+device: 0  # GPU device (0, 1, 2, etc.) or 'cpu'
+
+# Logging
+project: runs/train
+name: pickleball_detector
+exist_ok: False
+save: True
+save_period: 10  # save checkpoint every N epochs
+
+# Performance
+workers: 8  # number of dataloader workers
+amp: True   # automatic mixed precision training
