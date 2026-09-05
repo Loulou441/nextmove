@@ -1,0 +1,402 @@
+[
+  {
+    "id": "pb_tech_001",
+    "pilier": "Technique",
+    "titre": "Dinks avec poids centré",
+    "probleme_associe": "Faute au filet (Kitchen Violation), équilibre du corps trop porté vers l'avant lors d'une accélération.",
+    "description": "Série de dinks avec consigne stricte de garder le poids du corps centré, jamais transféré vers l'avant avant le contact avec la balle.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tech_002",
+    "pilier": "Technique",
+    "titre": "Volée avec préparation courte",
+    "probleme_associe": "Volée manquée par préparation de raquette trop ample.",
+    "description": "Travail de volée avec amplitude de préparation volontairement réduite, pour gagner en rapidité de réaction sur les échanges rapprochés au filet.",
+    "pro_tip": "Ben Johns est réputé pour la compacité de sa préparation en volée."
+  },
+  {
+    "id": "pb_tech_003",
+    "pilier": "Technique",
+    "titre": "Third shot drop en trajectoire haute",
+    "probleme_associe": "Troisième balle trop basse ou trop longue, offrant une attaque facile à l'adversaire déjà au filet.",
+    "description": "Répétition du troisième coup en drop avec objectif de trajectoire haute et arc prononcé, pour atterrir juste après le filet adverse.",
+    "pro_tip": "Tyson McGuffin est reconnu pour la constance de son third shot drop."
+  },
+  {
+    "id": "pb_tech_004",
+    "pilier": "Technique",
+    "titre": "Service lifté profond",
+    "probleme_associe": "Service trop court qui laisse à l'adversaire une remise facilement offensive.",
+    "description": "Travail du service avec effet lifté et profondeur maximale, en ciblant systématiquement le fond de la zone de service adverse.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tech_005",
+    "pilier": "Technique",
+    "titre": "Retour de service croisé stable",
+    "probleme_associe": "Retours de service imprécis qui empêchent une montée sereine vers le filet.",
+    "description": "Répétition de retours de service croisés profonds, avec priorité donnée à la régularité plutôt qu'à la puissance.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tech_006",
+    "pilier": "Technique",
+    "titre": "Smash contrôlé en zone de transition",
+    "probleme_associe": "Smash trop puissant et non maîtrisé lorsqu'il est joué depuis la zone de transition, encore loin du filet.",
+    "description": "Travail du smash avec puissance réduite et priorité à la précision, spécifiquement sur les balles hautes reçues en zone de transition.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tech_007",
+    "pilier": "Technique",
+    "titre": "Coup droit à plat en fond de court",
+    "probleme_associe": "Manque de profondeur sur les coups droits joués depuis le fond de la zone de transition.",
+    "description": "Série de coups droits à plat visant la profondeur maximale, pour repousser l'adversaire et gagner du temps pour la montée.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tech_008",
+    "pilier": "Technique",
+    "titre": "Revers slicé de transition",
+    "probleme_associe": "Revers trop court lors de la phase de transition vers le filet, offrant une balle facile à l'adversaire.",
+    "description": "Travail du revers slicé avec trajectoire basse et longue durant la phase de déplacement vers la zone de non-volée.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tech_009",
+    "pilier": "Technique",
+    "titre": "Volée d'interception au filet",
+    "probleme_associe": "Balles adverses non interceptées au filet faute de réactivité sur les échanges rapides.",
+    "description": "Exercice de volées rapprochées à haute cadence, avec raquette maintenue en position haute prête à intercepter.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tech_010",
+    "pilier": "Technique",
+    "titre": "Lob défensif avec trajectoire haute",
+    "probleme_associe": "Lobs défensifs trop courts, facilement smashés par l'adversaire déjà positionné au filet.",
+    "description": "Répétition de lobs défensifs à trajectoire très haute, ciblant le fond de la zone arrière pour gagner du temps de replacement.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tech_011",
+    "pilier": "Technique",
+    "titre": "Reprise de volée sur balle rapide",
+    "probleme_associe": "Volée manquée lorsque la balle arrive à haute vitesse directement sur le corps.",
+    "description": "Exercice de volées reçues à vitesse croissante, en insistant sur le raccourcissement du geste et le blocage plutôt que la frappe.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tech_012",
+    "pilier": "Technique",
+    "titre": "Erne (contournement du kitchen) maîtrisé",
+    "probleme_associe": "Tentatives d'erne mal exécutées, pied posé par erreur dans la zone de non-volée.",
+    "description": "Répétition du mouvement de contournement latéral de la zone de non-volée (erne) avec contrôle visuel systématique de la position des pieds.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tech_013",
+    "pilier": "Technique",
+    "titre": "Dink croisé avec variation de hauteur",
+    "probleme_associe": "Dinks trop prévisibles en trajectoire et hauteur, facilement anticipés par l'adversaire.",
+    "description": "Travail du dink croisé avec variation volontaire de la hauteur de passage au-dessus du filet, pour complexifier la lecture adverse.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_001",
+    "pilier": "Tactique",
+    "titre": "Anticipation des lobs défensifs",
+    "probleme_associe": "Lobe intercepté, mauvaise lecture de l'engagement adverse au filet.",
+    "description": "Exercice de lecture visuelle : le joueur doit évaluer la posture de l'adversaire au filet avant de décider d'un lob, en ne le jouant que si l'adversaire est pleinement engagé vers l'avant.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_002",
+    "pilier": "Tactique",
+    "titre": "Montée synchronisée vers le filet après le retour",
+    "probleme_associe": "Montée désorganisée vers le filet, un joueur en retard laissant un espace exploitable.",
+    "description": "Travail de montée synchronisée en double après le retour de service, avec consigne de progression au même rythme que le partenaire.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_003",
+    "pilier": "Tactique",
+    "titre": "Ciblage du joueur en transition",
+    "probleme_associe": "Balles envoyées indifféremment aux deux adversaires, sans exploiter celui qui n'a pas encore atteint le filet.",
+    "description": "Exercice où les balles doivent systématiquement cibler l'adversaire encore en zone de transition, pas encore stabilisé au filet.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_004",
+    "pilier": "Tactique",
+    "titre": "Alternance dinks / accélération pour casser le rythme",
+    "probleme_associe": "Échanges de dinks trop monotones qui laissent l'adversaire s'installer confortablement dans son rythme.",
+    "description": "Travail d'alternance délibérée entre séquences de dinks longues et accélérations soudaines, pour perturber la lecture adverse.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_005",
+    "pilier": "Tactique",
+    "titre": "Couverture du milieu en double",
+    "probleme_associe": "Hésitation ou collision sur les balles jouées au centre du court en double.",
+    "description": "Exercice de clarification systématique de la couverture du milieu selon la règle du coup droit dominant, répété jusqu'à automatisation.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_006",
+    "pilier": "Tactique",
+    "titre": "Reset défensif sur balle rapide",
+    "probleme_associe": "Tentative de contre-attaque risquée sur une balle rapide reçue en position défavorable.",
+    "description": "Situations de balles rapides reçues en déséquilibre, avec consigne de reset (amorti défensif) plutôt que de tentative offensive.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_007",
+    "pilier": "Tactique",
+    "titre": "Choix du bon moment pour l'attaque (speed up)",
+    "probleme_associe": "Accélérations tentées sur des balles hautes mais mal placées, menant à une erreur évitable.",
+    "description": "Exercice de reconnaissance de la balle attaquable (hauteur suffisante, trajectoire favorable) avant d'autoriser l'accélération.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_008",
+    "pilier": "Tactique",
+    "titre": "Lecture de la posture adverse avant le smash",
+    "probleme_associe": "Smash tenté alors que l'adversaire est déjà bien positionné pour contrer, menant à une perte de point.",
+    "description": "Travail de lecture de la posture et de l'équilibre adverse avant de déclencher un smash, pour choisir le bon moment d'attaque.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_009",
+    "pilier": "Tactique",
+    "titre": "Positionnement en formation côte à côte",
+    "probleme_associe": "Positionnement désorganisé en double, espaces ouverts entre les deux joueurs.",
+    "description": "Exercice de maintien de formation côte à côte avec déplacement latéral synchronisé selon la position du ballon.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_010",
+    "pilier": "Tactique",
+    "titre": "Gestion des balles au corps en double",
+    "probleme_associe": "Confusion en double lorsque la balle est jouée directement entre les deux joueurs.",
+    "description": "Répétition de balles jouées volontairement entre les deux partenaires, avec règle claire préétablie sur qui prend la balle.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_011",
+    "pilier": "Tactique",
+    "titre": "Repli après une accélération manquée",
+    "probleme_associe": "Position vulnérable laissée après une tentative d'accélération qui échoue.",
+    "description": "Simulation d'accélérations manquées avec consigne de repli immédiat en position défensive équilibrée avant le point suivant.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_tact_012",
+    "pilier": "Tactique",
+    "titre": "Communication de zone avec le partenaire",
+    "probleme_associe": "Manque de communication verbale en double, décisions prises trop tard sur les balles ambiguës.",
+    "description": "Exercice imposant une annonce verbale courte avant chaque prise de balle ambiguë, pour automatiser la communication de zone.",
+    "pro_tip": "Catherine Parenteau est reconnue pour la qualité de sa communication constante avec ses partenaires en double."
+  },
+  {
+    "id": "pb_tact_013",
+    "pilier": "Tactique",
+    "titre": "Exploitation de l'espace central en double",
+    "probleme_associe": "Sous-exploitation de l'espace central adverse, souvent le point faible en couverture de double.",
+    "description": "Travail ciblé de balles dirigées vers l'espace central adverse, zone statistiquement la plus souvent mal couverte en double.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_001",
+    "pilier": "Physique",
+    "titre": "Déplacements latéraux courts et répétés",
+    "probleme_associe": "Manque de vivacité dans les déplacements latéraux en zone de non-volée.",
+    "description": "Séries de petits pas chassés le long de la ligne de non-volée, avec changements de direction rapides sur signal.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_002",
+    "pilier": "Physique",
+    "titre": "Réactivité de pieds en zone de non-volée",
+    "probleme_associe": "Temps de réaction trop long sur les échanges rapprochés au filet.",
+    "description": "Exercices de petits appuis rapides sur place suivis d'un déplacement explosif sur signal, en position de kitchen.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_003",
+    "pilier": "Physique",
+    "titre": "Explosivité pour la transition fond de court vers filet",
+    "probleme_associe": "Montée trop lente vers le filet après le retour de service, laissant l'initiative à l'adversaire.",
+    "description": "Travail d'accélération progressive depuis la ligne de fond jusqu'à la zone de non-volée, en un minimum de foulées.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_004",
+    "pilier": "Physique",
+    "titre": "Endurance sur échanges de dinks prolongés",
+    "probleme_associe": "Baisse de précision sur les échanges de dinks dépassant 15 à 20 frappes consécutives.",
+    "description": "Séquences de dinks prolongées imposées, pour habituer le corps à maintenir la précision technique sur la durée.",
+    "pro_tip": "Anna Leigh Waters est reconnue pour sa patience et son endurance sur les longs échanges de dinks."
+  },
+  {
+    "id": "pb_phys_005",
+    "pilier": "Physique",
+    "titre": "Renforcement du poignet pour les volées rapides",
+    "probleme_associe": "Manque de fermeté sur les volées à haute vitesse, tamis instable au contact.",
+    "description": "Exercices de renforcement du poignet avec élastique, pour stabiliser la raquette lors des échanges rapides au filet.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_006",
+    "pilier": "Physique",
+    "titre": "Vitesse de réaction sur smash adverse",
+    "probleme_associe": "Retard de réaction face aux smashs adverses reçus depuis une courte distance.",
+    "description": "Exercices de blocage réflexe sur balles envoyées à vitesse croissante, pour réduire le temps de réaction défensive.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_007",
+    "pilier": "Physique",
+    "titre": "Gainage pour la stabilité en position basse au filet",
+    "probleme_associe": "Perte d'équilibre lors des dinks prolongés en position basse et fléchie.",
+    "description": "Exercices de gainage statique et dynamique en position basse, pour maintenir la stabilité durant les longs échanges au filet.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_008",
+    "pilier": "Physique",
+    "titre": "Mobilité de hanche pour les fentes latérales",
+    "probleme_associe": "Amplitude insuffisante lors des fentes latérales pour couvrir les balles excentrées au filet.",
+    "description": "Travail de mobilité de hanche à travers des fentes latérales dynamiques, pour améliorer la couverture latérale en zone de non-volée.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_009",
+    "pilier": "Physique",
+    "titre": "Récupération rapide entre les points",
+    "probleme_associe": "Fréquence cardiaque qui reste élevée entre les points, affectant la lucidité tactique.",
+    "description": "Travail de respiration contrôlée et de récupération active dans le temps disponible entre chaque point.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_010",
+    "pilier": "Physique",
+    "titre": "Souplesse d'épaule pour le service",
+    "probleme_associe": "Amplitude de service limitée, réduisant la profondeur et la variété des services possibles.",
+    "description": "Routine de mobilité d'épaule ciblée avant et après chaque séance, pour améliorer l'amplitude du geste de service.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_011",
+    "pilier": "Physique",
+    "titre": "Puissance de jambes pour les déplacements courts",
+    "probleme_associe": "Manque de puissance sur les premiers appuis lors des déplacements courts et répétés.",
+    "description": "Exercices de pliométrie légère (petits sauts, changements d'appui) pour développer la puissance des déplacements courts.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_phys_012",
+    "pilier": "Physique",
+    "titre": "Résistance musculaire pour les longs échanges",
+    "probleme_associe": "Dégradation de la précision technique sur les matchs à tournoi enchaînant plusieurs rencontres.",
+    "description": "Séance combinant volume d'échanges élevé et fatigue progressive, pour habituer le corps aux journées de tournoi à matchs multiples.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_001",
+    "pilier": "Mental",
+    "titre": "Réactivité après un point perdu",
+    "probleme_associe": "Perte de concentration après une faute, enchaînement d'erreurs consécutives.",
+    "description": "Protocole de reset mental court entre chaque point (respiration, focus sur un repère visuel fixe) pour limiter l'impact d'une erreur sur le point suivant.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_002",
+    "pilier": "Mental",
+    "titre": "Patience durant les longs échanges de dinks",
+    "probleme_associe": "Tentative d'accélération précipitée par impatience durant un échange de dinks prolongé.",
+    "description": "Échanges de dinks longs imposés avec interdiction d'accélération avant un signal précis, pour développer la tolérance à la longueur de l'échange.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_003",
+    "pilier": "Mental",
+    "titre": "Gestion du stress en fin de partie serrée",
+    "probleme_associe": "Précipitation technique dans les points décisifs en fin de partie (10-9, match point).",
+    "description": "Simulation de situations à enjeu (match point, égalité serrée) avec routine respiratoire fixe avant chaque point.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_004",
+    "pilier": "Mental",
+    "titre": "Communication constructive en double",
+    "probleme_associe": "Tension entre partenaires après une série d'erreurs, communication qui devient négative.",
+    "description": "Simulation d'erreurs répétées d'un partenaire avec consigne stricte de réponse verbale uniquement constructive et orientée solution.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_005",
+    "pilier": "Mental",
+    "titre": "Confiance après une série de fautes au filet",
+    "probleme_associe": "Jeu trop prudent et défensif après plusieurs fautes directes consécutives au filet.",
+    "description": "Situations où plusieurs fautes au filet sont provoquées volontairement, avec obligation de retenter le même coup avec la même intention.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_006",
+    "pilier": "Mental",
+    "titre": "Concentration sur la zone de non-volée",
+    "probleme_associe": "Relâchement d'attention sur la position des pieds durant les échanges rapides au filet.",
+    "description": "Exercice de dinks à haute cadence avec vérification verbale continue de la position des pieds par rapport à la ligne de non-volée.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_007",
+    "pilier": "Mental",
+    "titre": "Gestion de l'impatience en phase de transition",
+    "probleme_associe": "Tentative de coup offensif précipité alors que le joueur n'a pas encore fini sa montée vers le filet.",
+    "description": "Séquences de transition imposées avec interdiction d'accélération avant d'avoir atteint la zone de non-volée.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_008",
+    "pilier": "Mental",
+    "titre": "Focus tactique plutôt qu'émotionnel après une erreur",
+    "probleme_associe": "Réaction émotionnelle excessive après une erreur, au détriment de l'analyse tactique du point suivant.",
+    "description": "Exercice où chaque erreur simulée doit être immédiatement suivie d'une verbalisation tactique brève plutôt que d'une réaction émotionnelle.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_009",
+    "pilier": "Mental",
+    "titre": "Cohésion avec le partenaire en double",
+    "probleme_associe": "Décalage de placement et de décision entre les deux joueurs du double.",
+    "description": "Exercices de déplacement synchronisé où les deux joueurs doivent se déplacer comme un bloc uni, avec feedback immédiat en cas de désynchronisation.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_010",
+    "pilier": "Mental",
+    "titre": "Routine mentale avant le service",
+    "probleme_associe": "Variabilité de concentration d'un service à l'autre, affectant la régularité du pourcentage de réussite.",
+    "description": "Mise en place d'une routine fixe (respiration, visualisation de la cible) répétée systématiquement avant chaque service.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_011",
+    "pilier": "Mental",
+    "titre": "Maintien de l'intensité sur un match long",
+    "probleme_associe": "Relâchement mental perceptible lors des matchs prolongés à trois manches.",
+    "description": "Simulation de fin de match avec fatigue préalable induite, en insistant sur le maintien du niveau d'engagement mental jusqu'au dernier point.",
+    "pro_tip": null
+  },
+  {
+    "id": "pb_ment_012",
+    "pilier": "Mental",
+    "titre": "Gestion de la pression sur balle de match",
+    "probleme_associe": "Baisse de précision technique notable sur les balles de match par rapport au reste de la rencontre.",
+    "description": "Répétition de situations de balle de match simulées, avec routine mentale fixe appliquée avant chaque point décisif.",
+    "pro_tip": null
+  }
+]
