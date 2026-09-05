@@ -150,5 +150,10 @@ class Agent:
             )
             if rec.contenu.pro_tip:
                 table.add_row("🌟 [bold blue]Pro-Tip[/bold blue]", f"[blue]{rec.contenu.pro_tip}[/blue]")
+            if rec.contenu.exercice_source_id:
+                table.add_row(
+                    "🔗 [bold cyan]Exercice de référence[/bold cyan]",
+                    f"[cyan]{rec.contenu.exercice_source_id}[/cyan]",
+                )
 
             console.print(table)
