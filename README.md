@@ -41,27 +41,9 @@ Trois sports sont pris en charge, chacun avec son propre modèle de détection e
 
 Le pipeline d'analyse s'articule en cinq étapes séquentielles, de la vidéo brute jusqu'au dashboard de session.
 
-```
-Vidéo utilisateur
-        │
-        ▼
-1. Extraction des frames          (AVFoundation / OpenCV)
-        │
-        ▼
-2. Détection d'objets             (Core ML — modèle YOLO par sport)
-        │
-        ▼
-3. Suivi des objets (tracking)    (association IoU + ré-identification)
-        │
-        ▼
-4. Extraction de métriques        (trajectoires, couverture, positionnement)
-        │
-        ▼
-5. Insights & recommandations     (moteur de coaching + LLM optionnel)
-        │
-        ▼
-   Dashboard de session
-```
+<p align="center">
+  <img src="docs/media/nextmove_pipeline_flow.png" alt="Pipeline d'analyse NextMove : extraction des frames, détection, tracking, extraction de métriques, insights et dashboard" width="820">
+</p>
 
 Le framework se compose de modules bien délimités :
 
