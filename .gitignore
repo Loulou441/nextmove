@@ -7,3 +7,6 @@ __pycache__/
 
 .streamlit/
 data/videos/
+.env.api.local
+nextmove_demo.db
+.venv_api/
