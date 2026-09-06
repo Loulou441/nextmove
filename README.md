@@ -30,6 +30,8 @@ reformule ces données en **insights lisibles** et en **recommandations de type 
 
 Trois sports sont pris en charge, chacun avec son propre modèle de détection entraîné : **padel**, **pickleball** et **tennis** (ce dernier servant aussi de modèle de repli pour le badminton).
 
+Le langage visuel (cartes arrondies, palette iOS, écrans Me/Library/Upload/Dashboard) est défini par les mockups dans [`docs/mockups/`](docs/mockups/) — l'app web (`streamlit/src/design.py`) et l'app iOS visent toutes les deux ce même design.
+
 <p align="center">
   <img src="docs/media/detection_example.png" alt="Exemple d'annotations produites par le détecteur" width="720">
 </p>
@@ -283,6 +285,7 @@ uvicorn src.api.main:app --reload --port 8000      # API partagée (nécessaire 
 > - Sans `GROQ_API_KEY`, les pages *AI Analysis* et *Training Plan* affichent un rapport de démonstration statique.
 > - Sans balle détectable dans la vidéo uploadée (cadrage, luminosité), l'analyse échoue avec un message explicite plutôt que d'inventer des métriques — réessayer avec une séquence plus claire.
 > - Les vidéos importées via la page *Upload* sont stockées dans un bucket Supabase Storage privé (voir `src/services/video_storage.py`).
+> - La navigation se fait via la sidebar (toujours visible, non repliable). Une barre d'onglets fixe en bas façon iOS a été tentée (CSS `.st-key-bottom_nav` dans `design.py`) mais n'a jamais correctement reçu de largeur à travers les conteneurs Streamlit — le CSS reste dans le fichier, commenté comme non utilisé, en attendant d'être repris.
 
 ---
 
