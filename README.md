@@ -5,7 +5,7 @@
 
 **Analyse vidéo de sports de raquette par vision par ordinateur — insights, dashboards et recommandations de type coach.**
 
-NextMove transforme de courtes vidéos de padel, pickleball, tennis et football en métriques compréhensibles et conseils d'amélioration. C'est **un seul et même projet**, décliné sur **deux plateformes** : une **application iOS** native (SwiftUI + Core ML, inférence 100 % sur l'appareil) et une **application web** (Python / Streamlit) pour l'analyse de matchs, les dashboards de performance, la détection de patterns et le coaching IA. Les deux partagent les **mêmes modèles de vision par ordinateur finetunés** et la même logique produit — seule la plateforme change.
+NextMove transforme de courtes vidéos de padel, pickleball, tennis et football en métriques compréhensibles et conseils d'amélioration. C'est **un projet** décliné sur **deux plateformes** : une **application iOS** native (SwiftUI + Core ML, inférence 100 % sur l'appareil) et une **application web** (Python / Streamlit) pour l'analyse de matchs, les dashboards de performance, la détection de patterns et le coaching IA. Les deux partagent les **mêmes modèles de vision par ordinateur finetunés** et la même logique produit — seule la plateforme change.
 
 </div>
 
