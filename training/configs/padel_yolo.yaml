@@ -1,0 +1,83 @@
+# YOLO11 Configuration for Padel Detection
+#
+# Dataset: Plaimaker "padel-tkrqs" (Roboflow Universe, Public Domain).
+#   Padel object-detection set, ~868 images (780 train / 57 val / 31 test),
+#   6 classes. Fine-tunes a COCO-pretrained YOLO11n backbone.
+#
+# The app only consumes the `ball` and `player` classes (ObjectDetector maps
+# those by name); the court-context classes (field, net, wall, outside-field)
+# are trained too so the model isn't confused by them, and can drive
+# court-aware analysis later. They're simply ignored by the current app.
+#
+# Download with:  python scripts/download_dataset.py --sport padel
+# which writes data/padel_dataset/data.yaml. When training off the downloaded
+# set, point --data at that data.yaml (its class order is authoritative).
+
+# Model architecture
+model: yolo11n  # nano model for mobile deployment (best Core ML support)
+
+# Dataset paths (relative to this config file).
+path: ../data/padel_dataset
+train: train/images
+val: valid/images
+test: test/images
+
+# Class names — MUST match the downloaded padel-tkrqs data.yaml order.
+names:
+  0: ball
+  1: field
+  2: net
+  3: outside-field
+  4: player
+  5: wall
+
+# Number of classes
+nc: 6
+
+# Training hyperparameters
+epochs: 100
+batch: 16
+imgsz: 640
+patience: 20  # early stopping patience
+
+# Optimizer
+optimizer: AdamW
+lr0: 0.001  # initial learning rate (low: adapt pretrained weights gently)
+lrf: 0.01   # final learning rate (lr0 * lrf)
+momentum: 0.937
+weight_decay: 0.0005
+
+# Data augmentation
+# The padel ball is tiny and fast; keep scale/translate modest. No vertical
+# flip (court orientation is fixed by the camera).
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+shear: 0.0
+perspective: 0.0
+flipud: 0.0
+fliplr: 0.5
+mosaic: 1.0
+mixup: 0.0
+
+# Validation
+conf: 0.25   # ball is small — a slightly lower threshold helps recall
+iou: 0.5
+max_det: 100
+
+# Device
+device: 0  # GPU device (0, 1, 2, etc.) or 'cpu'
+
+# Logging
+project: runs/train
+name: padel_detector
+exist_ok: False
+save: True
+save_period: 10
+
+# Performance
+workers: 8
+amp: True

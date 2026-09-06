@@ -1,0 +1,71 @@
+# YOLO11 Configuration for Tennis Detection
+# Also used as the transfer source for Padel (no dedicated padel dataset yet).
+
+# Model architecture
+model: yolo11n  # nano model for mobile deployment (best Core ML support)
+
+# Dataset paths (relative to this config file)
+# NOTE: when using the downloaded Roboflow set, point --data at its data.yaml
+# instead; these paths are for a locally split dataset.
+path: ../data
+train: train/images
+val: val/images
+test: test/images
+
+# Class names (must match annotation indices)
+# Tennis datasets commonly label player, racket, and ball.
+names:
+  0: ball
+  1: player
+  2: racket
+  3: court_line
+  4: net
+
+# Number of classes
+nc: 5
+
+# Training hyperparameters
+epochs: 100
+batch: 16
+imgsz: 640
+patience: 20  # early stopping patience
+
+# Optimizer
+optimizer: AdamW
+lr0: 0.001  # initial learning rate (low: adapt pretrained weights gently)
+lrf: 0.01   # final learning rate (lr0 * lrf)
+momentum: 0.937
+weight_decay: 0.0005
+
+# Data augmentation
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+shear: 0.0
+perspective: 0.0
+flipud: 0.0
+fliplr: 0.5
+mosaic: 1.0
+mixup: 0.0
+
+# Validation
+conf: 0.3
+iou: 0.5
+max_det: 100
+
+# Device
+device: 0  # GPU device (0, 1, 2, etc.) or 'cpu'
+
+# Logging
+project: runs/train
+name: tennis_detector
+exist_ok: False
+save: True
+save_period: 10
+
+# Performance
+workers: 8
+amp: True
