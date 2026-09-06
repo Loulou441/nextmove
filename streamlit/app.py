@@ -41,24 +41,22 @@ st.session_state.setdefault("current_game_id", None)
 if "nav_target" in st.session_state:
     st.session_state["nav_radio"] = st.session_state.pop("nav_target")
 
-# ── Sidebar navigation ───────────────────────────────────────────────
-# La barre d'onglets du bas façon iOS (.st-key-bottom_nav dans design.py)
-# ne s'affichait pas correctement (le radio Streamlit ne recevait jamais
-# de largeur réelle à travers plusieurs niveaux de conteneurs) — retour
-# à la sidebar en attendant de reprendre ce chantier.
-with st.sidebar:
-    st.markdown("""
-    <div style="padding: 8px 0 20px;">
-      <div style="font-size:22px;font-weight:700;color:#1C1C1E;">NextMove</div>
-      <div style="font-size:13px;color:#8E8E93;">Smart Coach AI</div>
-    </div>
-    """, unsafe_allow_html=True)
-
+# ── Barre de navigation en bas ──────────────────────────────────────
+with st.container(key="bottom_nav"):
     page = st.radio(
         "Navigation",
-        ["👤 Me", "📚 Library", "⬆️ Upload", "📊 Dashboard", "🧠 AI Analysis", "📈 Patterns", "📋 Training Plan"],
+        [
+            "👤 Me",
+            "📚 Library",
+            "⬆️ Upload",
+            "📊 Dashboard",
+            "🧠 AI Analysis",
+            "📈 Patterns",
+            "📋 Training Plan",
+        ],
+        horizontal=True,
         label_visibility="collapsed",
-        key="nav_radio"
+        key="nav_radio",
     )
 
 # ── Route pages ──────────────────────────────────────────────────────
