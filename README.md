@@ -1,48 +1,172 @@
 <div align="center">
+<div align="center">
 
-# 🏓 NextMove
+# NextMove
 
-Analyse de matchs multi-sport (Pickleball, Football, Padel) avec dashboards, détection de patterns et recommandations de coach IA (Groq).
+**Analyse vidéo de sports de raquette par vision par ordinateur — insights, dashboards et recommandations de type coach.**
+
+NextMove transforme de courtes vidéos de padel, pickleball, tennis et football en métriques compréhensibles et conseils d'amélioration. C'est **un projet** décliné sur **deux plateformes** : une **application iOS** native (SwiftUI + Core ML, inférence 100 % sur l'appareil) et une **application web** (Python / Streamlit) pour l'analyse de matchs, les dashboards de performance, la détection de patterns et le coaching IA. Les deux partagent les **mêmes modèles de vision par ordinateur finetunés** et la même logique produit — seule la plateforme change.
 
 </div>
 
----
+<p align="center">
+  <img src="docs/media/demo_padel_nofield.gif" alt="Détection NextMove sur une séquence de padel" width="820">
+</p>
 
-## Overview
-
-NextMove permet à un joueur d'importer ses matchs analysés, de consulter des dashboards de performance, de détecter des patterns de jeu récurrents et d'obtenir des recommandations de coaching générées par IA, sport par sport (Pickleball, Football, Padel).
-
----
-
-## Pages de l'application
-
-L'application est organisée en pages accessibles depuis la barre latérale ([app.py](app.py)) :
-
-- **Me** — profil joueur, statistiques de progression, changement de sport.
-- **Library** ([1_Library.py](src/streamlit_app/1_Library.py)) — liste des matchs analysés ou en attente d'analyse.
-- **Upload** ([2_Upload.py](src/streamlit_app/2_Upload.py)) — import d'une nouvelle vidéo/d'un nouveau match.
-- **Dashboard** ([3_Dashboard.py](src/streamlit_app/3_Dashboard.py)) — métriques clés et visualisations d'un match sélectionné.
-- **AI Analysis** ([4_AI_Analysis.py](src/streamlit_app/4_AI_Analysis.py)) — génère un rapport de coaching IA pour une action précise, pour le sport choisi (Pickleball, Football ou Padel).
-- **Patterns** ([5_Patterns.py](src/streamlit_app/5_Patterns.py)) — détection de tendances récurrentes dans le jeu.
-- **Training Plan** ([6_Training_Plan.py](src/streamlit_app/6_Training_Plan.py)) — programme d'entraînement hebdomadaire personnalisé généré par l'agent IA (Pickleball).
+<p align="center">
+  <em>Détection et suivi en temps réel : chaque joueur reçoit un identifiant stable (player 1, player 2, ...), en plus de la balle et du terrain.</em><br>
+  <sub>Clip complet : <a href="docs/media/demo_padel_nofield.mp4"><code>docs/media/demo_padel_nofield.mp4</code></a></sub>
+</p>
 
 ---
 
-## Repository Layout
+## Vue d'ensemble
+
+NextMove rend l'analyse de performance sportive accessible sans équipement spécialisé. À partir d'une simple vidéo filmée au téléphone, le système :
+
+détecte les éléments clés du jeu — **joueurs, balle et terrain** ;<br>
+suit ces objets dans le temps pour reconstruire la dynamique de l'échange ;<br>
+calcule des métriques de positionnement et de déplacement ;<br>
+reformule ces données en **insights lisibles** et en **recommandations de type coach** en langage naturel.
+
+Trois sports sont pris en charge, chacun avec son propre modèle de détection entraîné : **padel**, **pickleball** et **tennis** (ce dernier servant aussi de modèle de repli pour le badminton).
+
+<p align="center">
+  <img src="docs/media/detection_example.png" alt="Exemple d'annotations produites par le détecteur" width="720">
+</p>
+
+---
+
+## Méthodologie
+
+Le pipeline d'analyse s'articule en cinq étapes séquentielles, de la vidéo brute jusqu'au dashboard de session.
+
+<p align="center">
+  <img src="docs/media/nextmove_pipeline_flow.png" alt="Pipeline d'analyse NextMove : extraction des frames, détection, tracking, extraction de métriques, insights et dashboard" width="820">
+</p>
+
+Le framework se compose de modules bien délimités :
+
+**Module de détection**
+
+Un modèle YOLO dédié par sport, exporté au format Core ML.<br>
+L'analyse se concentre sur trois classes utiles au coaching : **`player`, `ball`, `field`**.<br>
+Le modèle padel sait aussi reconnaître `net`, `wall` et `outside-field`, mais ces classes sont filtrées pour ne conserver que l'essentiel du jeu.<br>
+Padel : `player`, `ball`, `field` *(classes complémentaires : `net`, `wall`, `outside-field`)* — Pickleball : `player`, `ball`, `paddle` — Tennis : joueur et balle (repli badminton).<br>
+Boîtes englobantes normalisées, filtrage par seuil de confiance, NMS intégré au modèle.<br>
+**Réduction des faux positifs** : un seuil de confiance plus strict est appliqué aux joueurs, et toute boîte « joueur » située au-dessus du terrain (affiches, public, panneaux) ou de proportions non plausibles (plus large que haute) est écartée — un poster n'est jamais confondu avec un joueur.
+
+**Module de suivi (tracking)**
+
+Association détection-à-piste par IoU (avec repli sur la distance des centroïdes pour les mouvements rapides).<br>
+**Chaque joueur reçoit un identifiant stable** (`player 1`, `player 2`, ...) conservé d'une frame à l'autre, avec une couleur dédiée — ce qui permet de suivre individuellement chaque joueur tout au long de l'échange.<br>
+Ré-identification sur une fenêtre glissante pour gérer les occlusions courtes ; terminaison automatique des pistes.
+
+**Module d'extraction de métriques**
+
+Analyse de trajectoire de balle (direction, profondeur, vitesse estimée).<br>
+Analyse des déplacements du joueur (couverture du terrain, positionnement, vitesse).<br>
+Détection de schémas de performance (positionnement statique, profondeur, déséquilibre de couverture, replacement).
+
+**Module de coaching**
+
+Priorisation des problèmes détectés par poids d'impact.<br>
+Génération de retours en langage clair, avec suggestions d'entraînement et conseils rapides.<br>
+Enrichissement optionnel par un LLM (langage plus naturel et contextualisé).
+
+---
+
+## Fonctionnalités
+
+### Analyse vidéo
+Import depuis la galerie ou enregistrement direct.<br>
+Traitement de clips courts, préparés automatiquement pour l'analyse.
+
+### Détection visuelle
+Détection des joueurs et du contexte terrain.<br>
+Détection de la balle lorsque les conditions le permettent.<br>
+Identification de plusieurs éléments du jeu selon le sport.
+
+### Génération d'insights
+Durée estimée des échanges.<br>
+Position moyenne et zones de couverture sur le terrain.<br>
+Tendances de déplacement.
+
+### Recommandations coach
+Conseils actionnables : positionnement, déplacements, anticipation.<br>
+Reformulation des métriques en langage simple (moteur de règles, enrichi par LLM si activé).
+
+### Dashboard de session
+Résumé visuel : métriques clés, graphiques et recommandations principales.
+
+---
+
+## Les deux plateformes
+
+Un seul projet NextMove, deux plateformes propulsées par les **mêmes modèles CV finetunés** (YOLO entraînés par sport) et la même logique produit. L'app iOS exécute l'inférence sur l'appareil ; l'app web offre la même expérience d'analyse de matchs, de dashboards et de coaching IA côté serveur.
+
+### 📱 Application iOS (`nextmove/`)
+
+Application native SwiftUI. L'ensemble de l'inférence s'exécute **sur l'appareil** — aucune vidéo n'est envoyée vers un serveur pour l'analyse.
+
+| Composant | Rôle |
+|-----------|------|
+| `VideoProcessor` | Extraction des frames via `AVAssetReader` |
+| `ModelManager` | Chargement et mise en cache des modèles Core ML par sport |
+| `ObjectDetector` | Inférence via le framework Vision (`VNCoreMLRequest`) |
+| `ObjectTracker` | Suivi des objets entre frames (IoU + ré-identification) |
+| `FeatureExtractor` | Calcul des métriques de performance |
+| `CoachingEngine` / `EnhancedCoachingEngine` | Génération des retours (règles + LLM optionnel) |
+| `AnalysisPipeline` | Orchestration des étapes avec suivi de progression |
+
+**Stack :** Swift · SwiftUI · AVFoundation · Vision · Core ML · Swift Charts · SwiftData
+
+### 🌐 Application web (branche [`feature/rag`](https://github.com/Loulou441/nextmove/tree/feature/rag))
+
+Application web complète en **Python / Streamlit** dédiée à l'analyse de matchs multi-sport, aux dashboards de performance, à la détection de patterns de jeu et aux recommandations de coach IA. Elle s'appuie sur les **mêmes modèles de vision par ordinateur finetunés** que l'application iOS et constitue un produit autonome à part entière.
+
+**Sports pris en charge :** Pickleball · Football · Padel.
+
+#### Pages de l'application
+
+L'app est organisée en pages accessibles depuis la barre latérale (`app.py`) :
+
+| Page | Fichier | Rôle |
+|------|---------|------|
+| **Me** | `app.py` | Profil joueur, statistiques de progression, changement de sport |
+| **Library** | `1_Library.py` | Liste des matchs analysés ou en attente d'analyse |
+| **Upload** | `2_Upload.py` | Import d'une nouvelle vidéo / d'un nouveau match |
+| **Dashboard** | `3_Dashboard.py` | Métriques clés et visualisations du match sélectionné |
+| **AI Analysis** | `4_AI_Analysis.py` | Rapport de coaching IA pour une action précise, par sport |
+| **Patterns** | `5_Patterns.py` | Détection de tendances récurrentes dans le jeu |
+| **Training Plan** | `6_Training_Plan.py` | Programme d'entraînement hebdomadaire personnalisé généré par l'agent IA |
+
+#### Coaching IA multi-sport (agents)
+
+Chaque sport dispose de son propre agent de coaching sous `src/agents/` :
+
+`agentpickelball/` — contexte, prompt et données d'exemple pour le pickleball.<br>
+`agentfootball/` — équivalent pour le football.<br>
+`agentpadel/` — équivalent pour le padel.<br>
+`agentmanager/` — classe de base partagée (client Groq).
+
+Tous les agents renvoient le même schéma JSON (`constat`, `analyse`, `action_corrective`, `pro_tip`), affiché de façon identique dans l'UI Streamlit et en CLI via la méthode `Agent.afficher_rapport()`, héritée par les trois coachs.
+
+#### Structure de l'application web
 
 ```
-nextmove/
-├── app.py                     # point d'entrée Streamlit (navigation + page "Me")
-├── requirements.txt           # dépendances Python (versions pinnées)
+nextmove/                       # (branche feature/rag)
+├── app.py                      # point d'entrée Streamlit (navigation + page "Me")
+├── requirements.txt            # dépendances Python (versions pinnées)
 ├── docs/
 │   └── mockups/                # captures d'écran de référence (design)
 ├── data/
-│   └── demo_games.csv         # jeu de données de démo
+│   └── demo_games.csv          # jeu de données de démo
 └── src/
-    ├── config.py              # variables d'environnement, clés API, chemins des prompts
+    ├── config.py               # variables d'environnement, clés API, chemins des prompts
     ├── analysis_engine.py      # logique d'analyse des matchs
     ├── patterns_engine.py      # détection de patterns de jeu
-    ├── design.py                # thème / composants UI iOS-like
+    ├── design.py               # thème / composants UI iOS-like
     ├── viz.py                   # visualisations (terrain tactique, etc.)
     ├── streamlit_app/           # pages de l'application
     │   ├── 1_Library.py
@@ -52,69 +176,153 @@ nextmove/
     │   ├── 5_Patterns.py
     │   └── 6_Training_Plan.py
     └── agents/                  # agents de coaching IA (un par sport)
-        ├── agentmanager/         # classe de base partagée (client Groq)
+        ├── agentmanager/
         ├── agentpickelball/
         ├── agentfootball/
         └── agentpadel/
 ```
 
----
+#### Détails techniques
 
-## Coaching IA multi-sport
+**Frontend / Backend :** Streamlit (Python) — pas de séparation front/back, tout tourne dans le processus `streamlit run app.py`.<br>
+**Données :** CSV de démo (`data/demo_games.csv`) et fichiers JSON d'exemple par sport.<br>
+**IA :** API Groq (modèles de type `llama-3.3-70b-versatile`) pour la génération des recommandations.<br>
+**Visualisation :** Plotly pour les graphiques et le terrain tactique (`src/viz.py`).
 
-Chaque sport dispose de son propre agent de coaching sous [src/agents/](src/agents) :
+**Stack :** Python · Streamlit · Groq (LLM) · Plotly · Pandas
 
-- `agentpickelball/` — contexte, prompt et données d'exemple pour le pickleball.
-- `agentfootball/` — équivalent pour le football.
-- `agentpadel/` — équivalent pour le padel.
-- `agentmanager/` — classe de base partagée (client Groq).
+#### Prérequis (app web)
 
-Tous les agents renvoient le même schéma JSON (`constat`, `analyse`, `action_corrective`, `pro_tip`), affiché de façon identique dans l'UI Streamlit et en CLI (méthode `Agent.afficher_rapport()`, héritée par les 3 coachs).
+Python 3.10+<br>
+Une clé API Groq pour activer les recommandations IA *(optionnelle : sans clé, l'app bascule en mode démo)*.
 
-## Prérequis
-
-- Python 3.10+
-- Une clé API [Groq](https://console.groq.com/) pour activer les recommandations IA (optionnelle : sans clé, l'app bascule en mode démo).
-
-## Installation
+#### Démarrage (app web)
 
 ```bash
+git clone -b feature/rag https://github.com/Loulou441/nextmove.git
+cd nextmove
 python -m venv .venv
-.venv\Scripts\Activate.ps1   # Windows
+source .venv/bin/activate        # macOS / Linux
+# .venv\Scripts\Activate.ps1     # Windows
 pip install -r requirements.txt
 ```
 
 Créer un fichier `.env` à la racine avec au minimum :
 
-```
+```env
 GROQ_API_KEY=votre_cle_groq
 MODEL_NAME_PICKELBALL=llama-3.3-70b-versatile
 MODEL_NAME_FOOTBALL=llama-3.3-70b-versatile
 MODEL_NAME_PADEL=llama-3.3-70b-versatile
 ```
 
-## Lancer l'application
+Puis lancer l'application :
 
 ```bash
 streamlit run app.py
 ```
 
----
-
-## Technical Details
-
-- **Frontend/Backend** : Streamlit (Python), pas de séparation front/back — tout tourne dans le processus `streamlit run app.py`.
-- **Données** : CSV de démo ([data/demo_games.csv](data/demo_games.csv)) et fichiers JSON d'exemple par sport.
-- **IA** : API Groq (modèles type `llama-3.3-70b-versatile`) pour la génération des recommandations.
-- **Visualisation** : Plotly pour les graphiques et le terrain tactique ([src/viz.py](src/viz.py)).
-
-## Notes
-
-- Sans `GROQ_API_KEY`, les pages "AI Analysis" et "Training Plan" affichent un rapport de démonstration statique.
-- Les vidéos importées via la page Upload sont stockées localement dans `data/videos/` (non versionné, voir `.gitignore`).
+> **Notes**
+> - Sans `GROQ_API_KEY`, les pages *AI Analysis* et *Training Plan* affichent un rapport de démonstration statique.
+> - Les vidéos importées via la page *Upload* sont stockées localement dans `data/videos/` (non versionné, voir `.gitignore`).
+> - L'application web est maintenue dans la branche `feature/rag` du dépôt.
 
 ---
 
-## License
+## Pipeline d'entraînement (`training/`)
 
-Ce projet est distribué sous licence MIT. Voir le fichier LICENSE pour plus d'informations.
+Les modèles de détection sont entraînés **séparément en Python**, puis convertis au format Core ML pour l'application iOS. L'application n'entraîne aucun modèle : elle n'exécute que l'inférence.
+
+```
+Vidéos → Extraction frames → Annotation → Entraînement YOLO → Conversion Core ML → Intégration iOS
+```
+
+**Étapes :**
+1. Préparation et annotation des clips (`extract_frames.py`, `convert_annotations.py`, `split_dataset.py`, `validate_annotations.py`).
+2. Entraînement du modèle (`train_yolo.py`, basé sur Ultralytics YOLO).
+3. Évaluation des performances (`validate.py` — mAP, précision, rappel, vitesse).
+4. Conversion vers Core ML avec quantification et NMS intégré (`convert_to_coreml.py`).
+5. Intégration : dépôt du `.mlpackage` dans le dossier du sport correspondant.
+
+**Stack :** Python · PyTorch · Ultralytics YOLO · OpenCV · Core ML Tools
+
+### Emplacement des modèles dans l'app iOS
+
+| Sport | Dossier | Nom du fichier |
+|-------|---------|----------------|
+| Pickleball | `nextmove/Models/Pickleball/` | `PickleballDetector_v1.mlpackage` |
+| Padel | `nextmove/Models/Padel/` | `PadelDetector_v1.mlpackage` |
+| Tennis (+ badminton) | `nextmove/Models/Tennis/` | `TennisDetector_v1.mlpackage` |
+
+`ModelManager` charge automatiquement le modèle correspondant au sport sélectionné ; aucune modification de code n'est nécessaire pour mettre à jour un modèle (il suffit de respecter le nom et le dossier).
+
+---
+
+## Prérequis
+
+### Application iOS
+macOS avec **Xcode** récent (projet créé avec Xcode 26).<br>
+iOS 16 ou version ultérieure.<br>
+Un appareil iOS compatible ou le simulateur.<br>
+Les modèles Core ML intégrés au projet (voir tableau ci-dessus).
+
+### Pipeline d'entraînement
+Python 3.8+<br>
+PyTorch 2.0+, Ultralytics YOLO 8.x, Core ML Tools 7.0+, OpenCV 4.8+<br>
+GPU recommandé pour l'entraînement.
+
+---
+
+## Démarrage
+
+### Application iOS
+
+```bash
+git clone https://github.com/Loulou441/nextmove.git
+cd nextmove
+open nextmove.xcodeproj
+```
+
+Puis, dans Xcode : sélectionner un simulateur (ex. iPhone 17) et lancer avec `⌘R`.
+Au premier lancement, choisir un sport, importer ou enregistrer une vidéo, puis suivre la progression de l'analyse jusqu'au dashboard de coaching.
+
+> **Coaching LLM (optionnel)** — ajoutez votre clé API dans un fichier `.env` pour activer l'enrichissement des retours par LLM. Sans clé, l'application bascule automatiquement sur le moteur de coaching basé sur des règles.
+
+### Régénérer le clip de démonstration
+
+Le clip ci-dessus a été produit en exécutant le modèle Core ML de padel sur une vidéo de match :
+
+```bash
+source training/venv/bin/activate
+python training/scripts/render_demo_overlay.py \
+  --model nextmove/Models/Padel/PadelDetector_v1.mlpackage \
+  --video "/chemin/vers/votre_video.mp4" \
+  --out docs/media/demo_padel.mp4 \
+  --start 120 --duration 12 --conf 0.35
+```
+
+---
+
+## Structure du dépôt
+
+```
+nextmove/
+├── nextmove/              # Application iOS (SwiftUI + Core ML)
+│   ├── Models/            # Modèles de données + modèles Core ML par sport
+│   ├── Services/          # Détection, tracking, features, coaching, pipeline
+│   ├── ViewModels/
+│   └── Views/
+├── nextmoveTests/         # Tests unitaires
+├── training/              # Pipeline d'entraînement Python (YOLO → Core ML)
+│   ├── scripts/
+│   ├── configs/
+│   └── ...
+├── docs/media/            # Média de démonstration (clip, GIF, images)
+└── README.md
+```
+
+---
+
+## Licence
+
+Ce projet est distribué sous licence MIT. Voir le fichier `LICENSE` pour plus d'informations.
