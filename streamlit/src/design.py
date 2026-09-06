@@ -9,110 +9,74 @@ def set_ios_design():
     #MainMenu, footer, header { visibility: hidden; }
     .stDeployButton { display: none; }
 
-    /* Navigation dans la sidebar (retour temporaire — cf. .st-key-bottom_nav
-       plus bas pour la tentative de barre d'onglets iOS en bas, laissée en
-       place mais inutilisée le temps de la reprendre). */
-    [data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E5E5EA !important; min-width: 260px !important; }
-    /* Empêche de replier la sidebar : elle doit rester affichée en permanence. */
-    [data-testid="stSidebarCollapseButton"] { display: none !important; }
-    [data-testid="stSidebar"] [role="radiogroup"] { gap: 2px !important; }
-    [data-testid="stSidebar"] [role="radiogroup"] label { padding: 10px 14px !important; border-radius: 12px !important; transition: background 0.15s ease; }
-    [data-testid="stSidebar"] [role="radiogroup"] label:hover { background: #F2F2F7 !important; }
-    [data-testid="stSidebar"] [role="radiogroup"] label[data-selected="true"] { background: #EAFBF0 !important; }
-    [data-testid="stSidebar"] [role="radiogroup"] label[data-selected="true"] p { color: #1A7F3C !important; font-weight: 700 !important; }
-    [data-testid="stSidebar"] [role="radiogroup"] label > div > div:first-child { display: none !important; }
-
-    /* Barre d'onglets fixe en bas, façon capsule flottante iOS 26 — WIP,
-       pas encore fonctionnelle (le radio Streamlit ne recevait jamais de
-       largeur réelle à travers les niveaux de conteneurs), non utilisée
-       tant que app.py route la navigation via la sidebar ci-dessus. */
+    /* Réserve la place de la barre sous le contenu. */
+    [data-testid="stMainBlockContainer"] {
+        padding-bottom: calc(130px + env(safe-area-inset-bottom)) !important;
+    }
+    
+    /* Largeur explicite pour éviter l'effondrement des conteneurs. */
     .st-key-bottom_nav {
-        position: fixed;
-        left: 16px;
-        right: 16px;
-        bottom: 16px;
+        position: fixed !important;
+        left: 50% !important;
+        right: auto !important;
+        bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+        transform: translateX(-50%);
+        width: calc(100vw - 24px) !important;
+        max-width: 960px !important;
+        box-sizing: border-box;
         z-index: 999;
-        max-width: 560px;
-        margin: 0 auto;
-        background: rgba(255,255,255,0.92);
+        padding: 8px !important;
+        background: rgba(255, 255, 255, 0.97);
+        border: 1px solid #E5E5EA;
+        border-radius: 22px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border-radius: 24px;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-        padding: 6px;
-        align-items: stretch !important; /* Streamlit met flex-start par défaut sur stVerticalBlock, ce qui laisse le radio se réduire à sa taille naturelle. */
     }
-    /* .st-key-bottom_nav est lui-même un stVerticalBlock (flex-direction:
-       column, align-items par défaut ne stretch pas son enfant) — sans
-       forcer 100% à chaque niveau intermédiaire, le widget radio et tout
-       ce qu'il contient retombe à sa largeur naturelle (quasi 0, puisque
-       les labels ont un flex-basis de 0). On force donc large à tous les
-       étages plutôt que de deviner lequel se réduit. */
+    
     .st-key-bottom_nav > div,
-    .st-key-bottom_nav [data-testid="stVerticalBlockBorderWrapper"],
     .st-key-bottom_nav [data-testid="stVerticalBlock"],
     .st-key-bottom_nav [data-testid="stElementContainer"],
     .st-key-bottom_nav [data-testid="stRadio"] {
         width: 100% !important;
+        min-width: 0 !important;
     }
-    /* NB : le radio de Streamlit (react-aria) rend chaque option comme
-       <label><span class="sr-only"><input/></span><div>[cercle]<p>texte</p></div></label> —
-       ni "column" (imposé par [data-orientation]) ni les classes internes
-       (hash aléatoire, changent à chaque build) ne sont fiables : on
-       structure les règles ci-dessous purement par position/attributs. */
+    
+    /* Sur mobile, les onglets défilent horizontalement. */
     .st-key-bottom_nav [role="radiogroup"] {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap;
-        justify-content: space-between;
-        gap: 2px;
-        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        gap: 6px !important;
         width: 100% !important;
+        overflow-x: auto !important;
+        padding: 4px 0;
     }
+    
     .st-key-bottom_nav [role="radiogroup"] label {
-        flex: 1 1 0;
-        min-width: 0;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 4px !important;
-        border-radius: 18px !important;
-        transition: background 0.15s ease;
-        cursor: pointer;
-        overflow: hidden;
-    }
-    /* Le <div> qui suit le <span> sr-only (contenu visuel : cercle + texte)
-       est lui-même flex — sans flex-basis explicite ici, il hérite d'un
-       flex-shrink par défaut qui, combiné au flex:1 1 0 du label ci-dessus,
-       le fait s'effondrer à largeur 0 dans un radiogroup à 7 items. On lui
-       impose de garder sa taille naturelle. */
-    .st-key-bottom_nav [role="radiogroup"] label > div {
         flex: 0 0 auto !important;
-        width: auto !important;
-        max-width: 100%;
-        display: flex !important;
-        align-items: center;
-        overflow: hidden;
-    }
-    /* Cache le cercle de sélection dessiné par Streamlit (la vraie case à
-       cocher est déjà en sr-only) : c'est le premier enfant du <div> qui
-       suit le <span> sr-only, jamais le premier enfant direct du <label>. */
-    .st-key-bottom_nav [role="radiogroup"] label > div > div:first-child { display: none !important; }
-    .st-key-bottom_nav [role="radiogroup"] label [data-testid="stMarkdownContainer"] {
-        flex: 0 0 auto !important;
-        width: auto !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .st-key-bottom_nav [role="radiogroup"] label p {
-        font-size: 12px !important;
-        font-weight: 500 !important;
-        color: #8E8E93 !important;
+        min-width: max-content !important;
         margin: 0 !important;
-        white-space: nowrap;
+        padding: 10px 12px !important;
+        border-radius: 14px;
+        cursor: pointer;
     }
-    .st-key-bottom_nav [role="radiogroup"] label[data-selected="true"] { background: #EAFBF0 !important; }
-    .st-key-bottom_nav [role="radiogroup"] label[data-selected="true"] p { color: #1A7F3C !important; font-weight: 700 !important; }
+    
+    .st-key-bottom_nav [role="radiogroup"] label p {
+        white-space: nowrap !important;
+        font-size: 13px !important;
+        color: #3C3C43 !important;
+    }
+    
+    .st-key-bottom_nav [role="radiogroup"] label:hover {
+        background: #F2F2F7;
+    }
+    
+    .st-key-bottom_nav [role="radiogroup"] label:has(input:checked),
+    .st-key-bottom_nav [role="radiogroup"] label[data-selected="true"] {
+        background: #EAFBF0 !important;
+        outline: 1px solid #34C759;
+    }
 
     h1 { font-size: 34px !important; font-weight: 700 !important; color: #1C1C1E !important; }
     h2 { font-size: 22px !important; font-weight: 600 !important; color: #1C1C1E !important; margin-top: 24px !important; margin-bottom: 8px !important; }
