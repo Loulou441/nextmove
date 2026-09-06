@@ -68,6 +68,10 @@ training/**/*.pt
 training/**/*.pth
 training/**/*.onnx
 training/**/*.weights
+# Exception: ship the final exported detector weights via Git LFS so the
+# web app can load them (pickleball.pt / padel.pt / tennis.pt).
+!training/models/exported/
+!training/models/exported/*.pt
 __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
