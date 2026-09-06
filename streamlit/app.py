@@ -1,6 +1,7 @@
 import os
 import sys
 import streamlit as st
+from datetime import datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -87,6 +88,32 @@ if page == "👤 Me":
             if games_analyzed else 0.0
         )
 
+        # "+N" = ce que ces indicateurs sont censés représenter : l'activité
+        # récente, pas un chiffre inventé. Semaine glissante de 7 jours,
+        # basée sur created_at (toujours renseigné, contrairement à
+        # match_date qui peut être nul).
+        _week_ago = datetime.utcnow() - timedelta(days=7)
+        _recent = [m for m in _ready_matches if m.created_at and m.created_at >= _week_ago]
+        _older = [m for m in _ready_matches if m.created_at and m.created_at < _week_ago]
+
+        games_delta = len(_recent)
+
+        rating_delta = None
+        if _recent and _older:
+            recent_avg = sum(m.rating for m in _recent) / len(_recent)
+            older_avg = sum(m.rating for m in _older) / len(_older)
+            rating_delta = round(recent_avg - older_avg, 1)
+
+    rating_delta_html = ""
+    if rating_delta is not None:
+        _color = "#34C759" if rating_delta >= 0 else "#FF3B30"
+        _sign = "+" if rating_delta >= 0 else ""
+        rating_delta_html = f'<div style="font-size:12px;color:{_color};margin-top:4px;">{_sign}{rating_delta} vs. la semaine dernière</div>'
+
+    games_delta_html = ""
+    if games_delta > 0:
+        games_delta_html = f'<div style="font-size:12px;color:#34C759;margin-top:4px;">+{games_delta} cette semaine</div>'
+
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"""
@@ -94,6 +121,7 @@ if page == "👤 Me":
           <div style="font-size:22px;margin-bottom:4px;">⭐</div>
           <div style="font-size:32px;font-weight:700;color:#1C1C1E;">{average_rating}</div>
           <div style="font-size:13px;color:#8E8E93;">Average Rating</div>
+          {rating_delta_html}
         </div>
         """, unsafe_allow_html=True)
     with col2:
@@ -102,6 +130,7 @@ if page == "👤 Me":
           <div style="font-size:22px;margin-bottom:4px;">🎬</div>
           <div style="font-size:32px;font-weight:700;color:#1C1C1E;">{games_analyzed}</div>
           <div style="font-size:13px;color:#8E8E93;">Games Analyzed</div>
+          {games_delta_html}
         </div>
         """, unsafe_allow_html=True)
 
