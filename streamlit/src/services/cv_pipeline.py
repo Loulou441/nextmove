@@ -43,8 +43,7 @@ from src.services.video_storage import get_supabase_client, BUCKET_NAME
 logger = logging.getLogger("nextmove.cv_pipeline")
 
 # training/ est un dossier frère de streamlit/ à la racine du repo.
-# Surchargeable via env (ex: poids montés ailleurs en conteneur), comme
-# DATA_DIR dans src/config.py.
+# Surchargeable via env (ex: poids montés ailleurs en conteneur).
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 WEIGHTS_DIR = Path(os.environ.get("CV_WEIGHTS_DIR", str(_REPO_ROOT / "training" / "models" / "exported")))
 

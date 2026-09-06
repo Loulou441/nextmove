@@ -230,7 +230,7 @@ streamlit/
         └── agentpadel/
 ```
 
-Les poids de détection (`padel_best.pt`, `pickleball_best.pt`, `tennis_best.pt`) sont lus depuis `training/models/exported/` à la racine du dépôt (chemin surchargeable via `CV_WEIGHTS_DIR`), donc partagés avec l'app iOS sans être dupliqués. Les données de match (`data/demo_games.csv` à la racine du dépôt) sont un vestige d'un prototype pré-base de données ; l'app ne les lit plus, tout passe désormais par Postgres/Supabase.
+Les poids de détection (`padel_best.pt`, `pickleball_best.pt`, `tennis_best.pt`) sont lus depuis `training/models/exported/` à la racine du dépôt (chemin surchargeable via `CV_WEIGHTS_DIR`), donc partagés avec l'app iOS sans être dupliqués.
 
 #### Détails techniques
 
@@ -400,8 +400,9 @@ nextmove/
 │   ├── configs/
 │   └── models/exported/    # poids .pt utilisés par l'app web
 ├── docs/media/              # Média de démonstration (clip, GIF, images)
-├── data/                    # Jeux de démo hérités d'un prototype pré-BDD (non utilisés par l'app)
 ├── scripts/                 # Utilitaires (ex. test_db_connection.py)
+├── USAGE_EXAMPLE_LLM.swift  # Exemple d'intégration du coaching LLM (iOS)
+├── verify_llm_setup.sh      # Vérifie la config LLM iOS (.env, fichiers Swift attendus)
 ├── .env.example
 └── README.md
 ```

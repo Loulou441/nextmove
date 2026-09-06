@@ -32,9 +32,6 @@ PROMPT_PATHS = {
     "moderator": PROMPT_PATH_MODERATOR,
 }
 
-# Dossier de données (surchageable pour pointer vers un autre volume, ex. en conteneur)
-DATA_DIR = Path(os.environ.get("DATA_DIR", str(Path(__file__).resolve().parent.parent / "data")))
-
 # Personnalisation de l'app (utile pour du white-label / plusieurs déploiements)
 APP_PAGE_TITLE = os.environ.get("APP_PAGE_TITLE", "NextMove")
 APP_PAGE_ICON = os.environ.get("APP_PAGE_ICON", "🏓")
