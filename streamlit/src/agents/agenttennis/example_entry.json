@@ -1,0 +1,31 @@
+{
+  "match_id": "TN-2026-FRA",
+  "joueur_analyse": {
+    "nom": "Julien Castel",
+    "position_predilection": "Fond de court"
+  },
+  "donnees_sequences": [
+    {
+      "id_sequence": "seq_001",
+      "timestamp": "18:40",
+      "evenement_cle": "Double faute au service",
+      "metriques_video": {
+        "vitesse_service": 142,
+        "type_service": "Second service",
+        "zone_impact": "Té"
+      },
+      "contexte_tactique": "Sous pression sur balle de break, Julien précipite son lancer de balle et perd en précision."
+    },
+    {
+      "id_sequence": "seq_002",
+      "timestamp": "31:15",
+      "evenement_cle": "Coup droit en délit dans le couloir",
+      "metriques_video": {
+        "position_pieds": {"x": 2.8, "y": 3.1},
+        "vitesse_balle": 85,
+        "type_coup": "Coup droit"
+      },
+      "contexte_tactique": "Après un long échange en fond de court, Julien tente une accélération long de ligne risquée plutôt que de continuer à construire le point."
+    }
+  ]
+}

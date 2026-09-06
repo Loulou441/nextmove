@@ -1,0 +1,402 @@
+[
+  {
+    "id": "tennis_tech_001",
+    "pilier": "Technique",
+    "titre": "Split-step chronométré sur l'appui adverse",
+    "probleme_associe": "Volée manquée ou temps de réaction trop court à l'échange, mauvais timing du split-step.",
+    "description": "Répétition du split-step avec déclenchement calé sur le moment exact du contact raquette-balle de l'adversaire, plutôt qu'à un timing fixe, pour améliorer la réactivité au filet et en fond de court.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_002",
+    "pilier": "Technique",
+    "titre": "Rituel de service constant (ball toss)",
+    "probleme_associe": "Double faute au service, lancer de balle irrégulier faisant varier le point de contact.",
+    "description": "Travail au mur ou face à un miroir : 30 lancers de balle sans frappe, en visant systématiquement le même point fixe au-dessus de l'épaule, pour stabiliser le geste avant de réintégrer la frappe.",
+    "pro_tip": "Novak Djokovic répète un rituel de service quasi identique à chaque point, ce qui stabilise son lancer de balle même sous pression."
+  },
+  {
+    "id": "tennis_tech_003",
+    "pilier": "Technique",
+    "titre": "Transfert de poids sur le coup droit",
+    "probleme_associe": "Coup droit manquant de puissance, frappe réalisée à l'arrêt sans transfert du poids du corps.",
+    "description": "Exercice d'ombre (shadow) avec pas d'ajustement systématique et transfert du poids de la jambe arrière vers la jambe avant au moment du contact, avant de rejouer avec balle.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_004",
+    "pilier": "Technique",
+    "titre": "Revers à deux mains : rotation du buste",
+    "probleme_associe": "Revers manquant de profondeur, frappe uniquement réalisée avec les bras sans rotation du buste.",
+    "description": "Travail à faible allure avec consigne de démarrer le geste par la rotation des épaules et non par l'armé du bras, en insistant sur l'accompagnement complet du swing.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_005",
+    "pilier": "Technique",
+    "titre": "Volée haute : bloc court et ferme",
+    "probleme_associe": "Volée trop longue sortant du court, geste trop ample façon coup de fond de court.",
+    "description": "Répétition de volées avec une amplitude de swing volontairement réduite (\"bloc\"), en insistant sur la fermeté du poignet au contact plutôt que sur la puissance du geste.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_006",
+    "pilier": "Technique",
+    "titre": "Amortie avec toucher de balle",
+    "probleme_associe": "Amortie trop haute ou trop longue, facilement contrée par l'adversaire.",
+    "description": "Exercice de toucher de balle à distance progressive : viser une zone cible située à moins de 2 mètres du filet en variant la distance de départ, en insistant sur le relâchement du poignet.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_007",
+    "pilier": "Technique",
+    "titre": "Lift (topspin) sur balle haute",
+    "probleme_associe": "Coup droit ou revers liftés manquant de rotation, balle trop plate sortant facilement.",
+    "description": "Travail du geste de bas en haut avec trajectoire de balle volontairement haute au-dessus du filet, pour ressentir l'accélération verticale de la raquette au contact.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_008",
+    "pilier": "Technique",
+    "titre": "Smash : positionnement sous la balle",
+    "probleme_associe": "Smash manqué ou touché sur le cadre, mauvais placement du corps sous la trajectoire de la balle.",
+    "description": "Répétition de petits pas d'ajustement (petits pas croisés arrière) pour se replacer sous la balle avant chaque smash, à partir de balles envoyées à hauteur variable par le partenaire.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_009",
+    "pilier": "Technique",
+    "titre": "Service slice : orientation du tamis",
+    "probleme_associe": "Service slice manquant d'effet, trajectoire trop droite facilement anticipée par le retourneur.",
+    "description": "Travail au ralenti de la trajectoire de frappe latérale sur la balle, en insistant sur l'orientation du tamis de la raquette au moment du contact plutôt que sur la vitesse du geste.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_010",
+    "pilier": "Technique",
+    "titre": "Retour de service : préparation raccourcie",
+    "probleme_associe": "Retour de service manqué ou trop faible face à un service rapide, préparation de raquette trop longue.",
+    "description": "Exercice de retour contre service accéléré (machine ou partenaire), avec consigne explicite de réduire l'armé de la raquette à un mouvement court et compact.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_011",
+    "pilier": "Technique",
+    "titre": "Slice défensif : contrôle de la hauteur",
+    "probleme_associe": "Slice défensif remontant trop haut, offrant une balle facile à attaquer à l'adversaire.",
+    "description": "Travail du slice avec cible basse au-dessus du filet et consigne de garder le tamis légèrement fermé au contact, en variant la distance de la cible.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_012",
+    "pilier": "Technique",
+    "titre": "Prise de raquette adaptée au coup",
+    "probleme_associe": "Enchaînement coup droit/volée hésitant, changement de prise trop lent entre les coups.",
+    "description": "Exercice de changement de prise à vide (sans balle) entre coup droit, revers et volée, répété jusqu'à automatisation, avant réintégration en jeu réel à vitesse progressive.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tech_013",
+    "pilier": "Technique",
+    "titre": "Enchaînement service-volée",
+    "probleme_associe": "Première volée après le service jouée trop tard, joueur encore en pleine course au moment du contact.",
+    "description": "Répétition de la séquence service puis avancée en fentes courtes vers le filet, avec split-step avant la première volée, sur des services à vitesse progressive.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_001",
+    "pilier": "Tactique",
+    "titre": "Cibler le point faible identifié",
+    "probleme_associe": "Points perdus sur des échanges neutres alors qu'un point faible clair a été repéré chez l'adversaire.",
+    "description": "Exercice de construction de point dirigé : jouer systématiquement deux balles vers le point faible identifié avant de conclure, pour automatiser la lecture tactique en match.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_002",
+    "pilier": "Tactique",
+    "titre": "Variation de rythme dans l'échange",
+    "probleme_associe": "Échanges trop prévisibles, adversaire jamais mis en difficulté par un changement de tempo.",
+    "description": "Jeu dirigé imposant l'alternance d'une balle lente et liftée puis d'une balle plate et rapide au sein du même échange, pour casser le rythme adverse.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_003",
+    "pilier": "Tactique",
+    "titre": "Montée au filet sur balle courte",
+    "probleme_associe": "Balle courte adverse jouée depuis le fond de court au lieu d'être exploitée en montée au filet.",
+    "description": "Jeu dirigé où toute balle tombant avant la ligne de service doit être suivie d'une montée au filet, pour créer le réflexe tactique de transition avant-arrière.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_004",
+    "pilier": "Tactique",
+    "titre": "Choix de service selon le score",
+    "probleme_associe": "Service toujours joué de la même façon quelle que soit l'importance du point, prévisible en fin de jeu.",
+    "description": "Simulation de fins de jeu (30-40, avantage) avec consigne de varier volontairement la zone et l'effet du service selon l'enjeu du point.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_005",
+    "pilier": "Tactique",
+    "titre": "Position de retour avancée",
+    "probleme_associe": "Retour de second service trop passif, position de retour identique à celle du premier service.",
+    "description": "Exercice de retour avec ligne au sol marquant une position avancée à adopter spécifiquement sur second service, pour prendre l'initiative de l'échange plus tôt.",
+    "pro_tip": "Rafael Nadal avance nettement sa position de retour sur second service pour imposer son tempo dès le début du point."
+  },
+  {
+    "id": "tennis_tact_006",
+    "pilier": "Tactique",
+    "titre": "Jeu croisé pour ouvrir le court",
+    "probleme_associe": "Tentatives prématurées de coup gagnant long de ligne alors que le court n'est pas encore ouvert.",
+    "description": "Jeu dirigé imposant au moins trois balles croisées avant toute tentative de changement de direction, pour intégrer la construction de point avant l'attaque.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_007",
+    "pilier": "Tactique",
+    "titre": "Patience dans les échanges de fond de court",
+    "probleme_associe": "Erreurs non forcées après une tentative d'accélération trop précoce dans un échange neutre.",
+    "description": "Jeu dirigé imposant un minimum de coups avant toute accélération, pour habituer le joueur à construire le point plutôt qu'à forcer une fin d'échange rapide.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_008",
+    "pilier": "Tactique",
+    "titre": "Lecture du placement avant le retour",
+    "probleme_associe": "Retour de service mal anticipé, position de départ identique quelle que soit la position du serveur.",
+    "description": "Exercice d'observation : ajuster sa position de retour en fonction du placement et de la gestuelle pré-frappe du serveur, avec feedback vidéo après chaque série.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_009",
+    "pilier": "Tactique",
+    "titre": "Exploitation du couloir sur terre battue",
+    "probleme_associe": "Jeu trop centré sur le court, absence d'utilisation des angles extérieurs pour déplacer l'adversaire.",
+    "description": "Jeu dirigé ciblant systématiquement les couloirs extérieurs pendant plusieurs échanges, pour habituer le joueur à créer des angles et à faire courir l'adversaire.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_010",
+    "pilier": "Tactique",
+    "titre": "Sécurisation du premier coup après le service",
+    "probleme_associe": "Erreur directe sur le coup suivant immédiatement le service, prise de risque excessive trop tôt dans le point.",
+    "description": "Jeu dirigé où le coup suivant le service doit obligatoirement viser une zone large et sécurisée avant toute tentative d'accélération.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_011",
+    "pilier": "Tactique",
+    "titre": "Gestion tactique du vent et des conditions",
+    "probleme_associe": "Erreurs répétées liées aux conditions extérieures (vent, soleil) non prises en compte dans le choix de coup.",
+    "description": "Séances en conditions réelles avec consigne d'adapter la hauteur de balle par-dessus le filet selon le vent, et de privilégier les balles plus courtes en cas de vent de face.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_012",
+    "pilier": "Tactique",
+    "titre": "Transition défense-attaque après un lob",
+    "probleme_associe": "Occasion manquée de reprendre l'initiative après avoir renvoyé un lob adverse en défense.",
+    "description": "Jeu dirigé : après un lob défensif, reculer temporairement puis chercher activement à revenir vers le filet dès que la balle suivante le permet.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_tact_013",
+    "pilier": "Tactique",
+    "titre": "Choix de la deuxième balle de service",
+    "probleme_associe": "Second service systématiquement trop prudent (uniquement slice central), lisible pour le retourneur.",
+    "description": "Jeu dirigé imposant l'alternance de zones et d'effets sur le second service au fil des points, pour éviter la lecture tactique par l'adversaire.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_001",
+    "pilier": "Physique",
+    "titre": "Déplacements latéraux en fond de court",
+    "probleme_associe": "Retard répété sur les balles jouées dans les coins, couverture insuffisante de la largeur du court.",
+    "description": "Circuit de déplacements latéraux avec pas chassés et pas croisés entre plots, en insistant sur le retour systématique vers le centre après chaque déplacement.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_002",
+    "pilier": "Physique",
+    "titre": "Explosivité sur la course à l'amortie",
+    "probleme_associe": "Amortie adverse non rattrapée faute d'explosivité sur les premiers mètres.",
+    "description": "Séries de sprints courts (3 à 5 mètres) départ arrêté, déclenchés sur signal visuel, pour améliorer le temps de réaction sur les premiers appuis.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_003",
+    "pilier": "Physique",
+    "titre": "Split-step et vivacité des appuis",
+    "probleme_associe": "Départ tardif sur les balles rapides, appuis statiques au moment de la frappe adverse.",
+    "description": "Répétition du split-step sur échelle de rythme (agility ladder) suivi d'un déplacement explosif dans une direction indiquée, pour automatiser la vivacité des appuis.",
+    "pro_tip": "Les meilleurs joueurs du circuit ATP/WTA exécutent systématiquement un split-step juste avant chaque frappe adverse, quelle que soit la surface."
+  },
+  {
+    "id": "tennis_phys_004",
+    "pilier": "Physique",
+    "titre": "Endurance sur échanges prolongés",
+    "probleme_associe": "Baisse de qualité de frappe après un échange de plus de dix coups, essoufflement précoce.",
+    "description": "Séquences d'échanges dirigés dépassant volontairement quinze coups, répétées avec temps de récupération courts, pour habituer le corps à maintenir la qualité gestuelle sous fatigue.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_005",
+    "pilier": "Physique",
+    "titre": "Récupération active entre les points",
+    "probleme_associe": "Fréquence cardiaque restant élevée entre les points, second service impacté par la fatigue résiduelle.",
+    "description": "Travail de respiration contrôlée et de marche lente vers le fond de court entre chaque point, sur le modèle du temps de jeu réglementaire entre deux points.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_006",
+    "pilier": "Physique",
+    "titre": "Mobilité de l'épaule pour le service",
+    "probleme_associe": "Perte de vitesse de service en fin de match, amplitude du geste réduite par une épaule fatiguée.",
+    "description": "Routine de mobilité et de renforcement léger de la coiffe des rotateurs avant et après chaque séance, pour préserver l'amplitude du geste de service dans la durée.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_007",
+    "pilier": "Physique",
+    "titre": "Gainage pour la stabilité au contact",
+    "probleme_associe": "Frappes déséquilibrées sur les balles hautes ou excentrées, manque de stabilité du tronc.",
+    "description": "Circuit de gainage (planche, rotations de buste lestées) visant à renforcer la stabilité du tronc, condition d'un transfert d'énergie efficace vers la raquette.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_008",
+    "pilier": "Physique",
+    "titre": "Souplesse pour les balles excentrées",
+    "probleme_associe": "Blessure ou frappe limitée sur les balles jouées en pleine extension latérale.",
+    "description": "Routine d'étirements dynamiques des adducteurs et des ischio-jambiers avant chaque séance, pour sécuriser les extensions latérales fréquentes sur le court.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_009",
+    "pilier": "Physique",
+    "titre": "Résistance sur les matchs longs",
+    "probleme_associe": "Chute nette du niveau de jeu après plus d'une heure trente de match.",
+    "description": "Blocs d'entraînement simulant un match long (sets joués enchaînés avec temps de repos réduits), pour habituer le corps et l'esprit à maintenir l'intensité dans la durée.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_010",
+    "pilier": "Physique",
+    "titre": "Prévention des douleurs de poignet",
+    "probleme_associe": "Gêne au poignet répétée sur les coups liftés, technique compensée par une tension excessive du poignet.",
+    "description": "Travail de renforcement léger du poignet et de l'avant-bras, associé à une correction technique du geste lifté pour réduire la tension articulaire au contact.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_011",
+    "pilier": "Physique",
+    "titre": "Vivacité de la première étape",
+    "probleme_associe": "Retard systématique sur le premier pas, avant même le sprint proprement dit.",
+    "description": "Exercices de départs multidirectionnels sur signal, en insistant sur la rapidité du tout premier appui plutôt que sur la vitesse maximale atteinte ensuite.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_phys_012",
+    "pilier": "Physique",
+    "titre": "Échauffement spécifique avant match",
+    "probleme_associe": "Début de match hésitant, plusieurs jeux nécessaires avant d'atteindre le niveau de jeu habituel.",
+    "description": "Routine d'échauffement structurée (activation cardio légère, mobilité articulaire, frappes progressives) réalisée systématiquement avant chaque match, quelle que soit l'heure.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_001",
+    "pilier": "Mental",
+    "titre": "Gestion de la pression sur balle de break",
+    "probleme_associe": "Taux de réussite nettement plus faible sur les balles de break que sur les points classiques.",
+    "description": "Simulation répétée de balles de break à l'entraînement avec enjeu artificiel (gage, comptage de score), pour désensibiliser le joueur à la pression spécifique de ces points.",
+    "pro_tip": "Novak Djokovic est réputé pour son calme apparent sur les points de break, résultat d'une routine mentale répétée à l'entraînement."
+  },
+  {
+    "id": "tennis_ment_002",
+    "pilier": "Mental",
+    "titre": "Réinitialisation après une double faute",
+    "probleme_associe": "Enchaînement d'erreurs après une double faute, frustration affectant le point suivant.",
+    "description": "Mise en place d'une routine physique courte (respiration, réglage des cordes) obligatoire après chaque double faute, avant d'entamer le point suivant.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_003",
+    "pilier": "Mental",
+    "titre": "Concentration sur les points de tie-break",
+    "probleme_associe": "Niveau de jeu qui chute nettement lors des tie-breaks par rapport au reste du set.",
+    "description": "Simulation de tie-breaks à l'entraînement, en insistant sur la routine entre les points et sur le changement de côté tous les six points comme repère mental.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_004",
+    "pilier": "Mental",
+    "titre": "Gestion de la frustration après une erreur non forcée",
+    "probleme_associe": "Réaction émotionnelle visible après une erreur non forcée, impactant la concentration sur le point suivant.",
+    "description": "Travail avec un temps de \"reset\" chronométré (15-20 secondes) entre chaque point, incluant une respiration profonde, pour limiter le report émotionnel d'un point à l'autre.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_005",
+    "pilier": "Mental",
+    "titre": "Routine fixe entre les points",
+    "probleme_associe": "Rythme de jeu irrégulier, précipitation visible après un point perdu important.",
+    "description": "Mise en place d'une routine identique entre chaque point (retour vers le fond de court, ajustement des cordes, respiration), quel que soit le déroulé du point précédent.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_006",
+    "pilier": "Mental",
+    "titre": "Confiance sur le coup identifié comme faible",
+    "probleme_associe": "Évitement systématique d'un coup (souvent le revers) même lorsqu'il serait tactiquement pertinent.",
+    "description": "Jeu dirigé imposant l'utilisation du coup évité dans des situations à faible enjeu, pour reconstruire progressivement la confiance avant de le réintégrer en match.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_007",
+    "pilier": "Mental",
+    "titre": "Gestion de l'environnement et du public",
+    "probleme_associe": "Baisse de concentration liée au bruit, aux réactions du public ou à la présence d'un adversaire perturbateur.",
+    "description": "Entraînement en conditions volontairement bruyantes ou perturbées (musique, spectateurs simulés), pour habituer le joueur à maintenir sa routine malgré les distractions.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_008",
+    "pilier": "Mental",
+    "titre": "Patience mentale dans les longs échanges",
+    "probleme_associe": "Décision précipitée de conclure un échange par lassitude plutôt que par opportunité tactique réelle.",
+    "description": "Jeu dirigé imposant un nombre minimal de coups avant toute tentative de conclusion, pour dissocier la longueur de l'échange de l'envie de l'arrêter.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_009",
+    "pilier": "Mental",
+    "titre": "Résilience après la perte d'un set",
+    "probleme_associe": "Chute nette de niveau de jeu au début du set suivant une défaite de set.",
+    "description": "Simulation de matchs en deux sets perdus artificiellement pour travailler la capacité à repartir sur un rythme neutre dès le premier jeu du set suivant.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_010",
+    "pilier": "Mental",
+    "titre": "Visualisation avant le point important",
+    "probleme_associe": "Exécution technique dégradée sur les points décisifs malgré une bonne maîtrise à l'entraînement.",
+    "description": "Routine de visualisation courte (5 à 10 secondes) du déroulé souhaité du point avant chaque point important, à intégrer progressivement dans la routine de service/retour.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_011",
+    "pilier": "Mental",
+    "titre": "Gestion du money time en fin de match",
+    "probleme_associe": "Prises de décision plus prudentes que d'habitude en fin de match serré, occasions manquées de conclure.",
+    "description": "Simulation de fins de match à enjeu (5-5 dans le dernier set) à l'entraînement, pour habituer le joueur à maintenir son style de jeu habituel sous pression.",
+    "pro_tip": null
+  },
+  {
+    "id": "tennis_ment_012",
+    "pilier": "Mental",
+    "titre": "Communication avec le coaching en match",
+    "probleme_associe": "Consignes du coach (lorsque le coaching est autorisé) mal exploitées, absence d'ajustement tactique concret après une pause.",
+    "description": "Travail en amont avec le coach : préparer à l'avance deux ou trois ajustements tactiques clairs à activer sur consigne, plutôt que de chercher une solution dans l'instant.",
+    "pro_tip": null
+  }
+]

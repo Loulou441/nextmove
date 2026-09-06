@@ -1,5 +1,4 @@
 import streamlit as st
-import time
 from pathlib import Path
 import sys
 
@@ -9,7 +8,7 @@ from src.design import set_ios_design, page_header, section_title
 from src.auth.session_manager import get_current_user
 from src.db.session import get_db_session
 from src.services.video_storage import upload_video, VideoTooLargeError, MAX_UPLOAD_SIZE_MB
-from src.services.match_service import create_pending_match, mark_match_ready
+from src.services.match_service import create_pending_match, mark_match_ready, CVPipelineError
 
 set_ios_design()
 
@@ -44,8 +43,8 @@ st.markdown("""
 
 # ── Sport selection for THIS upload (confirmed, not silently inherited) ─
 section_title("Which sport is this video?")
-_sport_options = ["pickleball", "football", "padel"]
-_sport_labels = {"pickleball": "🏓 Pickleball", "football": "⚽ Football", "padel": "🎾 Padel"}
+_sport_options = ["pickleball", "tennis", "padel"]
+_sport_labels = {"pickleball": "🏓 Pickleball", "tennis": "🎾 Tennis", "padel": "🥎 Padel"}
 default_index = _sport_options.index(current_user.preferred_sport) if current_user.preferred_sport in _sport_options else 0
 selected_sport = st.radio(
     "Sport for this upload",
@@ -140,16 +139,15 @@ if st.session_state["upload_stage"] in ("pending", "ready"):
         with col2:
             if st.button("🔍 Analyze Now", use_container_width=True, key="analyze_now"):
                 with st.status("Analyzing your game...", expanded=True) as status:
-                    st.write("🎯 Detecting players and court...")
-                    time.sleep(1)
-                    st.write("🏓 Tracking ball and movements...")
-                    time.sleep(1)
+                    st.write("🎯 Detecting players and ball (Computer Vision)...")
+                    try:
+                        with get_db_session() as db:
+                            mark_match_ready(db, st.session_state["current_upload_match_id"])
+                    except CVPipelineError as e:
+                        status.update(label="Analysis failed", state="error", expanded=True)
+                        st.error(f"⚠️ {e}")
+                        st.stop()
                     st.write("📊 Calculating performance metrics...")
-                    time.sleep(1)
-
-                    with get_db_session() as db:
-                        mark_match_ready(db, st.session_state["current_upload_match_id"])
-
                     status.update(label="Analysis complete!", state="complete", expanded=False)
                 st.session_state["upload_stage"] = "ready"
                 st.rerun()

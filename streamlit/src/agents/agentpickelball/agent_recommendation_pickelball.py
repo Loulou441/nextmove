@@ -29,7 +29,7 @@ class PickelballCoachAI(Agent):
         Interroge le coach IA pickleball et renvoie des recommandations
         validées structurellement (RecommandationsCoach), ancrées sur des
         exercices réels retrouvés par recherche vectorielle dans la base de
-        connaissances pickleball (RAG / ChromaDB). Voir FootballCoachAI pour
+        connaissances pickleball (RAG / ChromaDB). Voir PadelCoachAI pour
         le détail du mécanisme partagé.
         """
         enriched_match_data = enrich_match_data_with_drills(match_data, self.knowledge_base)

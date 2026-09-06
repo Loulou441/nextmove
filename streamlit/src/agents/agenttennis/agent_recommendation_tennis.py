@@ -10,34 +10,27 @@ from src.agents.agentmanager.agent import Agent
 from src.agents.agentmanager.schemas import RecommandationsCoach
 from src.agents.agentmanager.exceptions import EmptyResponseError, InvalidResponseError
 from src.agents.agentmanager.rag import get_knowledge_base, enrich_match_data_with_drills
-from src.config import MODEL_NAME_FOOTBALL, GROQ_TEMPERATURE
+from src.config import MODEL_NAME_TENNIS, GROQ_TEMPERATURE
 
-logger = logging.getLogger("nextmove.agents.football")
+logger = logging.getLogger("nextmove.agents.tennis")
 
-KNOWLEDGE_PATH = Path(__file__).resolve().parent / "knowledge_football.json"
+KNOWLEDGE_PATH = Path(__file__).resolve().parent / "knowledge_tennis.json"
 
 
-class FootballCoachAI(Agent):
+class TennisCoachAI(Agent):
     def __init__(self, context, user_prompt):
         super().__init__()
         self.context = context
-        # user_prompt est le texte d'instruction seul (ex: "Suite aux
-        # données ... donne moi des recommandations..."), SANS les données
-        # de match — celles-ci sont assemblées dans generate_recommendations()
-        # une fois enrichies par le RAG.
         self.user_prompt = user_prompt
-        # Collection ChromaDB "nextmove_drills_football" : construite et
-        # embeddée une seule fois (persistée sur disque), réutilisée telle
-        # quelle à chaque instanciation suivante de l'agent.
-        self.knowledge_base = get_knowledge_base("football", KNOWLEDGE_PATH)
+        self.knowledge_base = get_knowledge_base("tennis", KNOWLEDGE_PATH)
 
     def generate_recommendations(self, match_data) -> RecommandationsCoach:
         """
-        Interroge le coach IA football et renvoie des recommandations
-        validées structurellement (RecommandationsCoach), ancrées sur des
-        exercices réels retrouvés par recherche vectorielle dans la base de
-        connaissances football (RAG / ChromaDB) plutôt qu'inventés
-        librement par le modèle.
+        Interroge le coach IA tennis et renvoie des recommandations validées
+        structurellement (RecommandationsCoach), ancrées sur des exercices
+        réels retrouvés par recherche vectorielle dans la base de
+        connaissances tennis (RAG / ChromaDB). Voir PadelCoachAI pour le
+        détail du mécanisme partagé.
         """
         enriched_match_data = enrich_match_data_with_drills(match_data, self.knowledge_base)
 
@@ -56,12 +49,12 @@ class FootballCoachAI(Agent):
         try:
             return self.call_and_validate(
                 messages=messages,
-                model=MODEL_NAME_FOOTBALL,
+                model=MODEL_NAME_TENNIS,
                 temperature=GROQ_TEMPERATURE,
                 schema=RecommandationsCoach,
             )
         except (EmptyResponseError, InvalidResponseError):
-            logger.exception("Échec de génération des recommandations football.")
+            logger.exception("Échec de génération des recommandations tennis.")
             raise
 
 
@@ -72,13 +65,13 @@ def main():
     with open(base_dir / "example_entry.json", encoding="utf-8") as fichier:
         match_stats = json.load(fichier)
 
-    with open(base_dir / "context_football.txt", "r", encoding="utf-8") as f:
+    with open(base_dir / "context_tennis.txt", "r", encoding="utf-8") as f:
         context = f.read()
 
-    with open(base_dir / "user_prompt_football.txt", "r", encoding="utf-8") as f:
+    with open(base_dir / "user_prompt_tennis.txt", "r", encoding="utf-8") as f:
         prompt = f.read()
 
-    coach = FootballCoachAI(context, prompt)
+    coach = TennisCoachAI(context, prompt)
     recommandations = coach.generate_recommendations(match_stats)
 
     print("\n" + "=" * 30)

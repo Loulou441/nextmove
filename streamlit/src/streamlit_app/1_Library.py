@@ -14,7 +14,7 @@ page_header("Library", "Your analyzed games")
 
 current_user = get_current_user()
 
-_sport_icons = {"pickleball": "🏓", "football": "⚽", "padel": "🎾"}
+_sport_icons = {"pickleball": "🏓", "tennis": "🎾", "padel": "🥎"}
 
 with get_db_session() as db:
     matches = get_user_matches(db, current_user.id)

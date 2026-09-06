@@ -1,16 +1,42 @@
 from typing import Dict, Any
 import pandas as pd
 
+# Libellés de zone par sport (distance normalisée au filet, x=100 -> au filet),
+# cohérents avec les zones utilisées par src/services/cv_pipeline.py.
+_ZONE_LABELS = {
+    "pickleball": [
+        (80, "Zone du filet (Kitchen)"),
+        (55, "Zone de transition avant"),
+        (35, "Zone médiane"),
+        (0, "Zone de fond de court (service)"),
+    ],
+    "padel": [
+        (80, "Zone du filet"),
+        (55, "Zone médiane"),
+        (30, "Zone de fond de court"),
+        (0, "Couloirs latéraux"),
+    ],
+    "tennis": [
+        (80, "Zone du filet"),
+        (55, "Zone médiane"),
+        (30, "Zone de fond de court"),
+        (0, "Couloirs"),
+    ],
+}
 
-def compute_match_patterns(match_events: pd.DataFrame) -> Dict[str, Any]:
-    """Analyse des patterns tactiques d'un match de pickleball."""
 
+def compute_match_patterns(match_events: pd.DataFrame, sport: str = "pickleball") -> Dict[str, Any]:
+    """
+    Analyse des patterns tactiques d'un match à partir de ses événements
+    (`match_events` : une ligne par événement détecté, colonnes attendues
+    "event_type" — SHOT/WINNER/ERROR —, "phase" et "x").
+    """
     summary = {}
 
     total_events = len(match_events)
-    total_winners = (match_events["type"].str.upper() == "WINNER").sum()
-    total_shots = (match_events["type"].str.upper() == "SHOT").sum()
-    total_errors = (match_events["type"].str.upper() == "ERROR").sum()
+    total_winners = (match_events["event_type"].str.upper() == "WINNER").sum()
+    total_shots = (match_events["event_type"].str.upper() == "SHOT").sum()
+    total_errors = (match_events["event_type"].str.upper() == "ERROR").sum()
 
     summary["total_events"] = int(total_events)
     summary["total_winners"] = int(total_winners)
@@ -22,17 +48,15 @@ def compute_match_patterns(match_events: pd.DataFrame) -> Dict[str, Any]:
     summary["phase_distribution"] = phase_counts
 
     # Zones à risque (basées sur la distance au filet, x=100 -> au filet)
-    def zone(x):
-        if x >= 80:
-            return "Zone du filet (Kitchen)"
-        elif x >= 55:
-            return "Zone de transition avant"
-        elif x >= 35:
-            return "Zone médiane"
-        else:
-            return "Zone de fond de court (service)"
+    zone_bounds = _ZONE_LABELS.get(sport, _ZONE_LABELS["pickleball"])
 
-    match_events["zone"] = match_events["x"].apply(zone)
+    def zone(x):
+        for threshold, label in zone_bounds:
+            if x >= threshold:
+                return label
+        return zone_bounds[-1][1]
+
+    match_events = match_events.assign(zone=match_events["x"].apply(zone))
     zone_counts = match_events["zone"].value_counts().to_dict()
     summary["zone_distribution"] = zone_counts
 
@@ -51,14 +75,16 @@ def compute_match_patterns(match_events: pd.DataFrame) -> Dict[str, Any]:
     if summary["transition_risk_ratio"] > 0.4:
         insights.append("Forte exposition en phase de transition avant le filet.")
 
-    if summary["zone_distribution"].get("Zone du filet (Kitchen)", 0) > total_events * 0.3:
-        insights.append("Volume élevé d'échanges dans la zone du filet (Kitchen).")
+    if zone_counts:
+        top_zone = max(zone_counts, key=zone_counts.get)
+        if zone_counts[top_zone] > total_events * 0.3:
+            insights.append(f"Volume élevé d'échanges dans la zone : {top_zone}.")
 
-    if total_errors > 2:
+    if total_errors > total_winners:
         insights.append("Nombre important d'erreurs non forcées potentiellement évitables.")
 
     if not insights:
-        insights.append("Pas de vulnérabilité structurelle majeure détectée sur ce match (selon règles POC).")
+        insights.append("Bon contrôle global, peu d'erreurs non forcées.")
 
     summary["insights"] = insights
 
@@ -71,4 +97,3 @@ def compute_match_patterns(match_events: pd.DataFrame) -> Dict[str, Any]:
         summary["priority_level"] = "Faible"
 
     return summary
-

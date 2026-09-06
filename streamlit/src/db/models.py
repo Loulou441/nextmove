@@ -42,7 +42,7 @@ class Match(Base):
     user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
 
     title = Column(String(255), nullable=False)
-    sport = Column(String(50), nullable=False)  # pickleball / football / padel
+    sport = Column(String(50), nullable=False)  # pickleball / tennis / padel
     match_date = Column(DateTime, nullable=True)
     duration = Column(String(20), nullable=True)  # ex. "4:22"
     status = Column(String(20), default="pending")  # pending / ready

@@ -52,7 +52,7 @@ selected_title = st.selectbox(
 match = match_by_title[selected_title]
 st.session_state["current_game_id"] = match.id
 
-_sport_icons = {"pickleball": "🏓", "football": "⚽", "padel": "🎾"}
+_sport_icons = {"pickleball": "🏓", "tennis": "🎾", "padel": "🥎"}
 sport_icon = _sport_icons.get(match.sport, "🏓")
 date_str = match.match_date.strftime("%b %d, %Y") if match.match_date else ""
 page_header(selected_title, f"{sport_icon} {match.sport} · {date_str}")

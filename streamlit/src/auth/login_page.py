@@ -71,8 +71,8 @@ def _render_register_form() -> None:
         )
         sport = st.selectbox(
             "Sport préféré",
-            options=["pickleball", "football", "padel"],
-            format_func=lambda s: {"pickleball": "🏓 Pickleball", "football": "⚽ Football", "padel": "🎾 Padel"}[s],
+            options=["pickleball", "tennis", "padel"],
+            format_func=lambda s: {"pickleball": "🏓 Pickleball", "tennis": "🎾 Tennis", "padel": "🥎 Padel"}[s],
         )
         submitted = st.form_submit_button(
             "Créer mon compte", type="primary", use_container_width=True
