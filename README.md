@@ -24,10 +24,10 @@ NextMove transforme de courtes vidéos de padel, pickleball, tennis et football 
 
 NextMove rend l'analyse de performance sportive accessible sans équipement spécialisé. À partir d'une simple vidéo filmée au téléphone, le système :
 
-- détecte les éléments clés du jeu — **joueurs, balle et terrain** ;
-- suit ces objets dans le temps pour reconstruire la dynamique de l'échange ;
-- calcule des métriques de positionnement et de déplacement ;
-- reformule ces données en **insights lisibles** et en **recommandations de type coach** en langage naturel.
+détecte les éléments clés du jeu — **joueurs, balle et terrain** ;<br>
+suit ces objets dans le temps pour reconstruire la dynamique de l'échange ;<br>
+calcule des métriques de positionnement et de déplacement ;<br>
+reformule ces données en **insights lisibles** et en **recommandations de type coach** en langage naturel.
 
 Trois sports sont pris en charge, chacun avec son propre modèle de détection entraîné : **padel**, **pickleball** et **tennis** (ce dernier servant aussi de modèle de repli pour le badminton).
 
@@ -145,10 +145,10 @@ L'app est organisée en pages accessibles depuis la barre latérale (`app.py`) :
 
 Chaque sport dispose de son propre agent de coaching sous `src/agents/` :
 
-- `agentpickelball/` — contexte, prompt et données d'exemple pour le pickleball.
-- `agentfootball/` — équivalent pour le football.
-- `agentpadel/` — équivalent pour le padel.
-- `agentmanager/` — classe de base partagée (client Groq).
+`agentpickelball/` — contexte, prompt et données d'exemple pour le pickleball.<br>
+`agentfootball/` — équivalent pour le football.<br>
+`agentpadel/` — équivalent pour le padel.<br>
+`agentmanager/` — classe de base partagée (client Groq).
 
 Tous les agents renvoient le même schéma JSON (`constat`, `analyse`, `action_corrective`, `pro_tip`), affiché de façon identique dans l'UI Streamlit et en CLI via la méthode `Agent.afficher_rapport()`, héritée par les trois coachs.
 
@@ -184,17 +184,17 @@ nextmove/                       # (branche feature/rag)
 
 #### Détails techniques
 
-- **Frontend / Backend :** Streamlit (Python) — pas de séparation front/back, tout tourne dans le processus `streamlit run app.py`.
-- **Données :** CSV de démo (`data/demo_games.csv`) et fichiers JSON d'exemple par sport.
-- **IA :** API Groq (modèles de type `llama-3.3-70b-versatile`) pour la génération des recommandations.
-- **Visualisation :** Plotly pour les graphiques et le terrain tactique (`src/viz.py`).
+**Frontend / Backend :** Streamlit (Python) — pas de séparation front/back, tout tourne dans le processus `streamlit run app.py`.<br>
+**Données :** CSV de démo (`data/demo_games.csv`) et fichiers JSON d'exemple par sport.<br>
+**IA :** API Groq (modèles de type `llama-3.3-70b-versatile`) pour la génération des recommandations.<br>
+**Visualisation :** Plotly pour les graphiques et le terrain tactique (`src/viz.py`).
 
 **Stack :** Python · Streamlit · Groq (LLM) · Plotly · Pandas
 
 #### Prérequis (app web)
 
-- Python 3.10+
-- Une clé API Groq pour activer les recommandations IA *(optionnelle : sans clé, l'app bascule en mode démo)*.
+Python 3.10+<br>
+Une clé API Groq pour activer les recommandations IA *(optionnelle : sans clé, l'app bascule en mode démo)*.
 
 #### Démarrage (app web)
 
@@ -261,15 +261,15 @@ Vidéos → Extraction frames → Annotation → Entraînement YOLO → Conversi
 ## Prérequis
 
 ### Application iOS
-- macOS avec **Xcode** récent (projet créé avec Xcode 26).
-- iOS 16 ou version ultérieure.
-- Un appareil iOS compatible ou le simulateur.
-- Les modèles Core ML intégrés au projet (voir tableau ci-dessus).
+macOS avec **Xcode** récent (projet créé avec Xcode 26).<br>
+iOS 16 ou version ultérieure.<br>
+Un appareil iOS compatible ou le simulateur.<br>
+Les modèles Core ML intégrés au projet (voir tableau ci-dessus).
 
 ### Pipeline d'entraînement
-- Python 3.8+
-- PyTorch 2.0+, Ultralytics YOLO 8.x, Core ML Tools 7.0+, OpenCV 4.8+
-- GPU recommandé pour l'entraînement.
+Python 3.8+<br>
+PyTorch 2.0+, Ultralytics YOLO 8.x, Core ML Tools 7.0+, OpenCV 4.8+<br>
+GPU recommandé pour l'entraînement.
 
 ---
 
