@@ -10,6 +10,7 @@ import SwiftUI
 struct MeView: View {
     @EnvironmentObject var viewModel: RecordingViewModel
     @EnvironmentObject var sportManager: SportManager
+    @EnvironmentObject var api: NextMoveAPI
     
     private var filteredRecordings: [GameRecording] {
         guard let sport = sportManager.currentSport else { return [] }
@@ -43,6 +44,11 @@ struct MeView: View {
             Text("Player Profile")
                 .font(.title2)
                 .fontWeight(.bold)
+            if let email = api.currentUser?.email {
+                Text(email)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
             
             HStack(spacing: 12) {
                 Text(sportManager.currentSport?.icon ?? "")
@@ -128,6 +134,11 @@ struct MeView: View {
                 sportManager.requestSportChange()
             } label: {
                 SettingsRow(icon: "sportscourt.fill", title: "Change Sport", color: .green)
+            }
+            Button(role: .destructive) {
+                api.logout()
+            } label: {
+                SettingsRow(icon: "arrow.backward.square.fill", title: "Se déconnecter", color: .red)
             }
         }
     }
