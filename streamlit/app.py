@@ -64,7 +64,7 @@ with st.sidebar:
 if page == "👤  Me":
     page_header("Me")
 
-    _sport_labels = {"pickleball": "🏓 Pickleball", "football": "⚽ Football", "padel": "🎾 Padel"}
+    _sport_labels = {"pickleball": "🏓 Pickleball", "tennis": "🎾 Tennis", "padel": "🥎 Padel"}
     sport_label = _sport_labels.get(st.session_state["sport"], "🏓 Pickleball")
 
     # Profile card
@@ -116,8 +116,8 @@ if page == "👤  Me":
     """, unsafe_allow_html=True)
 
     st.markdown('<div style="font-size:15px;font-weight:500;color:#34C759;margin:4px 0 8px;">🏆 Change Sport</div>', unsafe_allow_html=True)
-    _sport_options = ["🏓 Pickleball", "⚽ Football", "🎾 Padel"]
-    _sport_values = ["pickleball", "football", "padel"]
+    _sport_options = ["🏓 Pickleball", "🎾 Tennis", "🥎 Padel"]
+    _sport_values = ["pickleball", "tennis", "padel"]
     sport_choice = st.radio(
         "Change Sport",
         _sport_options,

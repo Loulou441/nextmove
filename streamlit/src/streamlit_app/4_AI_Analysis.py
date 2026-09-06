@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
 from src.design import set_ios_design, page_header, section_title
 from src.viz import create_tactical_pitch
-from src.config import PROMPT_PATH_FOOTBALL, PROMPT_PATH_PADEL, PROMPT_PATH_PICKELBALL
+from src.config import PROMPT_PATH_TENNIS, PROMPT_PATH_PADEL, PROMPT_PATH_PICKELBALL
 from src.agents.agentmoderator.agent_moderator import Moderator
 from src.auth.session_manager import get_current_user
 from src.db.session import get_db_session
@@ -58,7 +58,7 @@ match = match_by_title[selected_title]
 st.session_state["current_game_id"] = match.id
 
 sport = match.sport
-_sport_labels = {"pickleball": "🏓 Pickleball", "football": "⚽ Football", "padel": "🎾 Padel"}
+_sport_labels = {"pickleball": "🏓 Pickleball", "tennis": "🎾 Tennis", "padel": "🥎 Padel"}
 st.markdown(f'<span class="sport-badge">{_sport_labels.get(sport, sport)}</span>', unsafe_allow_html=True)
 
 st.markdown("<hr>", unsafe_allow_html=True)
@@ -69,16 +69,16 @@ section_title("Action Details")
 col1, col2 = st.columns(2)
 with col1:
     minute = st.number_input("Minute", min_value=0, max_value=130, value=24)
-    if sport == "football":
-        default_player = "Lucas Martin"
+    if sport == "tennis":
+        default_player = "Julien Castel"
     elif sport == "padel":
         default_player = "Marco Duran"
     else:
         default_player = "Player 1"
     player = st.text_input("Player", value=default_player)
 with col2:
-    if sport == "football":
-        event_type = st.selectbox("Event", ["Perte de balle", "Tir non cadré", "Passe décisive"])
+    if sport == "tennis":
+        event_type = st.selectbox("Event", ["Double faute", "Coup droit en délit", "Ace", "Balle de break convertie"])
     elif sport == "padel":
         event_type = st.selectbox("Event", ["Faute directe au filet", "Sortie de vitre manquée", "Amortie gagnante", "Lob gagnant"])
     else:
@@ -150,23 +150,23 @@ if st.button("🚀 Generate AI Coaching Report", use_container_width=True, type=
         }
     else:
         try:
-            if sport == "football":
-                from src.agents.agentfootball.agent_recommendation_football import FootballCoachAI
+            if sport == "tennis":
+                from src.agents.agenttennis.agent_recommendation_tennis import TennisCoachAI
 
-                with open(PROMPT_PATH_FOOTBALL / "example_entry.json", "r", encoding="utf-8") as f:
+                with open(PROMPT_PATH_TENNIS / "example_entry.json", "r", encoding="utf-8") as f:
                     match_data = json.load(f)
                 match_data["joueur_analyse"]["nom"] = player
-                match_data["donnees_sequences"][0]["timestamp_debut"] = f"{minute}:00"
+                match_data["donnees_sequences"][0]["timestamp"] = f"{minute}:00"
                 match_data["donnees_sequences"][0]["evenement_cle"] = event_type
-                match_data["donnees_sequences"][0]["metriques_video"]["coordonnees_ballon"] = {"x": x, "y": y}
+                match_data["donnees_sequences"][0]["metriques_video"]["position_pieds"] = {"x": x, "y": y}
 
-                with open(PROMPT_PATH_FOOTBALL / "context_football.txt", encoding="utf-8") as f: context = f.read()
-                with open(PROMPT_PATH_FOOTBALL / "user_prompt_football.txt", encoding="utf-8") as f: prompt = f.read()
+                with open(PROMPT_PATH_TENNIS / "context_tennis.txt", encoding="utf-8") as f: context = f.read()
+                with open(PROMPT_PATH_TENNIS / "user_prompt_tennis.txt", encoding="utf-8") as f: prompt = f.read()
                 user_prompt = f"{prompt}\nVoici les données du match : {match_data}"
                 if question:
                     user_prompt += f"\n\nQuestion posée par le joueur : {question}"
 
-                coach = FootballCoachAI(context, user_prompt)
+                coach = TennisCoachAI(context, user_prompt)
             elif sport == "padel":
                 from src.agents.agentpadel.agent_recommendation_padel import PadelCoachAI
 

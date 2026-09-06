@@ -9,7 +9,7 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 # Model name for GROQ (les valeurs par défaut doivent être des modèles Groq valides)
 MODEL_NAME_PICKELBALL = "openai/gpt-oss-safeguard-20b"
-MODEL_NAME_FOOTBALL = "openai/gpt-oss-safeguard-20b"
+MODEL_NAME_TENNIS = "openai/gpt-oss-safeguard-20b"
 MODEL_NAME_PADEL = "openai/gpt-oss-safeguard-20b"
 MODEL_NAME_MODERATOR = "openai/gpt-oss-safeguard-20b"
 
@@ -20,14 +20,14 @@ GROQ_TEMPERATURE = float(os.environ.get("GROQ_TEMPERATURE", "0.0"))
 # indépendamment de la page Streamlit qui les importe - contrairement à un chemin
 # relatif basé sur __file__ d'une page exécutée via exec()).
 PROMPT_PATH_PICKELBALL = Path(__file__).resolve().parent / "agents" / "agentpickelball"
-PROMPT_PATH_FOOTBALL = Path(__file__).resolve().parent / "agents" / "agentfootball"
+PROMPT_PATH_TENNIS = Path(__file__).resolve().parent / "agents" / "agenttennis"
 PROMPT_PATH_PADEL = Path(__file__).resolve().parent / "agents" / "agentpadel"
 PROMPT_PATH_MODERATOR = Path(__file__).resolve().parent / "agents" / "agentmoderator"
 
 # Accès pratique par clé de sport (utilisé par les pages Streamlit)
 PROMPT_PATHS = {
     "pickleball": PROMPT_PATH_PICKELBALL,
-    "football": PROMPT_PATH_FOOTBALL,
+    "tennis": PROMPT_PATH_TENNIS,
     "padel": PROMPT_PATH_PADEL,
     "moderator": PROMPT_PATH_MODERATOR,
 }

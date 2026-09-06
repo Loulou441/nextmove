@@ -3,14 +3,14 @@ import plotly.graph_objects as go
 def create_tactical_pitch(x, y, player_name, event_type, phase, sport="pickleball"):
     fig = go.Figure()
 
-    if sport == "football":
-        # Dessin du terrain (Herbe)
-        fig.add_shape(type="rect", x0=0, y0=0, x1=100, y1=100, fillcolor="#228B22", line_color="white")
+    if sport == "tennis":
+        # Dessin du court (terre battue)
+        fig.add_shape(type="rect", x0=0, y0=0, x1=100, y1=100, fillcolor="#C65D3B", line_color="white")
 
-        # Lignes du terrain
-        fig.add_shape(type="line", x0=50, y0=0, x1=50, y1=100, line_color="white") # Médiane
-        fig.add_shape(type="rect", x0=82, y0=20, x1=100, y1=80, line_color="white") # Surface de réparation
-        title_prefix = "Positionnement Tactique"
+        # Filet au centre + ligne de service
+        fig.add_shape(type="line", x0=50, y0=0, x1=50, y1=100, line_color="white", line_width=4) # Filet
+        fig.add_shape(type="rect", x0=25, y0=10, x1=75, y1=90, line_color="white") # Carrés de service
+        title_prefix = "Positionnement Tactique (Court)"
     else:
         # Dessin du court (Pickleball / Padel) — x=100 représente le filet
         fig.add_shape(type="rect", x0=0, y0=0, x1=100, y1=100, fillcolor="#2E86AB", line_color="white")

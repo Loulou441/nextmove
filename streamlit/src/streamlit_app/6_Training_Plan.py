@@ -22,9 +22,9 @@ page_header("Training Plan", "Your personalized weekly program")
 
 # ── Sport selector ───────────────────────────────────────────────────
 section_title("Select Sport")
-_sport_options = ["🏓 Pickleball", "⚽ Football", "🎾 Padel"]
-_sport_values = ["pickleball", "football", "padel"]
-_file_suffixes = {"pickleball": "pickelball", "football": "football", "padel": "padel"}
+_sport_options = ["🏓 Pickleball", "🎾 Tennis", "🥎 Padel"]
+_sport_values = ["pickleball", "tennis", "padel"]
+_file_suffixes = {"pickleball": "pickelball", "tennis": "tennis", "padel": "padel"}
 default_sport_index = _sport_values.index(st.session_state.get("sport", "pickleball")) if st.session_state.get("sport", "pickleball") in _sport_values else 0
 sport = st.radio("Sport", _sport_options, index=default_sport_index, horizontal=True, label_visibility="collapsed", key="sport_radio_training")
 st.session_state["sport"] = _sport_values[_sport_options.index(sport)]
@@ -104,25 +104,25 @@ if st.button("🧠 Generate Weekly Training Plan", type="primary", use_container
                         }
                     }
                 ],
-                "football": [
+                "tennis": [
                     {
-                        "timestamp": "24:10",
-                        "titre": "Decision Making in Transition",
+                        "timestamp": "18:40",
+                        "titre": "Service Consistency Under Pressure",
                         "contenu": {
-                            "constat": "Ball lost under pressure during a fast offensive transition.",
-                            "analyse": "Body orientation closed before receiving, limiting the field of vision and passing options.",
-                            "action_corrective": "Practice scanning drills: check over both shoulders every 2 seconds before receiving the ball.",
-                            "pro_tip": "Watch Kevin De Bruyne — he always scans the pitch before the ball even arrives at his feet."
+                            "constat": "Double fault on break point, ball toss drifted backward under pressure.",
+                            "analyse": "Service rhythm changes when the stakes rise, reducing the safety margin above the net.",
+                            "action_corrective": "Practice 30 ball tosses without hitting, aiming for the exact same fixed point every time, before reintegrating the full swing.",
+                            "pro_tip": "Novak Djokovic repeats an almost identical service ritual on every point, which stabilizes his toss even under pressure."
                         }
                     },
                     {
-                        "timestamp": "38:35",
-                        "titre": "Finishing Composure",
+                        "timestamp": "31:15",
+                        "titre": "Patience in Baseline Rallies",
                         "contenu": {
-                            "constat": "Shot on target rate too low in the final third.",
-                            "analyse": "Rushed shot selection under pressure, poor plant-foot placement.",
-                            "action_corrective": "Finishing drills: 30 shots per session focusing on plant-foot alignment and picking a corner before striking.",
-                            "pro_tip": "Erling Haaland always picks his target before the ball arrives — decide early, execute calmly."
+                            "constat": "Unforced error after a risky down-the-line acceleration during a neutral rally.",
+                            "analyse": "The point was ended prematurely instead of being built patiently, taking on unnecessary risk.",
+                            "action_corrective": "Directed rally drill: require at least three cross-court shots before any change of direction is allowed.",
+                            "pro_tip": None
                         }
                     }
                 ],
@@ -152,8 +152,8 @@ if st.button("🧠 Generate Weekly Training Plan", type="primary", use_container
             recommandations = {"recommandations_coach": _demo_content[sport_value]}
         else:
             try:
-                if sport_value == "football":
-                    from src.agents.agentfootball.agent_recommendation_football import FootballCoachAI as CoachClass
+                if sport_value == "tennis":
+                    from src.agents.agenttennis.agent_recommendation_tennis import TennisCoachAI as CoachClass
                 elif sport_value == "padel":
                     from src.agents.agentpadel.agent_recommendation_padel import PadelCoachAI as CoachClass
                 else:

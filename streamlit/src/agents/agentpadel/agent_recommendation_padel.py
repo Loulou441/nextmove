@@ -29,7 +29,7 @@ class PadelCoachAI(Agent):
         Interroge le coach IA padel et renvoie des recommandations validées
         structurellement (RecommandationsCoach), ancrées sur des exercices
         réels retrouvés par recherche vectorielle dans la base de
-        connaissances padel (RAG / ChromaDB). Voir FootballCoachAI pour le
+        connaissances padel (RAG / ChromaDB). Voir PickelballCoachAI pour le
         détail du mécanisme partagé.
         """
         enriched_match_data = enrich_match_data_with_drills(match_data, self.knowledge_base)

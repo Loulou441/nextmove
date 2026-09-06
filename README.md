@@ -5,7 +5,7 @@
 
 **Analyse vidéo de sports de raquette par vision par ordinateur — insights, dashboards et recommandations de type coach.**
 
-NextMove transforme de courtes vidéos de padel, pickleball, tennis et football en métriques compréhensibles et conseils d'amélioration. C'est **un projet** décliné sur **deux plateformes** : une **application iOS** native (SwiftUI + Core ML, inférence 100 % sur l'appareil) et une **application web** (Python / Streamlit) pour l'analyse de matchs, les dashboards de performance, la détection de patterns et le coaching IA. Les deux partagent les **mêmes modèles de vision par ordinateur finetunés** et la même logique produit — seule la plateforme change.
+NextMove transforme de courtes vidéos de padel, pickleball et tennis en métriques compréhensibles et conseils d'amélioration. C'est **un projet** décliné sur **deux plateformes** : une **application iOS** native (SwiftUI + Core ML, inférence 100 % sur l'appareil) et une **application web** (Python / Streamlit) pour l'analyse de matchs, les dashboards de performance, la détection de patterns et le coaching IA. Les deux partagent les **mêmes modèles de vision par ordinateur finetunés** et la même logique produit — seule la plateforme change.
 
 </div>
 
@@ -121,11 +121,11 @@ Application native SwiftUI. L'ensemble de l'inférence s'exécute **sur l'appare
 
 **Stack :** Swift · SwiftUI · AVFoundation · Vision · Core ML · Swift Charts · SwiftData
 
-### 🌐 Application web (branche [`feature/rag`](https://github.com/Loulou441/nextmove/tree/feature/rag))
+### 🌐 Application web (`streamlit/`)
 
-Application web complète en **Python / Streamlit** dédiée à l'analyse de matchs multi-sport, aux dashboards de performance, à la détection de patterns de jeu et aux recommandations de coach IA. Elle s'appuie sur les **mêmes modèles de vision par ordinateur finetunés** que l'application iOS et constitue un produit autonome à part entière.
+Application web complète en **Python / Streamlit** dédiée à l'analyse de matchs multi-sport, aux dashboards de performance, à la détection de patterns de jeu et aux recommandations de coach IA. Elle s'appuie sur les **mêmes modèles de vision par ordinateur finetunés** que l'application iOS (chargés côté serveur via `src/services/cv_pipeline.py`) et constitue un produit autonome à part entière.
 
-**Sports pris en charge :** Pickleball · Football · Padel.
+**Sports pris en charge :** Pickleball · Tennis · Padel.
 
 #### Pages de l'application
 
@@ -146,7 +146,7 @@ L'app est organisée en pages accessibles depuis la barre latérale (`app.py`) :
 Chaque sport dispose de son propre agent de coaching sous `src/agents/` :
 
 `agentpickelball/` — contexte, prompt et données d'exemple pour le pickleball.<br>
-`agentfootball/` — équivalent pour le football.<br>
+`agenttennis/` — équivalent pour le tennis.<br>
 `agentpadel/` — équivalent pour le padel.<br>
 `agentmanager/` — classe de base partagée (client Groq).
 
@@ -155,7 +155,7 @@ Tous les agents renvoient le même schéma JSON (`constat`, `analyse`, `action_c
 #### Structure de l'application web
 
 ```
-nextmove/                       # (branche feature/rag)
+streamlit/
 ├── app.py                      # point d'entrée Streamlit (navigation + page "Me")
 ├── requirements.txt            # dépendances Python (versions pinnées)
 ├── docs/
@@ -168,6 +168,10 @@ nextmove/                       # (branche feature/rag)
     ├── patterns_engine.py      # détection de patterns de jeu
     ├── design.py               # thème / composants UI iOS-like
     ├── viz.py                   # visualisations (terrain tactique, etc.)
+    ├── services/
+    │   ├── cv_pipeline.py       # détection YOLO côté serveur (padel/pickleball/tennis)
+    │   ├── match_service.py     # orchestration analyse + persistance match
+    │   └── video_storage.py     # upload/lecture vidéo (Supabase Storage)
     ├── streamlit_app/           # pages de l'application
     │   ├── 1_Library.py
     │   ├── 2_Upload.py
@@ -178,18 +182,21 @@ nextmove/                       # (branche feature/rag)
     └── agents/                  # agents de coaching IA (un par sport)
         ├── agentmanager/
         ├── agentpickelball/
-        ├── agentfootball/
+        ├── agenttennis/
         └── agentpadel/
 ```
+
+Les poids de détection (`padel_best.pt`, `pickleball_best.pt`, `tennis_best.pt`) sont lus depuis `training/models/exported/` à la racine du dépôt (chemin surchargeable via `CV_WEIGHTS_DIR`), donc partagés avec l'app iOS sans être dupliqués.
 
 #### Détails techniques
 
 **Frontend / Backend :** Streamlit (Python) — pas de séparation front/back, tout tourne dans le processus `streamlit run app.py`.<br>
-**Données :** CSV de démo (`data/demo_games.csv`) et fichiers JSON d'exemple par sport.<br>
+**Vision par ordinateur :** Ultralytics YOLO (mêmes poids que l'app iOS) — détection joueurs/balle par échantillonnage de frames, cf. `src/services/cv_pipeline.py`.<br>
+**Données :** CSV de démo (`data/demo_games.csv`) et fichiers JSON d'exemple par sport ; vidéos et base de données via Supabase (Storage + Postgres).<br>
 **IA :** API Groq (modèles de type `llama-3.3-70b-versatile`) pour la génération des recommandations.<br>
 **Visualisation :** Plotly pour les graphiques et le terrain tactique (`src/viz.py`).
 
-**Stack :** Python · Streamlit · Groq (LLM) · Plotly · Pandas
+**Stack :** Python · Streamlit · Ultralytics YOLO · Groq (LLM) · Plotly · Pandas
 
 #### Prérequis (app web)
 
@@ -199,24 +206,26 @@ Une clé API Groq pour activer les recommandations IA *(optionnelle : sans clé,
 #### Démarrage (app web)
 
 ```bash
-git clone -b feature/rag https://github.com/Loulou441/nextmove.git
-cd nextmove
+cd streamlit
 python -m venv .venv
 source .venv/bin/activate        # macOS / Linux
 # .venv\Scripts\Activate.ps1     # Windows
 pip install -r requirements.txt
 ```
 
-Créer un fichier `.env` à la racine avec au minimum :
+Créer un fichier `.env` à la racine du dépôt avec au minimum :
 
 ```env
 GROQ_API_KEY=votre_cle_groq
 MODEL_NAME_PICKELBALL=llama-3.3-70b-versatile
-MODEL_NAME_FOOTBALL=llama-3.3-70b-versatile
+MODEL_NAME_TENNIS=llama-3.3-70b-versatile
 MODEL_NAME_PADEL=llama-3.3-70b-versatile
+DATABASE_URL=...
+SUPABASE_URL=...
+SUPABASE_SERVICE_KEY=...
 ```
 
-Puis lancer l'application :
+Puis, depuis `streamlit/`, lancer l'application :
 
 ```bash
 streamlit run app.py
@@ -224,8 +233,7 @@ streamlit run app.py
 
 > **Notes**
 > - Sans `GROQ_API_KEY`, les pages *AI Analysis* et *Training Plan* affichent un rapport de démonstration statique.
-> - Les vidéos importées via la page *Upload* sont stockées localement dans `data/videos/` (non versionné, voir `.gitignore`).
-> - L'application web est maintenue dans la branche `feature/rag` du dépôt.
+> - Les vidéos importées via la page *Upload* sont stockées dans un bucket Supabase Storage privé (voir `src/services/video_storage.py`).
 
 ---
 
