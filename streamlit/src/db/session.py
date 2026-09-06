@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-ROOT = Path(__file__).resolve().parent.parent.parent
+ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(ROOT / ".env")
 
 DATABASE_URL = os.environ.get("DATABASE_URL")

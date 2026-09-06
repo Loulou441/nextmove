@@ -12,7 +12,7 @@ st.set_page_config(
     page_title=APP_PAGE_TITLE,
     page_icon=APP_PAGE_ICON,
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 from src.design import set_ios_design, section_title, page_header
@@ -38,30 +38,20 @@ st.session_state.setdefault("current_game_id", None)
 if "nav_target" in st.session_state:
     st.session_state["nav_radio"] = st.session_state.pop("nav_target")
 
-# ── Sidebar navigation ───────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("""
-    <div style="padding: 8px 0 20px;">
-      <div style="font-size:22px;font-weight:700;color:#1C1C1E;">NextMove</div>
-      <div style="font-size:13px;color:#8E8E93;">Smart Coach AI</div>
-    </div>
-    """, unsafe_allow_html=True)
-
+# ── Bottom tab bar (façon TabView iOS — cf. nextmove/ContentView.swift) ─
+# Positionnée en bas par CSS (.st-key-bottom_nav dans design.py) quel que
+# soit l'endroit où elle est rendue dans le script.
+with st.container(key="bottom_nav"):
     page = st.radio(
         "Navigation",
-        ["👤  Me", "📚  Library", "⬆️  Upload", "📊  Dashboard", "🧠  AI Analysis", "📈  Patterns", "📋  Training Plan"],
+        ["👤 Me", "📚 Library", "⬆️ Upload", "📊 Dashboard", "🧠 Coach", "📈 Patterns", "📋 Plan"],
+        horizontal=True,
         label_visibility="collapsed",
         key="nav_radio"
     )
 
-    st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown(f"<div style='font-size:13px;color:#8E8E93;padding:0 4px;'>{current_user.email}</div>", unsafe_allow_html=True)
-    if st.button("Se déconnecter", use_container_width=True):
-        logout()
-        st.rerun()
-
 # ── Route pages ──────────────────────────────────────────────────────
-if page == "👤  Me":
+if page == "👤 Me":
     page_header("Me")
 
     _sport_labels = {"pickleball": "🏓 Pickleball", "tennis": "🎾 Tennis", "padel": "🥎 Padel"}
@@ -99,7 +89,7 @@ if page == "👤  Me":
         """, unsafe_allow_html=True)
 
     if st.button("View Detailed Stats", use_container_width=True):
-        st.session_state["nav_target"] = "📚  Library"
+        st.session_state["nav_target"] = "📚 Library"
         st.rerun()
 
     section_title("Settings")
@@ -128,21 +118,26 @@ if page == "👤  Me":
     )
     st.session_state["sport"] = _sport_values[_sport_options.index(sport_choice)]
 
-elif page == "📚  Library":
+    st.markdown(f"<div style='font-size:13px;color:#8E8E93;margin:16px 0 6px;'>{current_user.email}</div>", unsafe_allow_html=True)
+    with st.container(key="settings_row_btn"):
+        if st.button("⏻  Se déconnecter", use_container_width=True):
+            logout()
+            st.rerun()
+
+elif page == "📚 Library":
     exec(open(ROOT / "src/streamlit_app/1_Library.py", encoding="utf-8").read())
 
-elif page == "⬆️  Upload":
+elif page == "⬆️ Upload":
     exec(open(ROOT / "src/streamlit_app/2_Upload.py", encoding="utf-8").read())
 
-elif page == "📊  Dashboard":
+elif page == "📊 Dashboard":
     exec(open(ROOT / "src/streamlit_app/3_Dashboard.py", encoding="utf-8").read())
 
-elif page == "🧠  AI Analysis":
+elif page == "🧠 Coach":
     exec(open(ROOT / "src/streamlit_app/4_AI_Analysis.py", encoding="utf-8").read())
 
-elif page == "📈  Patterns":
+elif page == "📈 Patterns":
     exec(open(ROOT / "src/streamlit_app/5_Patterns.py", encoding="utf-8").read())
 
-elif page == "📋  Training Plan":
+elif page == "📋 Plan":
     exec(open(ROOT / "src/streamlit_app/6_Training_Plan.py", encoding="utf-8").read())
-    

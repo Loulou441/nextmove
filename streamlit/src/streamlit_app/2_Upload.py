@@ -134,7 +134,7 @@ if st.session_state["upload_stage"] in ("pending", "ready"):
         with col1:
             if st.button("📚 Go to Library", use_container_width=True, type="primary", key="go_to_library_pending"):
                 _reset_upload_state()
-                st.session_state["nav_target"] = "📚  Library"
+                st.session_state["nav_target"] = "📚 Library"
                 st.rerun()
         with col2:
             if st.button("🔍 Analyze Now", use_container_width=True, key="analyze_now"):
@@ -154,7 +154,7 @@ if st.session_state["upload_stage"] in ("pending", "ready"):
     else:  # "ready"
         if st.button("📚 Go to Library", use_container_width=True, type="primary", key="go_to_library_ready"):
             _reset_upload_state()
-            st.session_state["nav_target"] = "📚  Library"
+            st.session_state["nav_target"] = "📚 Library"
             st.rerun()
 
 # ── Pro tips ────────────────────────────────────────────────────────
