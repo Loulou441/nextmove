@@ -9,20 +9,21 @@ def set_ios_design():
     #MainMenu, footer, header { visibility: hidden; }
     .stDeployButton { display: none; }
 
-    /* Navigation vit dans la barre d'onglets du bas (façon iOS TabView),
-       pas dans une sidebar desktop — cf. .st-key-bottom_nav plus bas. */
-    [data-testid="stSidebar"] { display: none !important; }
-    [data-testid="collapsedControl"] { display: none !important; }
+    /* Navigation dans la sidebar (retour temporaire — cf. .st-key-bottom_nav
+       plus bas pour la tentative de barre d'onglets iOS en bas, laissée en
+       place mais inutilisée le temps de la reprendre). */
+    [data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E5E5EA !important; min-width: 260px !important; }
+    [data-testid="stSidebar"] [role="radiogroup"] { gap: 2px !important; }
+    [data-testid="stSidebar"] [role="radiogroup"] label { padding: 10px 14px !important; border-radius: 12px !important; transition: background 0.15s ease; }
+    [data-testid="stSidebar"] [role="radiogroup"] label:hover { background: #F2F2F7 !important; }
+    [data-testid="stSidebar"] [role="radiogroup"] label[data-selected="true"] { background: #EAFBF0 !important; }
+    [data-testid="stSidebar"] [role="radiogroup"] label[data-selected="true"] p { color: #1A7F3C !important; font-weight: 700 !important; }
+    [data-testid="stSidebar"] [role="radiogroup"] label > div > div:first-child { display: none !important; }
 
-    /* Colonne centrée façon écran de téléphone plutôt que pleine largeur desktop. */
-    [data-testid="stMainBlockContainer"] {
-        max-width: 560px;
-        margin: 0 auto;
-        padding-top: 32px;
-        padding-bottom: 110px !important; /* place pour la barre du bas, fixe */
-    }
-
-    /* Barre d'onglets fixe en bas, façon capsule flottante iOS 26. */
+    /* Barre d'onglets fixe en bas, façon capsule flottante iOS 26 — WIP,
+       pas encore fonctionnelle (le radio Streamlit ne recevait jamais de
+       largeur réelle à travers les niveaux de conteneurs), non utilisée
+       tant que app.py route la navigation via la sidebar ci-dessus. */
     .st-key-bottom_nav {
         position: fixed;
         left: 16px;

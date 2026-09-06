@@ -12,7 +12,7 @@ st.set_page_config(
     page_title=APP_PAGE_TITLE,
     page_icon=APP_PAGE_ICON,
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 from src.design import set_ios_design, section_title, page_header
@@ -38,14 +38,22 @@ st.session_state.setdefault("current_game_id", None)
 if "nav_target" in st.session_state:
     st.session_state["nav_radio"] = st.session_state.pop("nav_target")
 
-# ── Bottom tab bar (façon TabView iOS — cf. nextmove/ContentView.swift) ─
-# Positionnée en bas par CSS (.st-key-bottom_nav dans design.py) quel que
-# soit l'endroit où elle est rendue dans le script.
-with st.container(key="bottom_nav"):
+# ── Sidebar navigation ───────────────────────────────────────────────
+# La barre d'onglets du bas façon iOS (.st-key-bottom_nav dans design.py)
+# ne s'affichait pas correctement (le radio Streamlit ne recevait jamais
+# de largeur réelle à travers plusieurs niveaux de conteneurs) — retour
+# à la sidebar en attendant de reprendre ce chantier.
+with st.sidebar:
+    st.markdown("""
+    <div style="padding: 8px 0 20px;">
+      <div style="font-size:22px;font-weight:700;color:#1C1C1E;">NextMove</div>
+      <div style="font-size:13px;color:#8E8E93;">Smart Coach AI</div>
+    </div>
+    """, unsafe_allow_html=True)
+
     page = st.radio(
         "Navigation",
-        ["👤 Me", "📚 Library", "⬆️ Upload", "📊 Dashboard", "🧠 Coach", "📈 Patterns", "📋 Plan"],
-        horizontal=True,
+        ["👤 Me", "📚 Library", "⬆️ Upload", "📊 Dashboard", "🧠 AI Analysis", "📈 Patterns", "📋 Training Plan"],
         label_visibility="collapsed",
         key="nav_radio"
     )
@@ -133,11 +141,11 @@ elif page == "⬆️ Upload":
 elif page == "📊 Dashboard":
     exec(open(ROOT / "src/streamlit_app/3_Dashboard.py", encoding="utf-8").read())
 
-elif page == "🧠 Coach":
+elif page == "🧠 AI Analysis":
     exec(open(ROOT / "src/streamlit_app/4_AI_Analysis.py", encoding="utf-8").read())
 
 elif page == "📈 Patterns":
     exec(open(ROOT / "src/streamlit_app/5_Patterns.py", encoding="utf-8").read())
 
-elif page == "📋 Plan":
+elif page == "📋 Training Plan":
     exec(open(ROOT / "src/streamlit_app/6_Training_Plan.py", encoding="utf-8").read())
