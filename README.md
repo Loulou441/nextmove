@@ -47,55 +47,57 @@ Le pipeline d'analyse s'articule en cinq étapes séquentielles, de la vidéo br
 
 Le framework se compose de modules bien délimités :
 
-1. **Module de détection**
-   - Un modèle YOLO dédié par sport, exporté au format Core ML.
-   - L'analyse se concentre sur trois classes utiles au coaching : **`player`, `ball`, `field`**.
-   - Le modèle padel sait aussi reconnaître `net`, `wall` et `outside-field`, mais ces classes sont filtrées pour ne conserver que l'essentiel du jeu :
-     - **Padel** : `player`, `ball`, `field` *(classes complémentaires disponibles : `net`, `wall`, `outside-field`)*
-     - **Pickleball** : `player`, `ball`, `paddle`
-     - **Tennis** : joueur et balle (repli badminton)
-   - Boîtes englobantes normalisées, filtrage par seuil de confiance, NMS intégré au modèle.
-   - **Réduction des faux positifs** : un seuil de confiance plus strict est appliqué aux joueurs, et toute boîte « joueur » située au-dessus du terrain (affiches, public, panneaux) ou de proportions non plausibles (plus large que haute) est écartée — un poster n'est jamais confondu avec un joueur.
+**Module de détection**
 
-2. **Module de suivi (tracking)**
-   - Association détection-à-piste par IoU (avec repli sur la distance des centroïdes pour les mouvements rapides).
-   - **Chaque joueur reçoit un identifiant stable** (`player 1`, `player 2`, ...) conservé d'une frame à l'autre, avec une couleur dédiée — ce qui permet de suivre individuellement chaque joueur tout au long de l'échange.
-   - Ré-identification sur une fenêtre glissante pour gérer les occlusions courtes ; terminaison automatique des pistes.
+Un modèle YOLO dédié par sport, exporté au format Core ML.<br>
+L'analyse se concentre sur trois classes utiles au coaching : **`player`, `ball`, `field`**.<br>
+Le modèle padel sait aussi reconnaître `net`, `wall` et `outside-field`, mais ces classes sont filtrées pour ne conserver que l'essentiel du jeu.<br>
+Padel : `player`, `ball`, `field` *(classes complémentaires : `net`, `wall`, `outside-field`)* — Pickleball : `player`, `ball`, `paddle` — Tennis : joueur et balle (repli badminton).<br>
+Boîtes englobantes normalisées, filtrage par seuil de confiance, NMS intégré au modèle.<br>
+**Réduction des faux positifs** : un seuil de confiance plus strict est appliqué aux joueurs, et toute boîte « joueur » située au-dessus du terrain (affiches, public, panneaux) ou de proportions non plausibles (plus large que haute) est écartée — un poster n'est jamais confondu avec un joueur.
 
-3. **Module d'extraction de métriques**
-   - Analyse de trajectoire de balle (direction, profondeur, vitesse estimée).
-   - Analyse des déplacements du joueur (couverture du terrain, positionnement, vitesse).
-   - Détection de schémas de performance (positionnement statique, profondeur, déséquilibre de couverture, replacement).
+**Module de suivi (tracking)**
 
-4. **Module de coaching**
-   - Priorisation des problèmes détectés par poids d'impact.
-   - Génération de retours en langage clair, avec suggestions d'entraînement et conseils rapides.
-   - Enrichissement optionnel par un LLM (langage plus naturel et contextualisé).
+Association détection-à-piste par IoU (avec repli sur la distance des centroïdes pour les mouvements rapides).<br>
+**Chaque joueur reçoit un identifiant stable** (`player 1`, `player 2`, ...) conservé d'une frame à l'autre, avec une couleur dédiée — ce qui permet de suivre individuellement chaque joueur tout au long de l'échange.<br>
+Ré-identification sur une fenêtre glissante pour gérer les occlusions courtes ; terminaison automatique des pistes.
+
+**Module d'extraction de métriques**
+
+Analyse de trajectoire de balle (direction, profondeur, vitesse estimée).<br>
+Analyse des déplacements du joueur (couverture du terrain, positionnement, vitesse).<br>
+Détection de schémas de performance (positionnement statique, profondeur, déséquilibre de couverture, replacement).
+
+**Module de coaching**
+
+Priorisation des problèmes détectés par poids d'impact.<br>
+Génération de retours en langage clair, avec suggestions d'entraînement et conseils rapides.<br>
+Enrichissement optionnel par un LLM (langage plus naturel et contextualisé).
 
 ---
 
 ## Fonctionnalités
 
 ### Analyse vidéo
-- Import depuis la galerie ou enregistrement direct.
-- Traitement de clips courts, préparés automatiquement pour l'analyse.
+Import depuis la galerie ou enregistrement direct.<br>
+Traitement de clips courts, préparés automatiquement pour l'analyse.
 
 ### Détection visuelle
-- Détection des joueurs et du contexte terrain.
-- Détection de la balle lorsque les conditions le permettent.
-- Identification de plusieurs éléments du jeu selon le sport.
+Détection des joueurs et du contexte terrain.<br>
+Détection de la balle lorsque les conditions le permettent.<br>
+Identification de plusieurs éléments du jeu selon le sport.
 
 ### Génération d'insights
-- Durée estimée des échanges.
-- Position moyenne et zones de couverture sur le terrain.
-- Tendances de déplacement.
+Durée estimée des échanges.<br>
+Position moyenne et zones de couverture sur le terrain.<br>
+Tendances de déplacement.
 
 ### Recommandations coach
-- Conseils actionnables : positionnement, déplacements, anticipation.
-- Reformulation des métriques en langage simple (moteur de règles, enrichi par LLM si activé).
+Conseils actionnables : positionnement, déplacements, anticipation.<br>
+Reformulation des métriques en langage simple (moteur de règles, enrichi par LLM si activé).
 
 ### Dashboard de session
-- Résumé visuel : métriques clés, graphiques et recommandations principales.
+Résumé visuel : métriques clés, graphiques et recommandations principales.
 
 ---
 
