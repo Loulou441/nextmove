@@ -22,6 +22,8 @@ set_ios_design()
 # ── Authentification : bloque tout accès tant que non connecté ────────
 from src.auth.session_manager import get_current_user, logout
 from src.auth.login_page import render_login_page
+from src.db.session import get_db_session
+from src.services.match_service import get_user_matches
 
 current_user = get_current_user()
 
@@ -76,23 +78,30 @@ if page == "👤 Me":
 
     section_title("Progress")
 
+    with get_db_session() as db:
+        _matches = get_user_matches(db, current_user.id)
+        _ready_matches = [m for m in _matches if m.status == "ready"]
+        games_analyzed = len(_ready_matches)
+        average_rating = (
+            round(sum(m.rating for m in _ready_matches) / games_analyzed, 1)
+            if games_analyzed else 0.0
+        )
+
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="nm-card">
           <div style="font-size:22px;margin-bottom:4px;">⭐</div>
-          <div style="font-size:32px;font-weight:700;color:#1C1C1E;">4.2</div>
+          <div style="font-size:32px;font-weight:700;color:#1C1C1E;">{average_rating}</div>
           <div style="font-size:13px;color:#8E8E93;">Average Rating</div>
-          <div style="font-size:12px;color:#34C759;margin-top:4px;">+0.3</div>
         </div>
         """, unsafe_allow_html=True)
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="nm-card">
           <div style="font-size:22px;margin-bottom:4px;">🎬</div>
-          <div style="font-size:32px;font-weight:700;color:#1C1C1E;">3</div>
+          <div style="font-size:32px;font-weight:700;color:#1C1C1E;">{games_analyzed}</div>
           <div style="font-size:13px;color:#8E8E93;">Games Analyzed</div>
-          <div style="font-size:12px;color:#34C759;margin-top:4px;">+1</div>
         </div>
         """, unsafe_allow_html=True)
 
