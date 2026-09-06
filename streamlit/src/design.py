@@ -13,6 +13,8 @@ def set_ios_design():
        plus bas pour la tentative de barre d'onglets iOS en bas, laissée en
        place mais inutilisée le temps de la reprendre). */
     [data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E5E5EA !important; min-width: 260px !important; }
+    /* Empêche de replier la sidebar : elle doit rester affichée en permanence. */
+    [data-testid="stSidebarCollapseButton"] { display: none !important; }
     [data-testid="stSidebar"] [role="radiogroup"] { gap: 2px !important; }
     [data-testid="stSidebar"] [role="radiogroup"] label { padding: 10px 14px !important; border-radius: 12px !important; transition: background 0.15s ease; }
     [data-testid="stSidebar"] [role="radiogroup"] label:hover { background: #F2F2F7 !important; }
