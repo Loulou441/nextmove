@@ -31,7 +31,7 @@ if not matches:
     </div>
     """, unsafe_allow_html=True)
     if st.button("⬆️ Go to Upload", use_container_width=True, type="primary"):
-        st.session_state["nav_target"] = "⬆️  Upload"
+        st.session_state["nav_target"] = "⬆️ Upload"
         st.rerun()
 
 # ── Game list ───────────────────────────────────────────────────────
@@ -65,9 +65,9 @@ for m in matches:
         col_ral.metric("Rallies", m.rallies)
         col_win.metric("Winners", m.winners)
 
-        if st.button(f"📊 Open Analysis — {m.title}", key=f"open_{m.id}", use_container_width=True, type="primary"):
+        if st.button("📊 View Analysis", key=f"open_{m.id}", use_container_width=True, type="primary"):
             st.session_state["current_game_id"] = m.id
-            st.session_state["nav_target"] = "📊  Dashboard"
+            st.session_state["nav_target"] = "📊 Dashboard"
             st.rerun()
     else:
         if st.button(f"🔍 Analyze Game — {m.title}", key=f"analyze_{m.id}", use_container_width=True):

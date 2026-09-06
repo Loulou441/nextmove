@@ -34,6 +34,11 @@ if not ready_matches:
     """, unsafe_allow_html=True)
     st.stop()
 
+# ── Back to Library (façon push/pop de navigation iOS) ────────────────
+if st.button("← Library", key="dashboard_back_to_library"):
+    st.session_state["nav_target"] = "📚 Library"
+    st.rerun()
+
 # ── Game selector ───────────────────────────────────────────────────
 match_by_title = {m.title: m for m in ready_matches}
 titles = list(match_by_title.keys())

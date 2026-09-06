@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-ROOT = Path(__file__).resolve().parent.parent.parent
+ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(ROOT / ".env")
 
 BUCKET_NAME = "videos"

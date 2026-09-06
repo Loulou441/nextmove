@@ -24,17 +24,14 @@ def render_login_page() -> None:
     </div>
     """, unsafe_allow_html=True)
 
-    _, center_col, _ = st.columns([1, 2, 1])
+    with st.container(border=True):
+        tab_login, tab_register = st.tabs(["Connexion", "Créer un compte"])
 
-    with center_col:
-        with st.container(border=True):
-            tab_login, tab_register = st.tabs(["Connexion", "Créer un compte"])
+        with tab_login:
+            _render_login_form()
 
-            with tab_login:
-                _render_login_form()
-
-            with tab_register:
-                _render_register_form()
+        with tab_register:
+            _render_register_form()
 
 
 def _render_login_form() -> None:

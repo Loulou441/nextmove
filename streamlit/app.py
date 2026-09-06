@@ -1,6 +1,7 @@
 import os
 import sys
 import streamlit as st
+from datetime import datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -22,6 +23,8 @@ set_ios_design()
 # ── Authentification : bloque tout accès tant que non connecté ────────
 from src.auth.session_manager import get_current_user, logout
 from src.auth.login_page import render_login_page
+from src.db.session import get_db_session
+from src.services.match_service import get_user_matches
 
 current_user = get_current_user()
 
@@ -39,6 +42,10 @@ if "nav_target" in st.session_state:
     st.session_state["nav_radio"] = st.session_state.pop("nav_target")
 
 # ── Sidebar navigation ───────────────────────────────────────────────
+# La barre d'onglets du bas façon iOS (.st-key-bottom_nav dans design.py)
+# ne s'affichait pas correctement (le radio Streamlit ne recevait jamais
+# de largeur réelle à travers plusieurs niveaux de conteneurs) — retour
+# à la sidebar en attendant de reprendre ce chantier.
 with st.sidebar:
     st.markdown("""
     <div style="padding: 8px 0 20px;">
@@ -49,19 +56,13 @@ with st.sidebar:
 
     page = st.radio(
         "Navigation",
-        ["👤  Me", "📚  Library", "⬆️  Upload", "📊  Dashboard", "🧠  AI Analysis", "📈  Patterns", "📋  Training Plan"],
+        ["👤 Me", "📚 Library", "⬆️ Upload", "📊 Dashboard", "🧠 AI Analysis", "📈 Patterns", "📋 Training Plan"],
         label_visibility="collapsed",
         key="nav_radio"
     )
 
-    st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown(f"<div style='font-size:13px;color:#8E8E93;padding:0 4px;'>{current_user.email}</div>", unsafe_allow_html=True)
-    if st.button("Se déconnecter", use_container_width=True):
-        logout()
-        st.rerun()
-
 # ── Route pages ──────────────────────────────────────────────────────
-if page == "👤  Me":
+if page == "👤 Me":
     page_header("Me")
 
     _sport_labels = {"pickleball": "🏓 Pickleball", "tennis": "🎾 Tennis", "padel": "🥎 Padel"}
@@ -78,28 +79,63 @@ if page == "👤  Me":
 
     section_title("Progress")
 
+    with get_db_session() as db:
+        _matches = get_user_matches(db, current_user.id)
+        _ready_matches = [m for m in _matches if m.status == "ready"]
+        games_analyzed = len(_ready_matches)
+        average_rating = (
+            round(sum(m.rating for m in _ready_matches) / games_analyzed, 1)
+            if games_analyzed else 0.0
+        )
+
+        # "+N" = ce que ces indicateurs sont censés représenter : l'activité
+        # récente, pas un chiffre inventé. Semaine glissante de 7 jours,
+        # basée sur created_at (toujours renseigné, contrairement à
+        # match_date qui peut être nul).
+        _week_ago = datetime.utcnow() - timedelta(days=7)
+        _recent = [m for m in _ready_matches if m.created_at and m.created_at >= _week_ago]
+        _older = [m for m in _ready_matches if m.created_at and m.created_at < _week_ago]
+
+        games_delta = len(_recent)
+
+        rating_delta = None
+        if _recent and _older:
+            recent_avg = sum(m.rating for m in _recent) / len(_recent)
+            older_avg = sum(m.rating for m in _older) / len(_older)
+            rating_delta = round(recent_avg - older_avg, 1)
+
+    rating_delta_html = ""
+    if rating_delta is not None:
+        _color = "#34C759" if rating_delta >= 0 else "#FF3B30"
+        _sign = "+" if rating_delta >= 0 else ""
+        rating_delta_html = f'<div style="font-size:12px;color:{_color};margin-top:4px;">{_sign}{rating_delta} vs. la semaine dernière</div>'
+
+    games_delta_html = ""
+    if games_delta > 0:
+        games_delta_html = f'<div style="font-size:12px;color:#34C759;margin-top:4px;">+{games_delta} cette semaine</div>'
+
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="nm-card">
           <div style="font-size:22px;margin-bottom:4px;">⭐</div>
-          <div style="font-size:32px;font-weight:700;color:#1C1C1E;">4.2</div>
+          <div style="font-size:32px;font-weight:700;color:#1C1C1E;">{average_rating}</div>
           <div style="font-size:13px;color:#8E8E93;">Average Rating</div>
-          <div style="font-size:12px;color:#34C759;margin-top:4px;">+0.3</div>
+          {rating_delta_html}
         </div>
         """, unsafe_allow_html=True)
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="nm-card">
           <div style="font-size:22px;margin-bottom:4px;">🎬</div>
-          <div style="font-size:32px;font-weight:700;color:#1C1C1E;">3</div>
+          <div style="font-size:32px;font-weight:700;color:#1C1C1E;">{games_analyzed}</div>
           <div style="font-size:13px;color:#8E8E93;">Games Analyzed</div>
-          <div style="font-size:12px;color:#34C759;margin-top:4px;">+1</div>
+          {games_delta_html}
         </div>
         """, unsafe_allow_html=True)
 
     if st.button("View Detailed Stats", use_container_width=True):
-        st.session_state["nav_target"] = "📚  Library"
+        st.session_state["nav_target"] = "📚 Library"
         st.rerun()
 
     section_title("Settings")
@@ -128,21 +164,26 @@ if page == "👤  Me":
     )
     st.session_state["sport"] = _sport_values[_sport_options.index(sport_choice)]
 
-elif page == "📚  Library":
+    st.markdown(f"<div style='font-size:13px;color:#8E8E93;margin:16px 0 6px;'>{current_user.email}</div>", unsafe_allow_html=True)
+    with st.container(key="settings_row_btn"):
+        if st.button("⏻  Se déconnecter", use_container_width=True):
+            logout()
+            st.rerun()
+
+elif page == "📚 Library":
     exec(open(ROOT / "src/streamlit_app/1_Library.py", encoding="utf-8").read())
 
-elif page == "⬆️  Upload":
+elif page == "⬆️ Upload":
     exec(open(ROOT / "src/streamlit_app/2_Upload.py", encoding="utf-8").read())
 
-elif page == "📊  Dashboard":
+elif page == "📊 Dashboard":
     exec(open(ROOT / "src/streamlit_app/3_Dashboard.py", encoding="utf-8").read())
 
-elif page == "🧠  AI Analysis":
+elif page == "🧠 AI Analysis":
     exec(open(ROOT / "src/streamlit_app/4_AI_Analysis.py", encoding="utf-8").read())
 
-elif page == "📈  Patterns":
+elif page == "📈 Patterns":
     exec(open(ROOT / "src/streamlit_app/5_Patterns.py", encoding="utf-8").read())
 
-elif page == "📋  Training Plan":
+elif page == "📋 Training Plan":
     exec(open(ROOT / "src/streamlit_app/6_Training_Plan.py", encoding="utf-8").read())
-    
