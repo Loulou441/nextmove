@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.design import SPORTS, page_header, set_ios_design
+from src.design import SPORTS, page_header, set_ios_design, skill_bar
 from src.auth.session_manager import get_current_user
 from src.db.session import get_db_session
 from src.services.match_service import get_user_matches
@@ -31,11 +31,13 @@ sport_info = SPORTS.get(match.sport, SPORTS["pickleball"])
 skills = match.skills or []
 chat_key = f"coach_messages_{match.id}"
 
-if st.button("‹ Analysis", key="coach_back"):
-    st.session_state["route"] = "analysis"
-    st.rerun()
-
-st.markdown('<div style="text-align:center;font-size:18px;font-weight:650;margin:-36px 0 18px;">AI Coach</div>', unsafe_allow_html=True)
+top_left, top_title = st.columns([0.7, 5])
+with top_left:
+    if st.button("‹ Analysis", key="coach_back"):
+        st.session_state["route"] = "analysis"
+        st.rerun()
+with top_title:
+    page_header("AI Coach", f"{match.title} · {sport_info['icon']} {sport_info['label']}")
 
 if chat_key not in st.session_state:
     greeting = (
@@ -132,30 +134,67 @@ def _reply(user_text: str) -> str:
     return "Ask me about what to work on, a drill, your strengths, or how to win more points and I'll use this game's analysis."
 
 
-for message in st.session_state[chat_key]:
-    role = "user" if message["role"] == "user" else "assistant"
-    with st.chat_message(role):
-        if role == "assistant":
-            st.caption(f"Coach · {sport_info['icon']} {sport_info['label']}")
-        st.write(message["text"])
+summary_col, chat_col = st.columns([0.8, 1.7], gap="large")
 
-suggested_prompts = [
-    "What should I work on?",
-    "Give me a drill",
-    "How do I win more points?",
-    "What am I good at?",
-]
+with summary_col:
+    st.markdown(
+        f"""
+        <div class="nm-card coach-summary">
+          <div style="font-size:11px;color:#8E8E93;text-transform:uppercase;letter-spacing:.06em;font-weight:650;">Game context</div>
+          <div style="font-size:17px;font-weight:700;margin-top:7px;">{match.title}</div>
+          <div style="font-size:12px;color:#8E8E93;margin-top:3px;">{sport_info['icon']} {sport_info['label']}</div>
+          <div style="display:flex;gap:18px;margin-top:16px;">
+            <div><div style="font-size:20px;font-weight:750;">{float(match.rating or 0):.1f}</div><div style="font-size:10px;color:#8E8E93;">Rating</div></div>
+            <div><div style="font-size:20px;font-weight:750;">{int(match.rallies or 0)}</div><div style="font-size:10px;color:#8E8E93;">Rallies</div></div>
+            <div><div style="font-size:20px;font-weight:750;">{int(match.winners or 0)}</div><div style="font-size:10px;color:#8E8E93;">Winners</div></div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-cols = st.columns(2)
-for idx, suggested in enumerate(suggested_prompts):
-    with cols[idx % 2]:
-        if st.button(suggested, key=f"coach_prompt_{idx}", use_container_width=True):
-            st.session_state[chat_key].append({"role": "user", "text": suggested})
-            st.session_state[chat_key].append({"role": "assistant", "text": _reply(suggested)})
-            st.rerun()
+    if skills:
+        st.markdown('<div class="nm-card" style="margin-top:10px;"><div style="font-size:12px;font-weight:650;margin-bottom:12px;">Skills</div>', unsafe_allow_html=True)
+        for skill in skills[:6]:
+            skill_bar(
+                skill.get("label", "Skill"),
+                skill.get("icon", "•"),
+                skill.get("score", 0),
+                5.0,
+                skill.get("color", "green"),
+            )
+        st.markdown("</div>", unsafe_allow_html=True)
 
-prompt = st.chat_input("Ask your coach...")
-if prompt:
-    st.session_state[chat_key].append({"role": "user", "text": prompt})
-    st.session_state[chat_key].append({"role": "assistant", "text": _reply(prompt)})
-    st.rerun()
+with chat_col:
+    st.markdown(
+        '<div style="font-size:15px;font-weight:650;margin-bottom:10px;">Conversation</div>',
+        unsafe_allow_html=True,
+    )
+
+    for message in st.session_state[chat_key]:
+        role = "user" if message["role"] == "user" else "assistant"
+        with st.chat_message(role):
+            if role == "assistant":
+                st.caption(f"Coach · {sport_info['icon']} {sport_info['label']}")
+            st.write(message["text"])
+
+    suggested_prompts = [
+        "What should I work on?",
+        "Give me a drill",
+        "How do I win more points?",
+        "What am I good at?",
+    ]
+
+    cols = st.columns(4)
+    for idx, suggested in enumerate(suggested_prompts):
+        with cols[idx]:
+            if st.button(suggested, key=f"coach_prompt_{idx}", use_container_width=True):
+                st.session_state[chat_key].append({"role": "user", "text": suggested})
+                st.session_state[chat_key].append({"role": "assistant", "text": _reply(suggested)})
+                st.rerun()
+
+    prompt = st.chat_input("Ask your coach...")
+    if prompt:
+        st.session_state[chat_key].append({"role": "user", "text": prompt})
+        st.session_state[chat_key].append({"role": "assistant", "text": _reply(prompt)})
+        st.rerun()

@@ -45,12 +45,15 @@ if match is None:
 st.session_state["current_game_id"] = match.id
 sport_info = SPORTS.get(match.sport, SPORTS["pickleball"])
 
-if st.button("‹ Library", key="analysis_back"):
-    st.session_state["route"] = "main"
-    st.session_state["nav_radio"] = "📚 Library"
-    st.rerun()
-
-st.markdown(f'<div style="text-align:center;font-size:18px;font-weight:650;margin:-36px 0 18px;">{match.title}</div>', unsafe_allow_html=True)
+back_col, title_col = st.columns([0.7, 5])
+with back_col:
+    if st.button("‹ Library", key="analysis_back"):
+        st.session_state["route"] = "main"
+        st.session_state["nav_radio"] = "📚 Library"
+        st.rerun()
+with title_col:
+    date_str = match.match_date.strftime("%b %d, %Y") if match.match_date else ""
+    page_header(match.title, f"{sport_info['icon']} {sport_info['label']} · {date_str}")
 
 video_url = None
 if match.video_storage_path:
@@ -61,18 +64,6 @@ if match.video_storage_path:
 
 seek_key = f"analysis_seek_{match.id}"
 st.session_state.setdefault(seek_key, 0)
-if video_url:
-    st.video(video_url, start_time=int(st.session_state[seek_key]))
-else:
-    st.markdown(
-        '<div class="nm-card" style="text-align:center;color:#8E8E93;">🎥 Video temporarily unavailable.</div>',
-        unsafe_allow_html=True,
-    )
-
-if st.button("💬  Ask your AI Coach  ›", type="primary", use_container_width=True, key="ask_ai_coach"):
-    st.session_state["route"] = "coach"
-    st.rerun()
-st.caption("Get personalized tips based on this game")
 
 skills = match.skills or []
 highlights = match.highlights or []
@@ -104,37 +95,56 @@ def _time_to_seconds(value) -> int:
         return 0
 
 
+video_col, summary_col = st.columns([1.7, 0.85], gap="large")
+
+with video_col:
+    if video_url:
+        st.video(video_url, start_time=int(st.session_state[seek_key]))
+    else:
+        st.markdown(
+            '<div class="nm-card" style="height:300px;display:flex;align-items:center;justify-content:center;color:#8E8E93;">🎥 Video temporarily unavailable.</div>',
+            unsafe_allow_html=True,
+        )
+
+with summary_col:
+    performance_ring(rating, 5.0, "Overall Performance")
+    st.markdown(
+        f'<div style="text-align:center;font-size:14px;font-weight:650;margin:-3px 0 11px;">{_rating_description(rating)}</div>',
+        unsafe_allow_html=True,
+    )
+    if st.button("💬 Ask your AI Coach", type="primary", use_container_width=True, key="ask_ai_coach"):
+        st.session_state["route"] = "coach"
+        st.rerun()
+    st.caption("Get personalized tips based on this game")
+
 tab_overview, tab_skills, tab_highlights, tab_stats = st.tabs(
     ["Overview", "Skills", "Highlights", "Stats"]
 )
 
 with tab_overview:
-    performance_ring(rating, 5.0, "Overall Performance")
-    st.markdown(
-        f'<div style="text-align:center;font-size:16px;font-weight:650;margin:-2px 0 18px;">{_rating_description(rating)}</div>',
-        unsafe_allow_html=True,
-    )
-
-    section_title("💡 Key Insights")
-    st.markdown(
-        """
-        <div class="nm-card">
-          <div style="display:flex;gap:11px;margin:8px 0;"><span style="color:#34C759;">↑</span><span>Strong serve performance</span></div>
-          <div style="display:flex;gap:11px;margin:8px 0;"><span style="color:#FF9500;">◎</span><span>Focus on third shot consistency</span></div>
-          <div style="display:flex;gap:11px;margin:8px 0;"><span style="color:#007AFF;">◉</span><span>Excellent court coverage</span></div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    kpi_grid(
-        [
-            ("↔", match.rallies or 0, "Rallies", "#007AFF"),
-            ("✓", match.winners or 0, "Winners", "#34C759"),
-            ("✕", match.errors or 0, "Errors", "#FF3B30"),
-            ("🚶", f"{match.coverage or 0}%", "Coverage", "#FF9500"),
-        ]
-    )
+    overview_left, overview_right = st.columns([1.1, 1], gap="large")
+    with overview_left:
+        section_title("💡 Key Insights")
+        st.markdown(
+            """
+            <div class="nm-card">
+              <div style="display:flex;gap:10px;margin:7px 0;font-size:13px;"><span style="color:#34C759;">↑</span><span>Strong serve performance</span></div>
+              <div style="display:flex;gap:10px;margin:7px 0;font-size:13px;"><span style="color:#FF9500;">◎</span><span>Focus on third shot consistency</span></div>
+              <div style="display:flex;gap:10px;margin:7px 0;font-size:13px;"><span style="color:#007AFF;">◉</span><span>Excellent court coverage</span></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with overview_right:
+        section_title("Quick Stats")
+        kpi_grid(
+            [
+                ("↔", match.rallies or 0, "Rallies", "#007AFF"),
+                ("✓", match.winners or 0, "Winners", "#34C759"),
+                ("✕", match.errors or 0, "Errors", "#FF3B30"),
+                ("🚶", f"{match.coverage or 0}%", "Coverage", "#FF9500"),
+            ]
+        )
 
 with tab_skills:
     section_title("Skill Breakdown")
@@ -143,23 +153,26 @@ with tab_skills:
     if not skills:
         st.info("No skill breakdown is available for this game.")
     else:
-        st.markdown('<div class="nm-card">', unsafe_allow_html=True)
-        for skill in skills:
-            skill_bar(
-                skill.get("label", "Skill"),
-                skill.get("icon", "•"),
-                skill.get("score", 0),
-                5.0,
-                skill.get("color", "green"),
-            )
-        st.markdown('</div>', unsafe_allow_html=True)
+        skill_col, focus_col = st.columns([1.15, 0.85], gap="large")
+        with skill_col:
+            st.markdown('<div class="nm-card">', unsafe_allow_html=True)
+            for skill in skills:
+                skill_bar(
+                    skill.get("label", "Skill"),
+                    skill.get("icon", "•"),
+                    skill.get("score", 0),
+                    5.0,
+                    skill.get("color", "green"),
+                )
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        ordered = sorted(skills, key=lambda item: float(item.get("score", 0)), reverse=True)
-        if len(ordered) >= 4:
-            strengths_focus(
-                [(s.get("label", "Skill"), float(s.get("score", 0))) for s in ordered[:2]],
-                [(s.get("label", "Skill"), float(s.get("score", 0))) for s in ordered[-2:]],
-            )
+        with focus_col:
+            ordered = sorted(skills, key=lambda item: float(item.get("score", 0)), reverse=True)
+            if len(ordered) >= 4:
+                strengths_focus(
+                    [(s.get("label", "Skill"), float(s.get("score", 0))) for s in ordered[:2]],
+                    [(s.get("label", "Skill"), float(s.get("score", 0))) for s in ordered[-2:]],
+                )
 
 with tab_highlights:
     section_title("Game Highlights")
@@ -172,16 +185,16 @@ with tab_highlights:
         )
     else:
         for idx, highlight in enumerate(highlights):
-            left, right = st.columns([5, 1])
+            left, right = st.columns([6, 0.8])
             with left:
                 title = highlight.get("title", "Highlight")
                 time_value = highlight.get("time", "0:00")
                 tag = highlight.get("tag", "Moment")
                 st.markdown(
                     f"""
-                    <div class="nm-card" style="margin-bottom:4px;">
-                      <div style="font-size:15px;font-weight:600;">{title}</div>
-                      <div style="font-size:12px;color:#8E8E93;margin-top:3px;">{time_value} · {tag}</div>
+                    <div class="nm-card nm-compact-card" style="margin-bottom:4px;">
+                      <div style="font-size:14px;font-weight:600;">{title}</div>
+                      <div style="font-size:11px;color:#8E8E93;margin-top:3px;">{time_value} · {tag}</div>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -209,10 +222,10 @@ with tab_stats:
     for idx, (icon, label, value) in enumerate(rows):
         border = "border-bottom:1px solid #E5E5EA;" if idx < len(rows) - 1 else ""
         rows_html += (
-            f'<div style="display:flex;align-items:center;gap:12px;padding:13px 0;{border}">'
+            f'<div style="display:flex;align-items:center;gap:11px;padding:11px 0;{border}">'
             f'<span style="width:22px;color:#007AFF;">{icon}</span>'
-            f'<span style="font-size:14px;">{label}</span>'
-            f'<span style="margin-left:auto;font-weight:600;">{value}</span>'
+            f'<span style="font-size:13px;">{label}</span>'
+            f'<span style="margin-left:auto;font-size:13px;font-weight:600;">{value}</span>'
             '</div>'
         )
-    st.markdown(f'<div class="nm-card">{rows_html}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="nm-card" style="max-width:760px;">{rows_html}</div>', unsafe_allow_html=True)
