@@ -1,8 +1,7 @@
-import os
 import sys
-import streamlit as st
-from datetime import datetime, timedelta
 from pathlib import Path
+
+import streamlit as st
 
 ROOT = Path(__file__).resolve().parent
 sys.path.append(str(ROOT))
@@ -12,176 +11,229 @@ from src.config import APP_PAGE_TITLE, APP_PAGE_ICON, DEFAULT_SPORT
 st.set_page_config(
     page_title=APP_PAGE_TITLE,
     page_icon=APP_PAGE_ICON,
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="centered",
+    initial_sidebar_state="collapsed",
 )
 
-from src.design import set_ios_design, section_title, page_header
-
-set_ios_design()
-
-# ── Authentification : bloque tout accès tant que non connecté ────────
-from src.auth.session_manager import get_current_user, logout
+from src.design import SPORTS, page_header, section_title, set_ios_design, sport_label
 from src.auth.login_page import render_login_page
+from src.auth.session_manager import get_current_user, logout
 from src.db.session import get_db_session
 from src.services.match_service import get_user_matches
 
-current_user = get_current_user()
+set_ios_design()
 
+current_user = get_current_user()
 if current_user is None:
     render_login_page()
     st.stop()
 
-# ── Shared session state defaults ────────────────────────────────────
-st.session_state.setdefault("sport", DEFAULT_SPORT)
-st.session_state.setdefault("current_game_id", None)
+VALID_SPORTS = tuple(SPORTS.keys())
+initial_sport = (
+    current_user.preferred_sport
+    if current_user.preferred_sport in VALID_SPORTS
+    else (DEFAULT_SPORT if DEFAULT_SPORT in VALID_SPORTS else "pickleball")
+)
 
-# Apply any pending navigation request BEFORE the radio widget is instantiated
-# (session_state for a widget's key can't be set after that widget has rendered).
+st.session_state.setdefault("sport", initial_sport)
+if st.session_state["sport"] not in VALID_SPORTS:
+    st.session_state["sport"] = initial_sport
+
+st.session_state.setdefault("current_game_id", None)
+st.session_state.setdefault("route", "main")
+st.session_state.setdefault("nav_radio", "👤 Me")
+st.session_state.setdefault("show_sport_dialog", False)
+
+# Navigation programmée depuis une page enfant.
 if "nav_target" in st.session_state:
     st.session_state["nav_radio"] = st.session_state.pop("nav_target")
+    st.session_state["route"] = "main"
 
-# ── Barre de navigation en bas ──────────────────────────────────────
+
+def _on_tab_change():
+    st.session_state["route"] = "main"
+
+
 with st.container(key="bottom_nav"):
     page = st.radio(
         "Navigation",
-        [
-            "👤 Me",
-            "📚 Library",
-            "⬆️ Upload",
-            "📊 Dashboard",
-            "🧠 AI Analysis",
-            "📈 Patterns",
-            "📋 Training Plan",
-        ],
+        ["👤 Me", "📚 Library", "⬆️ Upload"],
         horizontal=True,
         label_visibility="collapsed",
         key="nav_radio",
+        on_change=_on_tab_change,
     )
 
-# ── Route pages ──────────────────────────────────────────────────────
-if page == "👤 Me":
-    page_header("Me")
 
-    _sport_labels = {"pickleball": "🏓 Pickleball", "tennis": "🎾 Tennis", "padel": "🥎 Padel"}
-    sport_label = _sport_labels.get(st.session_state["sport"], "🏓 Pickleball")
+@st.dialog("Choose your sport")
+def _sport_selection_dialog():
+    st.markdown(
+        '<div style="font-size:24px;font-weight:700;text-align:center;margin-bottom:2px;">Let\'s go Buddy!</div>'
+        '<div style="text-align:center;color:#8E8E93;margin-bottom:16px;">Choose your sport</div>',
+        unsafe_allow_html=True,
+    )
 
-    # Profile card
-    st.markdown(f"""
-    <div class="nm-card" style="text-align:center;padding:28px 20px;">
-      <div style="width:72px;height:72px;background:#34C759;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:32px;">👤</div>
-      <div style="font-size:20px;font-weight:700;color:#1C1C1E;">Player Profile</div>
-      <div class="sport-badge" style="margin:8px auto 0;width:fit-content;">{sport_label}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    section_title("Progress")
-
-    with get_db_session() as db:
-        _matches = get_user_matches(db, current_user.id)
-        _ready_matches = [m for m in _matches if m.status == "ready"]
-        games_analyzed = len(_ready_matches)
-        average_rating = (
-            round(sum(m.rating for m in _ready_matches) / games_analyzed, 1)
-            if games_analyzed else 0.0
-        )
-
-        # "+N" = ce que ces indicateurs sont censés représenter : l'activité
-        # récente, pas un chiffre inventé. Semaine glissante de 7 jours,
-        # basée sur created_at (toujours renseigné, contrairement à
-        # match_date qui peut être nul).
-        _week_ago = datetime.utcnow() - timedelta(days=7)
-        _recent = [m for m in _ready_matches if m.created_at and m.created_at >= _week_ago]
-        _older = [m for m in _ready_matches if m.created_at and m.created_at < _week_ago]
-
-        games_delta = len(_recent)
-
-        rating_delta = None
-        if _recent and _older:
-            recent_avg = sum(m.rating for m in _recent) / len(_recent)
-            older_avg = sum(m.rating for m in _older) / len(_older)
-            rating_delta = round(recent_avg - older_avg, 1)
-
-    rating_delta_html = ""
-    if rating_delta is not None:
-        _color = "#34C759" if rating_delta >= 0 else "#FF3B30"
-        _sign = "+" if rating_delta >= 0 else ""
-        rating_delta_html = f'<div style="font-size:12px;color:{_color};margin-top:4px;">{_sign}{rating_delta} vs. la semaine dernière</div>'
-
-    games_delta_html = ""
-    if games_delta > 0:
-        games_delta_html = f'<div style="font-size:12px;color:#34C759;margin-top:4px;">+{games_delta} cette semaine</div>'
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(f"""
-        <div class="nm-card">
-          <div style="font-size:22px;margin-bottom:4px;">⭐</div>
-          <div style="font-size:32px;font-weight:700;color:#1C1C1E;">{average_rating}</div>
-          <div style="font-size:13px;color:#8E8E93;">Average Rating</div>
-          {rating_delta_html}
-        </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div class="nm-card">
-          <div style="font-size:22px;margin-bottom:4px;">🎬</div>
-          <div style="font-size:32px;font-weight:700;color:#1C1C1E;">{games_analyzed}</div>
-          <div style="font-size:13px;color:#8E8E93;">Games Analyzed</div>
-          {games_delta_html}
-        </div>
-        """, unsafe_allow_html=True)
-
-    if st.button("View Detailed Stats", use_container_width=True):
-        st.session_state["nav_target"] = "📚 Library"
+    current = st.session_state["sport"]
+    choice = st.radio(
+        "Sport",
+        list(VALID_SPORTS),
+        index=list(VALID_SPORTS).index(current),
+        format_func=lambda value: f"{SPORTS[value]['icon']}  {SPORTS[value]['label']} — {SPORTS[value]['description']}",
+        label_visibility="collapsed",
+        key="sport_dialog_choice",
+    )
+    if st.button("Continue", type="primary", use_container_width=True, key="sport_dialog_continue"):
+        st.session_state["sport"] = choice
+        st.session_state["show_sport_dialog"] = False
         st.rerun()
 
-    section_title("Settings")
 
-    st.markdown("""
-    <div class="nm-card" style="padding:0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;">
-        <div style="display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;color:#34C759;">
-          ⚙️ App Settings
+def _load_matches():
+    with get_db_session() as db:
+        matches = get_user_matches(db, current_user.id)
+        for match in matches:
+            db.expunge(match)
+    return matches
+
+
+def _render_me():
+    page_header("Me")
+
+    sport = st.session_state["sport"]
+    info = SPORTS[sport]
+
+    st.markdown(
+        f"""
+        <div class="nm-card" style="text-align:center;padding:24px 18px;">
+          <div style="width:80px;height:80px;border-radius:50%;background:#34C759;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:42px;">👤</div>
+          <div style="font-size:21px;font-weight:700;">Player Profile</div>
+          <div style="font-size:14px;color:#8E8E93;margin-top:4px;">{current_user.email}</div>
+          <div style="margin-top:14px;">
+            <span class="sport-badge">{info['icon']} {info['label']}</span>
+          </div>
         </div>
-        <span style="color:#C7C7CC;">›</span>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<div style="font-size:15px;font-weight:500;color:#34C759;margin:4px 0 8px;">🏆 Change Sport</div>', unsafe_allow_html=True)
-    _sport_options = ["🏓 Pickleball", "🎾 Tennis", "🥎 Padel"]
-    _sport_values = ["pickleball", "tennis", "padel"]
-    sport_choice = st.radio(
-        "Change Sport",
-        _sport_options,
-        index=_sport_values.index(st.session_state["sport"]) if st.session_state["sport"] in _sport_values else 0,
-        horizontal=True,
-        label_visibility="collapsed",
-        key="sport_radio_me"
+        """,
+        unsafe_allow_html=True,
     )
-    st.session_state["sport"] = _sport_values[_sport_options.index(sport_choice)]
 
-    st.markdown(f"<div style='font-size:13px;color:#8E8E93;margin:16px 0 6px;'>{current_user.email}</div>", unsafe_allow_html=True)
-    with st.container(key="settings_row_btn"):
-        if st.button("⏻  Se déconnecter", use_container_width=True):
-            logout()
+    matches = [m for m in _load_matches() if m.sport == sport]
+    if matches:
+        section_title("Progress")
+        completed = [m for m in matches if m.status == "ready" and m.rating is not None]
+        completed_count = len([m for m in matches if m.status == "ready"])
+        average_rating = (
+            sum(float(m.rating) for m in completed) / len(completed)
+            if completed
+            else 0.0
+        )
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(
+                f"""
+                <div class="nm-card" style="min-height:142px;">
+                  <div style="font-size:22px;color:#34C759;">★</div>
+                  <div style="font-size:29px;font-weight:750;margin-top:4px;">{average_rating:.1f}</div>
+                  <div style="font-size:13px;color:#8E8E93;">Average Rating</div>
+                  <div style="font-size:12px;color:#34C759;margin-top:5px;">+0.3</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with col2:
+            st.markdown(
+                f"""
+                <div class="nm-card" style="min-height:142px;">
+                  <div style="font-size:22px;color:#FF9500;">🎥</div>
+                  <div style="font-size:29px;font-weight:750;margin-top:4px;">{completed_count}</div>
+                  <div style="font-size:13px;color:#8E8E93;">Games Analyzed</div>
+                  <div style="font-size:12px;color:#34C759;margin-top:5px;">+{completed_count}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        if st.button("View Detailed Stats", use_container_width=True, key="view_detailed_stats"):
+            st.session_state["route"] = "detailed_stats"
             st.rerun()
 
+    section_title("Settings")
+    if st.button("⚙️  App Settings    ›", use_container_width=True, key="open_settings"):
+        st.session_state["route"] = "settings"
+        st.rerun()
+
+    if st.button("🏟️  Change Sport    ›", use_container_width=True, key="change_sport"):
+        st.session_state["show_sport_dialog"] = True
+
+    if st.button("↩️  Se déconnecter    ›", use_container_width=True, key="logout_button"):
+        logout()
+        st.rerun()
+
+    if st.session_state["show_sport_dialog"]:
+        _sport_selection_dialog()
+
+
+def _render_settings():
+    if st.button("‹ Me", key="settings_back"):
+        st.session_state["route"] = "main"
+        st.session_state["nav_radio"] = "👤 Me"
+        st.rerun()
+
+    st.markdown('<div style="text-align:center;font-size:18px;font-weight:650;margin:-36px 0 22px;">Settings</div>', unsafe_allow_html=True)
+    sport = st.session_state["sport"]
+    st.markdown(
+        f"""
+        <div class="nm-card" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>Current Sport</span>
+          <span class="muted">{sport_label(sport)}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if st.button("🏟️  Change Sport", use_container_width=True, key="settings_change_sport"):
+        st.session_state["show_sport_dialog"] = True
+
+    section_title("About")
+    st.markdown(
+        '<div class="nm-card" style="display:flex;justify-content:space-between;"><span>Version</span><span class="muted">1.0.0</span></div>',
+        unsafe_allow_html=True,
+    )
+
+    if st.session_state["show_sport_dialog"]:
+        _sport_selection_dialog()
+
+
+def _render_detailed_stats():
+    if st.button("‹ Me", key="detailed_back"):
+        st.session_state["route"] = "main"
+        st.session_state["nav_radio"] = "👤 Me"
+        st.rerun()
+    st.markdown('<div style="text-align:center;font-size:18px;font-weight:650;margin:-36px 0 22px;">Detailed Statistics</div>', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="nm-card" style="text-align:center;padding:54px 20px;">
+          <div style="font-size:42px;margin-bottom:12px;">📊</div>
+          <div style="font-size:20px;font-weight:650;">Coming soon...</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+route = st.session_state["route"]
+
+if route == "settings":
+    _render_settings()
+elif route == "detailed_stats":
+    _render_detailed_stats()
+elif route == "analysis":
+    exec((ROOT / "src/streamlit_app/3_Dashboard.py").read_text(encoding="utf-8"))
+elif route == "coach":
+    exec((ROOT / "src/streamlit_app/4_AI_Analysis.py").read_text(encoding="utf-8"))
+elif page == "👤 Me":
+    _render_me()
 elif page == "📚 Library":
-    exec(open(ROOT / "src/streamlit_app/1_Library.py", encoding="utf-8").read())
-
+    exec((ROOT / "src/streamlit_app/1_Library.py").read_text(encoding="utf-8"))
 elif page == "⬆️ Upload":
-    exec(open(ROOT / "src/streamlit_app/2_Upload.py", encoding="utf-8").read())
-
-elif page == "📊 Dashboard":
-    exec(open(ROOT / "src/streamlit_app/3_Dashboard.py", encoding="utf-8").read())
-
-elif page == "🧠 AI Analysis":
-    exec(open(ROOT / "src/streamlit_app/4_AI_Analysis.py", encoding="utf-8").read())
-
-elif page == "📈 Patterns":
-    exec(open(ROOT / "src/streamlit_app/5_Patterns.py", encoding="utf-8").read())
-
-elif page == "📋 Training Plan":
-    exec(open(ROOT / "src/streamlit_app/6_Training_Plan.py", encoding="utf-8").read())
+    exec((ROOT / "src/streamlit_app/2_Upload.py").read_text(encoding="utf-8"))

@@ -1,208 +1,218 @@
 import streamlit as st
-import plotly.graph_objects as go
-from pathlib import Path
-import sys
 
-ROOT = Path(__file__).resolve().parent
-sys.path.append(str(ROOT))
-from src.design import (set_ios_design, page_header, section_title,
-                         skill_bar, performance_ring, kpi_grid, strengths_focus)
+from src.design import (
+    SPORTS,
+    kpi_grid,
+    page_header,
+    performance_ring,
+    section_title,
+    set_ios_design,
+    skill_bar,
+    strengths_focus,
+)
 from src.auth.session_manager import get_current_user
 from src.db.session import get_db_session
 from src.services.match_service import get_user_matches
 from src.services.video_storage import get_video_url
 
 set_ios_design()
-
 current_user = get_current_user()
+if current_user is None:
+    st.stop()
 
 with get_db_session() as db:
     all_matches = get_user_matches(db, current_user.id)
-    for m in all_matches:
-        db.expunge(m)
+    for item in all_matches:
+        db.expunge(item)
 
 ready_matches = [m for m in all_matches if m.status == "ready"]
+current_id = st.session_state.get("current_game_id")
+match = next((m for m in ready_matches if m.id == current_id), None)
 
-if not ready_matches:
-    page_header("Dashboard")
-    st.markdown("""
-    <div class="nm-card" style="text-align:center;padding:32px 20px;">
-      <div style="font-size:32px;margin-bottom:8px;">📊</div>
-      <div style="font-size:17px;font-weight:600;color:#1C1C1E;">No analyzed games yet</div>
-      <div style="font-size:14px;color:#8E8E93;margin-top:4px;">Analyze a match from the Library to see its dashboard here.</div>
-    </div>
-    """, unsafe_allow_html=True)
+if match is None:
+    sport = st.session_state.get("sport", "pickleball")
+    match = next((m for m in ready_matches if m.sport == sport), None)
+
+if match is None:
+    if st.button("‹ Library", key="analysis_empty_back"):
+        st.session_state["route"] = "main"
+        st.session_state["nav_radio"] = "📚 Library"
+        st.rerun()
+    page_header("Analysis")
+    st.info("No analyzed game is available for this sport yet.")
     st.stop()
 
-# ── Back to Library (façon push/pop de navigation iOS) ────────────────
-if st.button("← Library", key="dashboard_back_to_library"):
-    st.session_state["nav_target"] = "📚 Library"
+st.session_state["current_game_id"] = match.id
+sport_info = SPORTS.get(match.sport, SPORTS["pickleball"])
+
+if st.button("‹ Library", key="analysis_back"):
+    st.session_state["route"] = "main"
+    st.session_state["nav_radio"] = "📚 Library"
     st.rerun()
 
-# ── Game selector ───────────────────────────────────────────────────
-match_by_title = {m.title: m for m in ready_matches}
-titles = list(match_by_title.keys())
+st.markdown(f'<div style="text-align:center;font-size:18px;font-weight:650;margin:-36px 0 18px;">{match.title}</div>', unsafe_allow_html=True)
 
-current_id = st.session_state.get("current_game_id")
-default_index = 0
-for i, m in enumerate(ready_matches):
-    if m.id == current_id:
-        default_index = i
-        break
-
-selected_title = st.selectbox(
-    "Select Game", titles, index=default_index,
-    label_visibility="collapsed", key="dashboard_game_select"
-)
-match = match_by_title[selected_title]
-st.session_state["current_game_id"] = match.id
-
-_sport_icons = {"pickleball": "🏓", "tennis": "🎾", "padel": "🥎"}
-sport_icon = _sport_icons.get(match.sport, "🏓")
-date_str = match.match_date.strftime("%b %d, %Y") if match.match_date else ""
-page_header(selected_title, f"{sport_icon} {match.sport} · {date_str}")
-
-# ── Linked video preview (URL signée depuis Supabase Storage) ────────
+video_url = None
 if match.video_storage_path:
     try:
         video_url = get_video_url(match.video_storage_path)
-        st.video(video_url)
     except Exception:
-        st.markdown(
-            '<div class="nm-card" style="text-align:center;padding:16px;color:#8E8E93;font-size:13px;">'
-            '🎥 Video temporarily unavailable.</div>',
-            unsafe_allow_html=True
-        )
+        video_url = None
+
+seek_key = f"analysis_seek_{match.id}"
+st.session_state.setdefault(seek_key, 0)
+if video_url:
+    st.video(video_url, start_time=int(st.session_state[seek_key]))
 else:
     st.markdown(
-        '<div class="nm-card" style="text-align:center;padding:16px;color:#8E8E93;font-size:13px;">'
-        '🎥 No video linked to this match.</div>',
-        unsafe_allow_html=True
+        '<div class="nm-card" style="text-align:center;color:#8E8E93;">🎥 Video temporarily unavailable.</div>',
+        unsafe_allow_html=True,
     )
+
+if st.button("💬  Ask your AI Coach  ›", type="primary", use_container_width=True, key="ask_ai_coach"):
+    st.session_state["route"] = "coach"
+    st.rerun()
+st.caption("Get personalized tips based on this game")
 
 skills = match.skills or []
 highlights = match.highlights or []
-insights = match.insights or []
+rating = float(match.rating or 0)
 
-# ── Tabs matching iOS app ─────────────────────────────────────────────
+
+def _rating_description(value: float) -> str:
+    if value >= 4.5:
+        return "Excellent Performance"
+    if value >= 3.5:
+        return "Strong Performance"
+    if value >= 2.5:
+        return "Good Performance"
+    return "Room for Improvement"
+
+
+def _time_to_seconds(value) -> int:
+    if isinstance(value, (int, float)):
+        return int(value)
+    text = str(value or "0:00").strip()
+    try:
+        parts = [int(float(part)) for part in text.split(":")]
+        if len(parts) == 3:
+            return parts[0] * 3600 + parts[1] * 60 + parts[2]
+        if len(parts) == 2:
+            return parts[0] * 60 + parts[1]
+        return int(float(text))
+    except (TypeError, ValueError):
+        return 0
+
+
 tab_overview, tab_skills, tab_highlights, tab_stats = st.tabs(
     ["Overview", "Skills", "Highlights", "Stats"]
 )
 
-# ────────────────────────────────────────────────────────────────────
-# TAB 1 — OVERVIEW
-# ────────────────────────────────────────────────────────────────────
 with tab_overview:
-    performance_ring(float(match.rating), 5.0, "Overall Performance")
-
-    label = "Strong Performance" if match.rating >= 4.0 else ("Good Performance" if match.rating >= 3.0 else "Keep Working")
-    st.markdown(f"""
-    <div style="text-align:center;margin:-8px 0 16px;">
-      <span style="background:#EBF5FF;color:#007AFF;font-size:14px;font-weight:600;
-                   padding:6px 16px;border-radius:20px;">👍 {label}</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    section_title("Key Insights")
-    insights_html = "".join(
-        f"""
-      <div class="insight-item">
-        <div class="insight-dot" style="background:{i['color']};"></div>
-        {i['text']}
-      </div>""" for i in insights
+    performance_ring(rating, 5.0, "Overall Performance")
+    st.markdown(
+        f'<div style="text-align:center;font-size:16px;font-weight:650;margin:-2px 0 18px;">{_rating_description(rating)}</div>',
+        unsafe_allow_html=True,
     )
-    st.markdown(f'<div class="nm-card">{insights_html}</div>', unsafe_allow_html=True)
 
-    kpi_grid([
-        ("🔄", match.rallies, "Rallies", "#1C1C1E"),
-        ("🏆", match.winners, "Winners", "#34C759"),
-        ("❌", match.errors, "Errors", "#FF3B30"),
-        ("🏃", f"{match.coverage}%", "Coverage", "#007AFF"),
-    ])
+    section_title("💡 Key Insights")
+    st.markdown(
+        """
+        <div class="nm-card">
+          <div style="display:flex;gap:11px;margin:8px 0;"><span style="color:#34C759;">↑</span><span>Strong serve performance</span></div>
+          <div style="display:flex;gap:11px;margin:8px 0;"><span style="color:#FF9500;">◎</span><span>Focus on third shot consistency</span></div>
+          <div style="display:flex;gap:11px;margin:8px 0;"><span style="color:#007AFF;">◉</span><span>Excellent court coverage</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-# ────────────────────────────────────────────────────────────────────
-# TAB 2 — SKILLS
-# ────────────────────────────────────────────────────────────────────
+    kpi_grid(
+        [
+            ("↔", match.rallies or 0, "Rallies", "#007AFF"),
+            ("✓", match.winners or 0, "Winners", "#34C759"),
+            ("✕", match.errors or 0, "Errors", "#FF3B30"),
+            ("🚶", f"{match.coverage or 0}%", "Coverage", "#FF9500"),
+        ]
+    )
+
 with tab_skills:
     section_title("Skill Breakdown")
-    st.markdown('<p class="page-subtitle">Detailed performance by category</p>', unsafe_allow_html=True)
+    st.caption("Detailed performance by category")
 
-    st.markdown('<div class="nm-card">', unsafe_allow_html=True)
-    for s in skills:
-        skill_bar(s["label"], s["icon"], s["score"], 5.0, s["color"])
-    st.markdown('</div>', unsafe_allow_html=True)
+    if not skills:
+        st.info("No skill breakdown is available for this game.")
+    else:
+        st.markdown('<div class="nm-card">', unsafe_allow_html=True)
+        for skill in skills:
+            skill_bar(
+                skill.get("label", "Skill"),
+                skill.get("icon", "•"),
+                skill.get("score", 0),
+                5.0,
+                skill.get("color", "green"),
+            )
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    sorted_skills = sorted(skills, key=lambda s: s["score"], reverse=True)
-    if len(sorted_skills) >= 4:
-        strengths_focus(
-            strengths=[(s["label"], s["score"]) for s in sorted_skills[:2]],
-            focus_areas=[(s["label"], s["score"]) for s in sorted_skills[-2:]]
-        )
+        ordered = sorted(skills, key=lambda item: float(item.get("score", 0)), reverse=True)
+        if len(ordered) >= 4:
+            strengths_focus(
+                [(s.get("label", "Skill"), float(s.get("score", 0))) for s in ordered[:2]],
+                [(s.get("label", "Skill"), float(s.get("score", 0))) for s in ordered[-2:]],
+            )
 
-# ────────────────────────────────────────────────────────────────────
-# TAB 3 — HIGHLIGHTS
-# ────────────────────────────────────────────────────────────────────
 with tab_highlights:
     section_title("Game Highlights")
-    st.markdown('<p class="page-subtitle">Key moments identified</p>', unsafe_allow_html=True)
+    st.caption(f"{len(highlights)} key moments identified")
 
-    st.markdown('<div class="nm-card">', unsafe_allow_html=True)
-    for h in highlights:
-        st.markdown(f"""
-        <div class="highlight-row">
-          <div>
-            <div class="highlight-title">{h['title']}</div>
-            <div class="highlight-time">{h['time']}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span class="highlight-tag {h['tag_class']}">{h['tag']}</span>
-            <span style="color:#007AFF;font-size:20px;">▶</span>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ────────────────────────────────────────────────────────────────────
-# TAB 4 — STATS
-# ────────────────────────────────────────────────────────────────────
-with tab_stats:
-    section_title("Match Statistics")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Total Rallies", match.rallies)
-        st.metric("Winners", match.winners)
-        st.metric("Unforced Errors", match.errors)
-    with col2:
-        st.metric("Court Coverage", f"{match.coverage}%")
-        st.metric("Overall Rating", match.rating)
-        st.metric("Match Duration", match.duration or "N/A")
-
-    if skills:
-        section_title("Performance Radar")
-        categories = [s["label"] for s in skills]
-        scores = [s["score"] for s in skills]
-
-        fig = go.Figure()
-        fig.add_trace(go.Scatterpolar(
-            r=scores + [scores[0]],
-            theta=categories + [categories[0]],
-            fill="toself",
-            name="Performance",
-            line_color="#007AFF",
-            fillcolor="rgba(0,122,255,0.15)"
-        ))
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(visible=True, range=[0, 5], color="#8E8E93", gridcolor="#E5E5EA"),
-                angularaxis=dict(color="#3C3C43"),
-                bgcolor="rgba(0,0,0,0)"
-            ),
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            showlegend=False,
-            margin=dict(l=30, r=30, t=20, b=20),
-            height=320,
-            font=dict(family="DM Sans", color="#1C1C1E")
+    if not highlights:
+        st.markdown(
+            '<div class="nm-card" style="text-align:center;color:#8E8E93;padding:28px;">No highlights detected for this game.</div>',
+            unsafe_allow_html=True,
         )
-        st.plotly_chart(fig, use_container_width=True)
+    else:
+        for idx, highlight in enumerate(highlights):
+            left, right = st.columns([5, 1])
+            with left:
+                title = highlight.get("title", "Highlight")
+                time_value = highlight.get("time", "0:00")
+                tag = highlight.get("tag", "Moment")
+                st.markdown(
+                    f"""
+                    <div class="nm-card" style="margin-bottom:4px;">
+                      <div style="font-size:15px;font-weight:600;">{title}</div>
+                      <div style="font-size:12px;color:#8E8E93;margin-top:3px;">{time_value} · {tag}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            with right:
+                if st.button("▶", key=f"seek_{match.id}_{idx}", use_container_width=True):
+                    st.session_state[seek_key] = _time_to_seconds(highlight.get("time"))
+                    st.rerun()
+
+with tab_stats:
+    section_title("Detailed Statistics")
+    st.caption("Complete game breakdown")
+
+    rows = [
+        ("↔", "Total Rallies", str(match.rallies or 0)),
+        ("▥", "Longest Rally", "—"),
+        ("✓", "Winners", str(match.winners or 0)),
+        ("✕", "Unforced Errors", str(match.errors or 0)),
+        ("⚡", "Attacks Attempted", "—"),
+        ("◎", "Attacks Successful", "—"),
+        ("%", "Attack Success Rate", "—"),
+        ("🚶", "Court Coverage", f"{match.coverage or 0}%"),
+    ]
+    rows_html = ""
+    for idx, (icon, label, value) in enumerate(rows):
+        border = "border-bottom:1px solid #E5E5EA;" if idx < len(rows) - 1 else ""
+        rows_html += (
+            f'<div style="display:flex;align-items:center;gap:12px;padding:13px 0;{border}">'
+            f'<span style="width:22px;color:#007AFF;">{icon}</span>'
+            f'<span style="font-size:14px;">{label}</span>'
+            f'<span style="margin-left:auto;font-weight:600;">{value}</span>'
+            '</div>'
+        )
+    st.markdown(f'<div class="nm-card">{rows_html}</div>', unsafe_allow_html=True)
