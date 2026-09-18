@@ -88,21 +88,29 @@ with upload_col:
 with guidance_col:
     section_title("How to Record")
     steps = [
-        "Position your camera to capture the full court",
-        "Mount camera 4+ feet high for best results",
-        "Tap Record Video on supported devices, or import a file",
+    "Position your camera to capture the full court",
+    "Mount camera 4+ feet high for best results",
+    "Tap Record Video on supported devices, or import a file",
     ]
+
     steps_html = "".join(
-        f"""
-        <div style="display:flex;align-items:flex-start;gap:10px;">
-          <div style="width:24px;height:24px;background:#34C759;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700;flex:0 0 24px;">{idx}</div>
-          <div style="font-size:13px;line-height:1.45;padding-top:2px;">{text}</div>
-        </div>
-        """
+        (
+            '<div style="display:flex;align-items:flex-start;gap:10px;">'
+            f'<div style="width:24px;height:24px;background:#34C759;border-radius:50%;'
+            f'display:flex;align-items:center;justify-content:center;color:white;'
+            f'font-size:12px;font-weight:700;flex:0 0 24px;">{idx}</div>'
+            f'<div style="font-size:13px;line-height:1.45;padding-top:2px;">{text}</div>'
+            '</div>'
+        )
         for idx, text in enumerate(steps, 1)
     )
+
     st.markdown(
-        f'<div class="nm-card"><div style="display:flex;flex-direction:column;gap:13px;">{steps_html}</div></div>',
+        '<div class="nm-card">'
+        '<div style="display:flex;flex-direction:column;gap:13px;">'
+        f'{steps_html}'
+        '</div>'
+        '</div>',
         unsafe_allow_html=True,
     )
 
