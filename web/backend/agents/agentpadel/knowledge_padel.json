@@ -1,0 +1,402 @@
+[
+  {
+    "id": "padel_tech_001",
+    "pilier": "Technique",
+    "titre": "Sortie de mur en shadow",
+    "probleme_associe": "Sortie de vitre manquée, mauvaise anticipation du rebond après la vitre.",
+    "description": "Répétition du geste de sortie de mur sans balle (shadow), en variant la hauteur et la vitesse simulées du rebond, avant de rejouer la balle vers le fond de court.",
+    "pro_tip": "Fernando Belasteguín est une référence historique pour la lecture des sorties de vitre."
+  },
+  {
+    "id": "padel_tech_002",
+    "pilier": "Technique",
+    "titre": "Contrôle de la bandeja défensive",
+    "probleme_associe": "Difficulté à replacer une bandeja après un lob adverse, perte de point sur le coup suivant.",
+    "description": "Travail de bandeja avec consigne de puissance réduite et priorité donnée au replacement du couple plutôt qu'à l'agressivité du coup.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tech_003",
+    "pilier": "Technique",
+    "titre": "Smash avec contrôle de puissance",
+    "probleme_associe": "Smash trop puissant sortant du court, manque de contrôle sur les coups offensifs.",
+    "description": "Travail du smash à puissance progressive (50%, 75%, 100%) en ciblant des zones précises plutôt que la puissance maximale systématique.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tech_004",
+    "pilier": "Technique",
+    "titre": "Volée basse avec grip fermé",
+    "probleme_associe": "Volées basses trop hautes ou molles, remises facilement exploitables par l'adversaire.",
+    "description": "Répétition de volées basses avec un grip légèrement fermé, en insistant sur le contact devant le corps et la fermeture du tamis.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tech_005",
+    "pilier": "Technique",
+    "titre": "Coup droit liftée en fond de court",
+    "probleme_associe": "Manque d'effet sur les coups de fond de court, balles trop plates facilement attaquées.",
+    "description": "Série de coups droits avec accentuation du geste liftant, pour donner de la profondeur et limiter les angles d'attaque adverses.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tech_006",
+    "pilier": "Technique",
+    "titre": "Revers slicé défensif",
+    "probleme_associe": "Revers trop court en situation défensive, offrant une balle facile au filet adverse.",
+    "description": "Travail du revers slicé avec trajectoire basse et longue, pour repousser l'échange plutôt que de céder une balle courte.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tech_007",
+    "pilier": "Technique",
+    "titre": "Víbora offensive au filet",
+    "probleme_associe": "Manque de variation dans les coups offensifs au filet, jeu trop prévisible.",
+    "description": "Répétition de la víbora avec trajectoire coupée latérale, pour surprendre l'adversaire par un rebond différent du smash classique.",
+    "pro_tip": "Alejandro Galán est reconnu pour la qualité de sa víbora offensive au filet."
+  },
+  {
+    "id": "padel_tech_008",
+    "pilier": "Technique",
+    "titre": "Contrôle de la balle après double vitre",
+    "probleme_associe": "Perte de contrôle sur les balles ayant touché les deux vitres (côté et fond), trajectoire imprévisible.",
+    "description": "Exercice de lecture et de contrôle sur balles à double rebond en vitre, pour habituer le joueur à ces trajectoires atypiques.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tech_009",
+    "pilier": "Technique",
+    "titre": "Service kické vers le revers",
+    "probleme_associe": "Service trop prévisible qui ne met pas l'adversaire en difficulté sur la remise.",
+    "description": "Travail du service avec effet kické orienté systématiquement vers le revers adverse, pour limiter la qualité de remise.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tech_010",
+    "pilier": "Technique",
+    "titre": "Amortie (globo court) précise",
+    "probleme_associe": "Amorties trop longues facilement smashées par l'adversaire resté au filet.",
+    "description": "Série d'amorties courtes ciblées juste derrière le filet, avec variation de la puissance de préparation pour affiner le dosage.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tech_011",
+    "pilier": "Technique",
+    "titre": "Reprise de volée en pivot",
+    "probleme_associe": "Volée manquée lors d'un déplacement latéral rapide vers le centre du court.",
+    "description": "Exercice de déplacement latéral suivi d'une reprise de volée en pivot, pour stabiliser l'appui avant le contact.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tech_012",
+    "pilier": "Technique",
+    "titre": "Chiquita croisée au filet",
+    "probleme_associe": "Manque de précision sur les balles basses jouées au filet, remise trop molle.",
+    "description": "Répétition de la chiquita (coup court et croisé) sur balles basses au filet, pour prendre l'ascendant dans l'échange rapproché.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tech_013",
+    "pilier": "Technique",
+    "titre": "Bajada (smash défensif) contrôlée",
+    "probleme_associe": "Smash défensif joué trop fort et sorti du court après un lob difficile à négocier.",
+    "description": "Travail de la bajada avec priorité donnée à la remise en jeu plutôt qu'à la puissance, sur des lobs de hauteur variable.",
+    "pro_tip": "Paquito Navarro est réputé pour le contrôle de sa bajada sur les lobs délicats."
+  },
+  {
+    "id": "padel_tact_001",
+    "pilier": "Tactique",
+    "titre": "Timing de montée au filet",
+    "probleme_associe": "Faute directe au filet, montée trop précoce alors que l'adversaire enchaîne les lobs.",
+    "description": "Exercice de montée conditionnée : le joueur ne monte au filet qu'après un signal visuel confirmant que l'adversaire est en position de coup défensif, jamais avant.",
+    "pro_tip": "Juan Lebrón est reconnu pour son timing de montée, toujours calé sur la posture de l'adversaire."
+  },
+  {
+    "id": "padel_tact_002",
+    "pilier": "Tactique",
+    "titre": "Communication systématique avant chaque point",
+    "probleme_associe": "Manque de communication avec le partenaire, positionnement désorganisé sur les balles litigieuses.",
+    "description": "Exercice imposant un échange verbal court (qui prend la balle, qui couvre) avant chaque point d'une série, pour automatiser la communication en match.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_003",
+    "pilier": "Tactique",
+    "titre": "Choix entre lob et smash selon la position adverse",
+    "probleme_associe": "Décision automatique de smasher même quand un lob serait plus efficace face à un adversaire déjà reculé.",
+    "description": "Situations où la position exacte de l'adversaire dicte le choix entre lob et smash, avec feedback immédiat sur la pertinence de la décision.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_004",
+    "pilier": "Tactique",
+    "titre": "Couverture croisée en défense de fond de court",
+    "probleme_associe": "Espace laissé libre au centre lors d'un déplacement latéral d'un des deux joueurs.",
+    "description": "Travail de couverture croisée où le partenaire glisse vers le centre dès que l'un des deux joueurs est excentré en défense.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_005",
+    "pilier": "Tactique",
+    "titre": "Repli coordonné après un smash manqué",
+    "probleme_associe": "Désorganisation du couple après un smash manqué, position vulnérable sur le point suivant.",
+    "description": "Simulation de smashs manqués avec consigne de repli synchronisé du couple vers le fond de court immédiatement après l'erreur.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_006",
+    "pilier": "Tactique",
+    "titre": "Changement de rythme pour casser l'échange",
+    "probleme_associe": "Échanges trop monotones qui laissent l'adversaire s'installer dans son rythme.",
+    "description": "Exercice d'alternance volontaire entre balles lentes (amorties) et balles rapides pour perturber le rythme de lecture adverse.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_007",
+    "pilier": "Tactique",
+    "titre": "Ciblage du joueur le plus faible du couple adverse",
+    "probleme_associe": "Répartition équilibrée du jeu qui ne cherche pas à exploiter la faiblesse identifiée d'un adversaire.",
+    "description": "Séquences de jeu avec consigne explicite de diriger 70% des balles vers le joueur adverse identifié comme le plus vulnérable.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_008",
+    "pilier": "Tactique",
+    "titre": "Alternance zone centrale / zone latérale",
+    "probleme_associe": "Jeu trop prévisible concentré uniquement sur les lignes latérales, facilement anticipé.",
+    "description": "Travail d'alternance délibérée entre balles jouées au centre (créant l'hésitation sur qui doit prendre la balle) et balles jouées en zone latérale.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_009",
+    "pilier": "Tactique",
+    "titre": "Anticipation de la contre-attaque adverse",
+    "probleme_associe": "Surprise systématique face aux contre-attaques rapides après une balle défensive adverse.",
+    "description": "Exercice de lecture du replacement adverse après une balle défensive, pour anticiper la zone probable de la contre-attaque suivante.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_010",
+    "pilier": "Tactique",
+    "titre": "Placement en formation I après le service",
+    "probleme_associe": "Positionnement désorganisé du couple juste après le service, espace ouvert au centre.",
+    "description": "Travail du placement en formation I (les deux joueurs alignés) immédiatement après le service, pour couvrir efficacement les retours centraux.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_011",
+    "pilier": "Tactique",
+    "titre": "Gestion des balles au corps de l'adversaire",
+    "probleme_associe": "Difficulté à négocier les balles jouées directement au corps par l'adversaire au filet.",
+    "description": "Répétition de balles jouées volontairement au corps, pour développer le réflexe de dégagement rapide de la raquette.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_012",
+    "pilier": "Tactique",
+    "titre": "Repositionnement après une víbora offensive",
+    "probleme_associe": "Absence d'anticipation du point suivant après avoir joué une víbora offensive.",
+    "description": "Exercice où le joueur doit immédiatement anticiper la zone de réponse probable après avoir exécuté une víbora, pour couvrir la suite de l'échange.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_tact_013",
+    "pilier": "Tactique",
+    "titre": "Lecture du signal de préparation adverse pour le lob",
+    "probleme_associe": "Lobs adverses subis faute d'anticipation des signes de préparation du coup.",
+    "description": "Travail de lecture visuelle de la préparation de raquette adverse pour anticiper un lob avant même son exécution et ajuster son placement.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_001",
+    "pilier": "Physique",
+    "titre": "Déplacements latéraux répétés",
+    "probleme_associe": "Baisse d'intensité dans les déplacements en fin de match.",
+    "description": "Séries de déplacements latéraux d'un côté à l'autre du court avec contrainte de temps décroissante, pour maintenir la vivacité en fin de session.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_002",
+    "pilier": "Physique",
+    "titre": "Explosivité pour la couverture des vitres arrière",
+    "probleme_associe": "Retard systématique pour rejoindre les balles envoyées en profondeur vers les vitres du fond.",
+    "description": "Travail d'explosivité sur courses courtes vers le fond de court, à partir d'une position de préparation centrale.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_003",
+    "pilier": "Physique",
+    "titre": "Gainage pour la stabilité en smash",
+    "probleme_associe": "Perte d'équilibre lors des smashs en extension, réduisant la précision du geste.",
+    "description": "Exercices de gainage dynamique reproduisant la posture du smash en extension, pour renforcer la stabilité du tronc.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_004",
+    "pilier": "Physique",
+    "titre": "Réactivité de pieds au filet",
+    "probleme_associe": "Temps de réaction trop long sur les volées rapprochées au filet.",
+    "description": "Exercices de petits pas rapides et changements de direction sur signal, en position rapprochée du filet.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_005",
+    "pilier": "Physique",
+    "titre": "Endurance sur échanges longs",
+    "probleme_associe": "Baisse de qualité technique sur les échanges dépassant 15 à 20 frappes.",
+    "description": "Séquences d'échanges prolongés imposés, pour habituer le corps à maintenir la précision technique sur la durée.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_006",
+    "pilier": "Physique",
+    "titre": "Souplesse d'épaule pour le service",
+    "probleme_associe": "Amplitude de service limitée, réduisant la puissance et la variété des effets possibles.",
+    "description": "Routine de mobilité d'épaule ciblée avant et après chaque séance, pour améliorer l'amplitude du geste de service.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_007",
+    "pilier": "Physique",
+    "titre": "Puissance de rotation du tronc",
+    "probleme_associe": "Manque de puissance sur les coups liftés en fond de court, geste trop porté par le bras seul.",
+    "description": "Exercices de rotation du tronc avec charge légère, pour développer la transmission de force du bassin vers le bras armé.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_008",
+    "pilier": "Physique",
+    "titre": "Récupération rapide entre les points",
+    "probleme_associe": "Fréquence cardiaque qui reste élevée entre les points, affectant la lucidité tactique.",
+    "description": "Travail de respiration contrôlée et de récupération active dans le temps mort réglementaire entre chaque point.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_009",
+    "pilier": "Physique",
+    "titre": "Vitesse de premier pas vers la vitre",
+    "probleme_associe": "Retard sur le premier pas lors d'une balle envoyée directement vers la vitre du fond.",
+    "description": "Exercices de départ explosif vers l'arrière du court sur signal aléatoire, pour améliorer le temps de réaction du premier appui.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_010",
+    "pilier": "Physique",
+    "titre": "Renforcement du poignet pour les volées",
+    "probleme_associe": "Manque de fermeté sur les volées rapides, tamis instable au contact.",
+    "description": "Exercices de renforcement du poignet avec élastique, pour stabiliser le tamis lors des volées à haute vitesse.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_011",
+    "pilier": "Physique",
+    "titre": "Mobilité de hanche pour les déplacements en crabe",
+    "probleme_associe": "Déplacements latéraux rigides limitant la vitesse de couverture du fond de court.",
+    "description": "Exercices de mobilité de hanche spécifiques au déplacement latéral en crabe, propre au jeu de fond de court en padel.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_phys_012",
+    "pilier": "Physique",
+    "titre": "Résistance musculaire pour les matchs longs",
+    "probleme_associe": "Dégradation de la qualité de frappe sur les matchs dépassant 1h30.",
+    "description": "Séance combinant volume d'échanges élevé et fatigue musculaire progressive, pour habituer le corps aux matchs de longue durée.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_001",
+    "pilier": "Mental",
+    "titre": "Communication constructive après une erreur du partenaire",
+    "probleme_associe": "Tension dans le couple après une série d'erreurs, communication qui devient négative.",
+    "description": "Simulation d'erreurs répétées d'un partenaire avec consigne stricte de réponse verbale uniquement constructive et orientée solution.",
+    "pro_tip": "Gemma Triay est reconnue pour la qualité de sa communication positive avec sa partenaire en match."
+  },
+  {
+    "id": "padel_ment_002",
+    "pilier": "Mental",
+    "titre": "Gestion du stress en fin de set serré",
+    "probleme_associe": "Précipitation technique dans les points décisifs en fin de set.",
+    "description": "Simulation de situations de fin de set à enjeu (6-5, break point) avec routine respiratoire fixe avant chaque point.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_003",
+    "pilier": "Mental",
+    "titre": "Concentration sur échanges longs et répétitifs",
+    "probleme_associe": "Relâchement d'attention sur les échanges de fond de court prolongés, menant à une erreur évitable.",
+    "description": "Exercice d'échanges longs imposés avec objectif de maintien d'un point de focus fixe (la trajectoire de balle) tout au long de l'échange.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_004",
+    "pilier": "Mental",
+    "titre": "Confiance après une série de fautes directes",
+    "probleme_associe": "Perte de confiance visible et jeu trop prudent après plusieurs fautes directes consécutives.",
+    "description": "Situations où plusieurs fautes sont provoquées volontairement, avec obligation de retenter le même coup avec la même intention offensive.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_005",
+    "pilier": "Mental",
+    "titre": "Gestion de la pression au service décisif",
+    "probleme_associe": "Baisse de pourcentage de premier service dans les jeux décisifs.",
+    "description": "Répétition de services en situation de pression simulée (jeu décisif annoncé), avec routine fixe avant chaque mise en jeu.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_006",
+    "pilier": "Mental",
+    "titre": "Cohésion et synchronisation avec le partenaire",
+    "probleme_associe": "Décalage de placement et de décision entre les deux joueurs du couple.",
+    "description": "Exercices de déplacement synchronisé où les deux joueurs doivent se déplacer comme un bloc uni, avec feedback immédiat en cas de désynchronisation.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_007",
+    "pilier": "Mental",
+    "titre": "Acceptation de l'erreur sans perte de rythme",
+    "probleme_associe": "Rumination excessive après une erreur, affectant la qualité du point suivant.",
+    "description": "Protocole de reset mental court (respiration, focus visuel) systématiquement appliqué après chaque erreur simulée pendant l'exercice.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_008",
+    "pilier": "Mental",
+    "titre": "Focus tactique plutôt qu'émotionnel après un point perdu",
+    "probleme_associe": "Réaction émotionnelle excessive après un point perdu, au détriment de l'analyse tactique du point suivant.",
+    "description": "Exercice où chaque point perdu doit être immédiatement suivi d'une verbalisation tactique brève plutôt que d'une réaction émotionnelle.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_009",
+    "pilier": "Mental",
+    "titre": "Gestion de l'impatience en position défensive prolongée",
+    "probleme_associe": "Tentative de sortie défensive précipitée et risquée après plusieurs balles subies au fond de court.",
+    "description": "Séquences défensives prolongées imposées, avec consigne de patience et de recherche de la première occasion réellement favorable.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_010",
+    "pilier": "Mental",
+    "titre": "Routine mentale avant chaque service",
+    "probleme_associe": "Variabilité de concentration d'un service à l'autre, affectant la régularité du pourcentage de réussite.",
+    "description": "Mise en place d'une routine fixe (respiration, visualisation de la cible) répétée systématiquement avant chaque service.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_011",
+    "pilier": "Mental",
+    "titre": "Maintien de l'intensité en fin de match",
+    "probleme_associe": "Relâchement mental perceptible dans le troisième set après un match physiquement engagé.",
+    "description": "Simulation de fin de match avec fatigue préalable induite, en insistant sur le maintien du niveau d'engagement mental jusqu'au dernier point.",
+    "pro_tip": null
+  },
+  {
+    "id": "padel_ment_012",
+    "pilier": "Mental",
+    "titre": "Gestion des conflits de zone avec le partenaire",
+    "probleme_associe": "Hésitation ou collision sur les balles au centre du court faute de règle claire établie avec le partenaire.",
+    "description": "Travail de clarification verbale systématique des règles de zone (qui prend le centre selon le côté dominant) avant chaque séquence de jeu.",
+    "pro_tip": null
+  }
+]

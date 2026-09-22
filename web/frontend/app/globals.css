@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+:root {
+  /* Fond général de l'app (gris très clair iOS) */
+  --background: #F2F2F7;
+  --foreground: #1C1C1E;
+
+  /* Palette de couleurs système iOS, reprise de design.py */
+  --color-nm-green: #34C759;
+  --color-nm-green-dark: #2DB54E;
+  --color-nm-green-light: #EAFBF0;
+  --color-nm-blue: #007AFF;
+  --color-nm-orange: #FF9500;
+  --color-nm-red: #FF3B30;
+  --color-nm-purple: #5500B3;
+
+  /* Textes */
+  --color-nm-text: #1C1C1E;
+  --color-nm-text-secondary: #8E8E93;
+  --color-nm-text-tertiary: #3C3C43;
+
+  /* Fonds de carte / séparateurs */
+  --color-nm-card: #FFFFFF;
+  --color-nm-card-green: #F0FBF4;
+  --color-nm-card-green-border: #D1F0DC;
+  --color-nm-card-orange: #FFF8F0;
+  --color-nm-card-orange-border: #FFE4CC;
+  --color-nm-border: #E5E5EA;
+  --color-nm-bg: #F2F2F7;
+
+  /* Badges de statut */
+  --color-nm-status-ready-bg: #D1F0DC;
+  --color-nm-status-ready-text: #1A7F3C;
+  --color-nm-status-pending-bg: #FFE4CC;
+  --color-nm-status-pending-text: #B35500;
+
+  /* Tags de highlights */
+  --color-nm-tag-winner-bg: #D1F0DC;
+  --color-nm-tag-winner-text: #1A7F3C;
+  --color-nm-tag-rally-bg: #D6E9FF;
+  --color-nm-tag-rally-text: #0055B3;
+  --color-nm-tag-attack-bg: #FFE4CC;
+  --color-nm-tag-attack-text: #B35500;
+  --color-nm-tag-defense-bg: #E8E0FF;
+  --color-nm-tag-defense-text: #5500B3;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-dm-sans), -apple-system, sans-serif;
+
+  /* Expose les couleurs NextMove comme classes Tailwind (bg-nm-green, text-nm-text, etc.) */
+  --color-nm-green: var(--color-nm-green);
+  --color-nm-green-dark: var(--color-nm-green-dark);
+  --color-nm-green-light: var(--color-nm-green-light);
+  --color-nm-blue: var(--color-nm-blue);
+  --color-nm-orange: var(--color-nm-orange);
+  --color-nm-red: var(--color-nm-red);
+  --color-nm-purple: var(--color-nm-purple);
+  --color-nm-text: var(--color-nm-text);
+  --color-nm-text-secondary: var(--color-nm-text-secondary);
+  --color-nm-text-tertiary: var(--color-nm-text-tertiary);
+  --color-nm-card: var(--color-nm-card);
+  --color-nm-card-green: var(--color-nm-card-green);
+  --color-nm-card-green-border: var(--color-nm-card-green-border);
+  --color-nm-card-orange: var(--color-nm-card-orange);
+  --color-nm-card-orange-border: var(--color-nm-card-orange-border);
+  --color-nm-border: var(--color-nm-border);
+  --color-nm-bg: var(--color-nm-bg);
+  --color-nm-status-ready-bg: var(--color-nm-status-ready-bg);
+  --color-nm-status-ready-text: var(--color-nm-status-ready-text);
+  --color-nm-status-pending-bg: var(--color-nm-status-pending-bg);
+  --color-nm-status-pending-text: var(--color-nm-status-pending-text);
+  --color-nm-tag-winner-bg: var(--color-nm-tag-winner-bg);
+  --color-nm-tag-winner-text: var(--color-nm-tag-winner-text);
+  --color-nm-tag-rally-bg: var(--color-nm-tag-rally-bg);
+  --color-nm-tag-rally-text: var(--color-nm-tag-rally-text);
+  --color-nm-tag-attack-bg: var(--color-nm-tag-attack-bg);
+  --color-nm-tag-attack-text: var(--color-nm-tag-attack-text);
+  --color-nm-tag-defense-bg: var(--color-nm-tag-defense-bg);
+  --color-nm-tag-defense-text: var(--color-nm-tag-defense-text);
+
+  /* Rayons de bordure iOS (cartes, boutons, tab bar) */
+  --radius-nm-card: 16px;
+  --radius-nm-button: 14px;
+  --radius-nm-pill: 20px;
+  --radius-nm-nav: 22px;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

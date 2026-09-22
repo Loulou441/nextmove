@@ -10,3 +10,24 @@ data/videos/
 nextmove_demo.db
 .env.api.local
 .venv_api/
+
+# Environnement Python web
+web/backend/venv/
+web/backend/.venv/
+__pycache__/
+*.pyc
+
+# Configuration locale web
+web/backend/.env
+web/backend/.env.*
+!web/backend/.env.example
+web/backend/*payload*.json
+
+# Next.js
+web/frontend/node_modules/
+web/frontend/.next/
+web/frontend/.env*
+!web/frontend/.env.example
+
+# macOS
+.DS_Store
