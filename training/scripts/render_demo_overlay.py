@@ -8,7 +8,7 @@ segment, tracks players across frames to assign stable IDs (player 1, player 2,
 
 Usage:
     python render_demo_overlay.py \
-        --model ../../nextmove/Models/Padel/PadelDetector_v1.mlpackage \
+        --model ../../ios/nextmove/Models/Padel/PadelDetector_v1.mlpackage \
         --video "/path/to/input.mp4" \
         --out ../../docs/media/demo_padel.mp4 \
         --start 60 --duration 15 --conf 0.35

@@ -75,6 +75,6 @@ curl localhost:8000/matches -H "Authorization: Bearer <TOKEN>"
 
 ## Côté iOS
 
-Le client Swift `NextMoveAPI` (`nextmove/Services/NextMoveAPI.swift`) appelle
+Le client Swift `NextMoveAPI` (`ios/nextmove/Services/NextMoveAPI.swift`) appelle
 ces endpoints. La connexion iOS est **réelle** : elle passe par `/auth/login`,
 stocke le token et l'envoie en Bearer sur les requêtes suivantes.
