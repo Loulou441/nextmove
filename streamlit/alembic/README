@@ -1,1 +1,51 @@
-Generic single-database configuration.
+# Migrations de la base NextMove
+
+Ce dossier contient les migrations Alembic. `streamlit/alembic.ini` configure
+leur exécution et `env.py` utilise les modèles de `streamlit/src/db/models.py`
+comme référence pour l’autogénération. Les modèles du backend sont distincts :
+vérifier leur cohérence avant de créer une nouvelle migration.
+
+## Base de l’API commune
+
+Depuis la racine du dépôt, avec l’environnement Python du backend activé,
+suivre la commande de migration du [README backend](../../backend/README.md).
+Elle charge la configuration avec la priorité suivante : environnement du
+processus, `backend/.env`, puis `.env` racine, et lance Alembic dans `streamlit/`.
+
+## Base Streamlit distincte
+
+Depuis la racine, avec un environnement contenant les dépendances
+`streamlit/requirements.txt`, utiliser explicitement le `.env` racine :
+
+```bash
+python - <<'PY'
+from pathlib import Path
+import subprocess
+import sys
+from dotenv import load_dotenv
+
+root = Path.cwd()
+load_dotenv(root / ".env", override=False)
+subprocess.run(
+    [sys.executable, "-m", "alembic", "upgrade", "head"],
+    cwd=root / "streamlit",
+    check=True,
+)
+PY
+```
+
+Une variable `DATABASE_URL` déjà présente dans l’environnement reste prioritaire.
+`env.py` charge aussi `streamlit/.env` s’il existe, sans remplacer les variables
+déjà définies. Éviter les configurations locales contradictoires et vérifier la
+base ciblée avant l’exécution.
+
+## Maintenance
+
+Dans les commandes ci-dessus, remplacer `upgrade head` par `current` pour
+consulter la révision appliquée, ou par `history` pour consulter l’historique.
+Si Streamlit et l’API utilisent la même base, appliquer les migrations une seule
+fois à cette base. S’ils utilisent des bases distinctes, vérifier séparément
+leur configuration et leur état.
+
+`python -m backend.api.init_db` est réservé à une base de test vide : cette
+commande ne remplace pas les migrations d’un schéma existant.
