@@ -26,9 +26,9 @@ fonctionnelle restent distinctes.
 | Dossier | Contenu |
 |---|---|
 | `ios/` | Application Swift, projet Xcode et tests |
-| `streamlit/` | Application Streamlit, services Python, API et migrations |
+| `streamlit/` | Application Streamlit, services Python et migrations |
 | `web/frontend/` | Interface React / Next.js |
-| `web/backend/` | API FastAPI et services de la solution web |
+| `backend/` | API FastAPI commune à React et iOS, services et agents |
 | `training/` | Préparation des données, entraînement, évaluation et export |
 | `docs/` | Documentation, exemples, maquettes et médias |
 | `scripts/` | Vérifications et maintenance |
@@ -61,68 +61,34 @@ et la configuration du coaching.
 
 ### Streamlit
 
-Depuis la racine :
+L’application est accessible en ligne :
+**[Ouvrir NextMove Streamlit](https://nextmove-app.streamlit.app/)**.
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r streamlit/requirements.txt
-```
-
-Sous PowerShell, remplacer l’activation par :
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Créer un `.env` à la racine à partir de `.env.example`, puis renseigner
-notamment :
-
-```dotenv
-DATABASE_URL=postgresql://utilisateur:mot_de_passe@hote:5432/base
-SUPABASE_URL=https://votre-projet.supabase.co
-SUPABASE_SERVICE_KEY=votre_cle_serveur
-SECRET_KEY=votre_secret_jwt
-GROQ_API_KEY=votre_cle_groq
-```
-
-Le stockage vidéo utilise un bucket Supabase privé nommé `videos`.
-
-Lancer l’interface :
-
-```bash
-cd streamlit
-python -m streamlit run app.py
-```
-
-Adresse par défaut : http://localhost:8501.
-
-Les dépendances doivent pouvoir être installées avec la version de Python
-choisie. Consulter les erreurs de résolution avant de modifier les versions
-du fichier `requirements.txt`.
+Aucune installation locale n’est nécessaire pour l’utiliser. Son code reste
+dans `streamlit/` ; elle appelle directement ses services Python.
+Son déploiement n’héberge pas automatiquement l’API FastAPI.
 
 ## API et données
 
-Deux points d’entrée API existent actuellement :
+Une seule API HTTP est conservée, dans `backend/`, pour React et iOS.
+Depuis la racine du dépôt, après installation et configuration :
 
-| API | Dossier de lancement | Commande |
-|---|---|---|
-| API associée à Streamlit | `streamlit/` | `python -m uvicorn src.api.main:app --reload --port 8000 --env-file ../.env` |
-| API de la solution web | `web/backend/` | `python -m uvicorn api.main:app --reload --port 8000 --env-file .env` |
+```bash
+python -m uvicorn backend.api.main:app --reload --port 8000
+```
 
-Ne pas lancer les deux sur le même port simultanément.
+Voir [backend/README.md](backend/README.md) pour la configuration et le passage
+depuis l’ancienne organisation. L’ancien dossier `streamlit/src/api/` a été retiré.
 
-L’API Streamlit expose l’authentification et la liste des matchs.
-L’API web expose également l’import vidéo, l’analyse, les événements,
-le coaching, le chat et les plans d’entraînement.
+React utilise `NEXT_PUBLIC_API_URL`. iOS utilise `NEXTMOVE_API_URL`, avec
+`http://localhost:8000` par défaut pour le simulateur. L’API se déploie séparément
+de l’interface Streamlit.
 
-Streamlit appelle directement ses services Python. Le frontend Next.js
-appelle son API en HTTP.
-
-Les applications peuvent utiliser les mêmes comptes si les serveurs
-emploient la même base et la même clé de signature JWT. Cela ne signifie
-pas que toutes les données sont synchronisées : les enregistrements et
-analyses iOS restent actuellement gérés localement.
+Streamlit conserve ses services, son authentification et ses accès SQL.
+Pour partager les comptes et accepter les tokens existants, configurer la même
+base et la même `SECRET_KEY` côté Streamlit et backend.
+Les vidéos et analyses iOS restent locales : ce déplacement n’ajoute pas de
+synchronisation complète de sa bibliothèque et ne modifie pas son pipeline Core ML.
 
 ## Base de données et migrations
 
@@ -207,7 +173,7 @@ Avant une fusion :
 
 - [Application web](web/README.md)
 - [Application iOS](ios/README.md)
-- [API associée à Streamlit](streamlit/src/api/README.md)
+- [API commune](backend/README.md)
 - [Exemple de coaching iOS](docs/ios/USAGE_EXAMPLE_LLM.swift)
 - [Maquettes](docs/mockups/)
 - [Médias de démonstration](docs/media/)

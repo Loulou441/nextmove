@@ -12,16 +12,16 @@ nextmove_demo.db
 .venv_api/
 
 # Environnement Python web
-web/backend/venv/
-web/backend/.venv/
+backend/venv/
+backend/.venv/
 __pycache__/
 *.pyc
 
 # Configuration locale web
-web/backend/.env
-web/backend/.env.*
-!web/backend/.env.example
-web/backend/*payload*.json
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/*payload*.json
 
 # Next.js
 web/frontend/node_modules/
@@ -31,3 +31,6 @@ web/frontend/.env*
 
 # macOS
 .DS_Store
+
+# Configuration du client Next.js (exemple versionné)
+!web/frontend/.env.local.example
