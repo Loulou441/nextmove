@@ -74,47 +74,40 @@ http://localhost:8000
 
 ### Simulateur
 
-Démarrer l’API sur le Mac.
-
-Pour utiliser l’API associée à Streamlit, activer son environnement Python
-et lancer depuis `streamlit/` :
+Configurer et démarrer le serveur commun en suivant
+[backend/README.md](../backend/README.md). Depuis la racine du dépôt :
 
 ```bash
-python -m uvicorn src.api.main:app --reload --port 8000 --env-file ../.env
+python -m uvicorn backend.api.main:app --reload --port 8000
 ```
 
-Le fichier `.env` à la racine doit contenir la configuration de la base
-et de l’authentification.
+La valeur par défaut `http://localhost:8000` convient au simulateur sur le Mac
+qui exécute cette API. Vérifier `http://localhost:8000/health`.
 
-La disponibilité de l’API peut être vérifiée sur :
+### Adresse personnalisée et iPhone physique
 
-```text
-http://localhost:8000/health
-```
+Le client lit `NEXTMOVE_API_URL` dans l’environnement du processus (prioritaire),
+puis dans Info.plist. Sans configuration, il utilise `http://localhost:8000`.
+Une URL explicitement configurée doit être une adresse HTTP(S) absolue.
 
-### iPhone physique
+En développement, la définir dans Xcode :
+**Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables**.
 
-`localhost` désigne l’iPhone lui-même. Configurer dans `NextMoveAPI`
-l’adresse accessible du Mac ou du serveur.
-
-Pour exposer l’API du Mac sur le réseau local :
+Sur un iPhone physique, utiliser l’adresse réseau du Mac ou l’URL HTTPS du
+serveur déployé ; `localhost` désigne le téléphone lui-même.
+Pour rendre l’API locale accessible au réseau, depuis la racine :
 
 ```bash
-python -m uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000 --env-file ../.env
+python -m uvicorn backend.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Le téléphone doit pouvoir joindre cette adresse. Vérifier le réseau,
-le pare-feu et les autorisations HTTP de l’application.
+Vérifier le pare-feu, les autorisations réseau et la politique HTTP d’iOS.
+L’application Streamlit en ligne n’est pas l’URL de cette API.
 
-### API web
-
-Le dépôt possède également une API dans `web/backend/`, avec les routes
-d’authentification et de liste des matchs utilisées par le client iOS.
-
-Son lancement est documenté dans [le README web](../web/README.md).
-Valider les parcours iOS lors d’un changement de serveur.
-
-Ne pas lancer les deux API sur le même port simultanément.
+Les routes `/auth/register`, `/auth/login`, `/auth/me` et `/matches` sont
+conservées. Réutiliser la même base et la même `SECRET_KEY` sur le serveur pour
+conserver les comptes et accepter les tokens précédents.
+Après migration, tester inscription, connexion, profil et lecture des matchs.
 
 ## Analyse vidéo
 
@@ -251,6 +244,6 @@ ne prouve donc pas à lui seul que l’analyse réelle a réussi.
 
 - [Présentation du projet](../README.md)
 - [Application web](../web/README.md)
-- [Documentation de l’API Streamlit](../streamlit/src/api/README.md)
+- [Documentation de l’API commune](../backend/README.md)
 - [Maquettes](../docs/mockups/)
 - [Exemple de coaching](../docs/ios/USAGE_EXAMPLE_LLM.swift)

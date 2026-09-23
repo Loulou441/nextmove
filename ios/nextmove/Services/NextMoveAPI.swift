@@ -79,8 +79,23 @@ final class NextMoveAPI: ObservableObject {
 
     private let tokenKey = "nextmove_auth_token"
 
-    init(baseURL: URL = URL(string: "http://localhost:8000")!) {
-        self.baseURL = baseURL
+    /// Adresse configurable dans le schéma Xcode ou Info.plist.
+    /// Le serveur est désormais fourni par backend/ à la racine du dépôt.
+    private static var configuredBaseURL: URL {
+        let raw = ProcessInfo.processInfo.environment["NEXTMOVE_API_URL"]
+            ?? (Bundle.main.object(forInfoDictionaryKey: "NEXTMOVE_API_URL") as? String)
+            ?? "http://localhost:8000"
+        let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = URL(string: value),
+              let scheme = url.scheme, ["http", "https"].contains(scheme),
+              let host = url.host, !host.isEmpty else {
+            preconditionFailure("NEXTMOVE_API_URL doit être une URL HTTP(S) absolue.")
+        }
+        return url
+    }
+
+    init(baseURL: URL? = nil) {
+        self.baseURL = baseURL ?? Self.configuredBaseURL
         self.token = UserDefaults.standard.string(forKey: tokenKey)
     }
 
