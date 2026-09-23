@@ -18,7 +18,10 @@ Disponibilité : http://localhost:8000/health ; documentation : http://localhost
 
 ## Frontend
 
-Installer Node.js et npm compatibles avec `frontend/package.json`.
+La version de Next.js verrouillée dans `frontend/package-lock.json` déclare
+**Node.js >= 20.9.0**. C’est un minimum déclaré par la dépendance, pas une
+version validée par un test complet du projet. Utiliser npm et conserver le
+fichier de verrouillage avec `npm ci`.
 Dans un second terminal, depuis la racine :
 
 ```bash

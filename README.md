@@ -35,7 +35,9 @@ fonctionnelle restent distinctes.
 
 Fichiers de configuration à la racine :
 
-- `.env.example` : exemple de configuration du serveur Python ;
+- `.env.example` : exemple pour le `.env` racine utilisé par Streamlit ;
+- `backend/.env.example` : exemple pour `backend/.env`, utilisé par l’API ;
+- `web/frontend/.env.local.example` : adresse publique de l’API pour le web ;
 - `.gitignore` : exclusions Git ;
 - `packages.txt` : dépendances système utilisées pour le déploiement Python.
 
@@ -68,6 +70,8 @@ Aucune installation locale n’est nécessaire pour l’utiliser. Son code reste
 dans `streamlit/` ; elle appelle directement ses services Python.
 Son déploiement n’héberge pas automatiquement l’API FastAPI.
 
+Voir [streamlit/README.md](streamlit/README.md) pour son organisation et sa configuration.
+
 ## API et données
 
 Une seule API HTTP est conservée, dans `backend/`, pour React et iOS.
@@ -94,29 +98,27 @@ synchronisation complète de sa bibliothèque et ne modifie pas son pipeline Cor
 
 Les migrations sont conservées dans `streamlit/alembic/`.
 
-Pour utiliser le `.env` racine avec la configuration Alembic actuelle,
-exécuter depuis la racine, avec l’environnement Python activé :
+Pour appliquer les migrations avec la configuration de l’API, exécuter depuis
+la racine, avec l’environnement Python du backend activé :
 
 ```bash
 python - <<'PY'
-from pathlib import Path
 import subprocess
 import sys
-from dotenv import load_dotenv
-
-root = Path.cwd()
-load_dotenv(root / ".env")
+from backend.config import REPO_ROOT
 
 subprocess.run(
     [sys.executable, "-m", "alembic", "upgrade", "head"],
-    cwd=root / "streamlit",
+    cwd=REPO_ROOT / "streamlit",
     check=True,
 )
 PY
 ```
 
-Cette commande applique les migrations à la base définie dans
-`DATABASE_URL`. Vérifier la base ciblée avant de l’exécuter.
+Cette commande utilise `DATABASE_URL` avec la priorité suivante : environnement
+du processus, puis `backend/.env`, puis `.env` racine. Vérifier la base ciblée
+avant de l’exécuter, surtout si Streamlit et l’API utilisent des bases distinctes.
+Voir [la documentation des migrations](streamlit/alembic/README) pour le cas Streamlit.
 
 Les fichiers `.env` et les clés privées ne doivent pas être versionnés.
 
@@ -173,6 +175,7 @@ Avant une fusion :
 
 - [Application web](web/README.md)
 - [Application iOS](ios/README.md)
+- [Application Streamlit](streamlit/README.md)
 - [API commune](backend/README.md)
 - [Exemple de coaching iOS](docs/ios/USAGE_EXAMPLE_LLM.swift)
 - [Maquettes](docs/mockups/)

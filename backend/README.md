@@ -16,6 +16,11 @@ les comptes et accepter les tokens existants. Ne pas écraser un `.env` existant
 
 ## Installation et configuration
 
+Les dépendances sont déclarées dans `requirements.txt`. Le dépôt ne fixe pas
+de version Python de référence et cette réorganisation n’a pas validé une
+installation complète : conserver la version de l’environnement fonctionnel
+existant et vérifier l’installation avant de changer de version Python.
+
 Depuis la racine du dépôt :
 
 ```bash
@@ -101,6 +106,10 @@ PY
 Vérifier la base ciblée avant d’appliquer les migrations. Pour une base de test
 vide uniquement, `python -m backend.api.init_db` crée les tables des modèles ;
 cette commande ne remplace pas les migrations et ne met pas à niveau un schéma existant.
+
+La priorité de configuration est la même que pour l’API : environnement du
+processus, `backend/.env`, puis `.env` racine. Pour une base Streamlit distincte,
+voir [la documentation des migrations](../streamlit/alembic/README).
 
 ## Modèles et connaissances
 
