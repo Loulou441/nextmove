@@ -28,11 +28,14 @@ app = FastAPI(
     description="Backend partagé (auth + données) pour l'app iOS et le web.",
 )
 
-# CORS large en développement — l'app iOS et un front web peuvent appeler l'API.
-# À restreindre aux domaines réels en production.
+# CORS restreint au frontend web connu. Avec allow_credentials=True (requis
+# pour que le cookie httpOnly d'authentification soit envoyé par le
+# navigateur), la spécification CORS interdit "*" comme origine — il faut
+# lister explicitement les origines autorisées.
+# TODO: ajouter ici le vrai domaine de production une fois déployé.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

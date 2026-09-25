@@ -4,22 +4,19 @@ import { useEffect, useState } from "react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { useAuth } from "@/lib/auth-context";
 import { api, Match } from "@/lib/api";
 
 export default function StatsPage() {
-  const { token } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) return;
     api
-      .getMatches(token)
+      .getMatches()
       .then(setMatches)
       .catch(() => {})
       .finally(() => setIsLoading(false));
-  }, [token]);
+  }, []);
 
   const readyMatches = matches
     .filter((m) => m.status === "ready" && m.rating != null)

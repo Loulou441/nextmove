@@ -6,6 +6,8 @@ Protégé par token : on ne renvoie/modifie que les matchs appartenant à
 l'utilisateur déduit du JWT. Réutilise services/match_service.py et
 services/video_storage.py.
 """
+import logging
+
 from fastapi import APIRouter, BackgroundTasks, Depends, UploadFile, File, Form, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -14,7 +16,7 @@ from api.schemas import MatchResponse, MatchDetailResponse, MatchEventResponse
 from db.models import User, Match, MatchEvent
 from db.session import SessionLocal
 from services.match_service import get_user_matches, create_pending_match, mark_match_ready, CVPipelineError
-from services.video_storage import upload_video, VideoTooLargeError
+from services.video_storage import upload_video, VideoTooLargeError, delete_video
 
 router = APIRouter(prefix="/matches", tags=["matches"])
 
@@ -166,14 +168,13 @@ def list_match_events(
     return [MatchEventResponse.model_validate(e) for e in events]
 
 
-
 @router.delete("/{match_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_match(
     match_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Supprime un match et ses données associées (événements, analyses)."""
+    """Supprime un match, ses données associées, et la vidéo en Storage."""
     match = (
         db.query(Match)
         .filter(Match.id == match_id, Match.user_id == current_user.id)
@@ -182,5 +183,18 @@ def delete_match(
     if match is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match introuvable")
 
+    storage_path = match.video_storage_path
+
     db.delete(match)
     db.commit()
+
+    # Nettoyage best-effort : la suppression en base a déjà réussi (ce qui
+    # compte le plus pour l'utilisateur) — si le nettoyage Storage échoue
+    # (réseau, fichier déjà absent...), on ne fait pas échouer la requête.
+    try:
+        delete_video(storage_path)
+    except Exception as exc:
+        logging.getLogger("nextmove.cleanup").warning(
+            "Échec de la suppression de la vidéo Storage (%s) pour le match %s : %s",
+            storage_path, match_id, exc,
+        )

@@ -12,19 +12,18 @@ const SPORT_LABEL: Record<string, string> = {
 };
 
 export default function MePage() {
-  const { user, token, logout, updateSport } = useAuth();
+  const { user, logout, updateSport } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingSport, setIsUpdatingSport] = useState(false);
 
   useEffect(() => {
-    if (!token) return;
     api
-      .getMatches(token)
+      .getMatches()
       .then(setMatches)
       .catch(() => {})
       .finally(() => setIsLoading(false));
-  }, [token]);
+  }, []);
 
   async function handleSportChange(sport: string) {
     if (sport === user?.preferred_sport) return;

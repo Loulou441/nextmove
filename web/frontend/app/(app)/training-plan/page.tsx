@@ -11,7 +11,7 @@ const SPORTS = [
 ];
 
 export default function TrainingPlanPage() {
-  const { token, user } = useAuth();
+  const { user } = useAuth();
   const [sport, setSport] = useState(user?.preferred_sport ?? "padel");
   const [plans, setPlans] = useState<TrainingPlan[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
@@ -19,21 +19,19 @@ export default function TrainingPlanPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
     setIsLoadingHistory(true);
     api
-      .getTrainingPlans(token, sport)
+      .getTrainingPlans(sport)
       .then(setPlans)
       .catch(() => setPlans([]))
       .finally(() => setIsLoadingHistory(false));
-  }, [token, sport]);
+  }, [sport]);
 
   async function handleGenerate() {
-    if (!token) return;
     setError(null);
     setIsGenerating(true);
     try {
-      const plan = await api.generateTrainingPlan(token, sport);
+      const plan = await api.generateTrainingPlan(sport);
       setPlans((prev) => [plan, ...prev]);
     } catch (err) {
       setError(

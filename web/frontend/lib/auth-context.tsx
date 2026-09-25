@@ -3,10 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { api, ApiUser } from "./api";
 
-const TOKEN_KEY = "nextmove_token";
-
 interface AuthContextValue {
-  token: string | null;
   user: ApiUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -18,60 +15,44 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<ApiUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Au premier chargement : on relit le token stocké et on vérifie qu'il est
-  // toujours valide auprès du serveur (comme fetchMe() côté iOS).
+  // Au premier chargement : le cookie httpOnly (s'il existe) est envoyé
+  // automatiquement par le navigateur — on vérifie juste s'il y a une
+  // session valide en interrogeant le serveur (comme fetchMe() côté iOS).
+  // Plus de lecture/écriture de localStorage : le token est invisible pour
+  // le JavaScript, c'est tout l'intérêt du cookie httpOnly.
   useEffect(() => {
-    const stored = localStorage.getItem(TOKEN_KEY);
-    if (!stored) {
-      setIsLoading(false);
-      return;
-    }
     api
-      .me(stored)
-      .then((u) => {
-        setToken(stored);
-        setUser(u);
-      })
-      .catch(() => {
-        localStorage.removeItem(TOKEN_KEY);
-      })
+      .me()
+      .then(setUser)
+      .catch(() => setUser(null))
       .finally(() => setIsLoading(false));
   }, []);
 
-  function applySession(accessToken: string, apiUser: ApiUser) {
-    setToken(accessToken);
-    setUser(apiUser);
-    localStorage.setItem(TOKEN_KEY, accessToken);
-  }
-
   async function login(email: string, password: string) {
     const auth = await api.login(email, password);
-    applySession(auth.access_token, auth.user);
+    setUser(auth.user);
   }
 
   async function register(email: string, password: string, preferredSport: string) {
     const auth = await api.register(email, password, preferredSport);
-    applySession(auth.access_token, auth.user);
+    setUser(auth.user);
   }
 
-  function logout() {
-    setToken(null);
+  async function logout() {
+    await api.logout().catch(() => {});
     setUser(null);
-    localStorage.removeItem(TOKEN_KEY);
   }
 
   async function updateSport(sport: string) {
-    if (!token) return;
-    const updated = await api.updateSport(token, sport);
+    const updated = await api.updateSport(sport);
     setUser(updated);
   }
 
   return (
-    <AuthContext.Provider value={{ token, user, isLoading, login, register, logout, updateSport }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateSport }}>
       {children}
     </AuthContext.Provider>
   );

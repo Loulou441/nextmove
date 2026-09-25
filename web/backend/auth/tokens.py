@@ -13,7 +13,7 @@ from pathlib import Path
 import jwt
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[1]  # auth/ -> backend/
 load_dotenv(ROOT / ".env")
 
 SECRET_KEY = os.environ.get("SECRET_KEY")

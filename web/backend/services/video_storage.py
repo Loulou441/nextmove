@@ -19,7 +19,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[1]  # services/ -> backend/
 load_dotenv(ROOT / ".env")
 
 BUCKET_NAME = "videos"
@@ -93,3 +93,17 @@ def get_video_url(storage_path: str, expires_in: int = 3600) -> str:
     client = get_supabase_client()
     result = client.storage.from_(BUCKET_NAME).create_signed_url(storage_path, expires_in)
     return result["signedURL"]
+
+
+def delete_video(storage_path: str) -> None:
+    """
+    Supprime la vidéo du bucket Storage. Appelée quand un match est supprimé,
+    pour éviter de laisser des fichiers orphelins facturés indéfiniment.
+    N'échoue pas bruyamment si le fichier est déjà absent — un match qui
+    n'a jamais eu de vidéo correctement uploadée ne doit pas bloquer sa
+    propre suppression.
+    """
+    if not storage_path:
+        return
+    client = get_supabase_client()
+    client.storage.from_(BUCKET_NAME).remove([storage_path])

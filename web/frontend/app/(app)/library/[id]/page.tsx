@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
 import { api, MatchDetail, ApiError } from "@/lib/api";
 
 const COLOR_CLASS: Record<string, string> = {
@@ -24,7 +23,6 @@ const POLL_INTERVAL_MS = 4000;
 
 export default function MatchDashboardPage() {
   const { id } = useParams<{ id: string }>();
-  const { token } = useAuth();
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,13 +30,13 @@ export default function MatchDashboardPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!token || !id) return;
+    if (!id) return;
 
     let cancelled = false;
 
     function fetchMatch() {
       api
-        .getMatch(token!, id)
+        .getMatch(id)
         .then((data) => {
           if (cancelled) return;
           setMatch(data);
@@ -66,18 +64,18 @@ export default function MatchDashboardPage() {
       cancelled = true;
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [token, id]);
+  }, [id]);
 
   async function handleStartAnalysis() {
-    if (!token || !id) return;
+    if (!id) return;
     setIsStartingAnalysis(true);
     try {
-      const updated = await api.analyzeMatch(token, id);
+      const updated = await api.analyzeMatch(id);
       setMatch(updated);
       // Relance le polling maintenant que le statut est passé à "processing".
       if (!intervalRef.current) {
         intervalRef.current = setInterval(() => {
-          api.getMatch(token, id).then((data) => {
+          api.getMatch(id).then((data) => {
             setMatch(data);
             if (data.status !== "processing" && intervalRef.current) {
               clearInterval(intervalRef.current);

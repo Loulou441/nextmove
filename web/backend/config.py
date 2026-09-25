@@ -1,5 +1,12 @@
-from dotenv import load_dotenv
 import os
+
+# Force le mode hors-ligne pour Hugging Face AVANT tout import qui pourrait
+# charger transformers/sentence-transformers — évite un blocage réseau de
+# plusieurs minutes au démarrage si le cache local existe déjà mais que la
+# vérification de version en ligne traîne.
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+
+from dotenv import load_dotenv
 from pathlib import Path
 
 load_dotenv()

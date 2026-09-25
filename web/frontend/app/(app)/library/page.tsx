@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
 import { api, Match, ApiError } from "@/lib/api";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
@@ -20,7 +19,6 @@ const STATUS_LABEL: Record<string, { text: string; className: string }> = {
 };
 
 export default function LibraryPage() {
-  const { token } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,13 +29,12 @@ export default function LibraryPage() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
     api
-      .getMatches(token)
+      .getMatches()
       .then(setMatches)
       .catch((err) => setError(err instanceof ApiError ? err.message : "Erreur de chargement."))
       .finally(() => setIsLoading(false));
-  }, [token]);
+  }, []);
 
   function askDelete(e: React.MouseEvent, matchId: string) {
     e.preventDefault();
@@ -46,12 +43,12 @@ export default function LibraryPage() {
   }
 
   async function confirmDelete() {
-    if (!token || !pendingDeleteId) return;
+    if (!pendingDeleteId) return;
     const matchId = pendingDeleteId;
     setPendingDeleteId(null);
     setDeletingId(matchId);
     try {
-      await api.deleteMatch(token, matchId);
+      await api.deleteMatch(matchId);
       setMatches((prev) => prev.filter((m) => m.id !== matchId));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Impossible de supprimer ce match.");

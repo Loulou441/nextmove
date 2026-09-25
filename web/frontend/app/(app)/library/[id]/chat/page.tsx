@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
 import { api, ChatTurn, MatchDetail, ApiError } from "@/lib/api";
 
 function buildSuggestions(match: MatchDetail | null): string[] {
@@ -71,7 +70,6 @@ function buildSuggestions(match: MatchDetail | null): string[] {
 
 export default function CoachChatPage() {
   const { id } = useParams<{ id: string }>();
-  const { token } = useAuth();
 
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [history, setHistory] = useState<ChatTurn[]>([]);
@@ -81,9 +79,9 @@ export default function CoachChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!token || !id) return;
-    api.getMatch(token, id).then(setMatch).catch(() => {});
-  }, [token, id]);
+    if (!id) return;
+    api.getMatch(id).then(setMatch).catch(() => {});
+  }, [id]);
 
   const suggestions = useMemo(() => buildSuggestions(match), [match]);
 
@@ -92,7 +90,7 @@ export default function CoachChatPage() {
   }, [history]);
 
   async function sendMessage(message: string) {
-    if (!token || !id || !message.trim() || isSending) return;
+    if (!id || !message.trim() || isSending) return;
 
     const newHistory: ChatTurn[] = [...history, { role: "user", text: message }];
     setHistory(newHistory);
@@ -101,7 +99,7 @@ export default function CoachChatPage() {
     setIsSending(true);
 
     try {
-      const res = await api.chatWithCoach(token, id, message, history);
+      const res = await api.chatWithCoach(id, message, history);
       setHistory([...newHistory, { role: "coach", text: res.reply }]);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Le coach n'a pas pu répondre.");

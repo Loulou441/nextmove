@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
 import { api, ApiError } from "@/lib/api";
 
 const SPORTS = [
@@ -13,7 +12,6 @@ const SPORTS = [
 
 export default function UploadPage() {
   const router = useRouter();
-  const { token } = useAuth();
 
   const [title, setTitle] = useState("");
   const [sport, setSport] = useState("padel");
@@ -24,17 +22,17 @@ export default function UploadPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!token || !file) return;
+    if (!file) return;
 
     setError(null);
     setIsSubmitting(true);
 
     try {
       setStep("uploading");
-      const match = await api.createMatch(token, title, sport, file);
+      const match = await api.createMatch(title, sport, file);
 
       setStep("starting");
-      await api.analyzeMatch(token, match.id);
+      await api.analyzeMatch(match.id);
 
       router.push(`/library/${match.id}`);
     } catch (err) {

@@ -112,20 +112,21 @@ class ApiError extends Error {
   }
 }
 
-async function request<T>(
-  path: string,
-  options: RequestInit = {},
-  token?: string | null
-): Promise<T> {
+// credentials: "include" — indispensable pour que le navigateur envoie (et
+// accepte) le cookie httpOnly d'authentification, posé par /auth/login et
+// /auth/register. Sans ça, le cookie ne circule jamais entre le frontend
+// (port 3000) et le backend (port 8000), même en localhost.
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
 
   if (!res.ok) {
     let detail = `Erreur serveur (${res.status})`;
@@ -150,11 +151,11 @@ async function request<T>(
 // Variante pour l'upload de fichier : PAS de Content-Type manuel — le
 // navigateur doit le définir lui-même (multipart/form-data + boundary),
 // sinon la requête est mal formée côté serveur.
-async function requestForm<T>(path: string, formData: FormData, token: string): Promise<T> {
+async function requestForm<T>(path: string, formData: FormData): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
     body: formData,
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -184,57 +185,50 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
 
-  me: (token: string) => request<ApiUser>("/auth/me", {}, token),
+  logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
 
-  updateSport: (token: string, preferredSport: string) =>
-    request<ApiUser>(
-      "/auth/me",
-      { method: "PATCH", body: JSON.stringify({ preferred_sport: preferredSport }) },
-      token
-    ),
+  me: () => request<ApiUser>("/auth/me"),
 
-  getMatches: (token: string) => request<Match[]>("/matches", {}, token),
+  updateSport: (preferredSport: string) =>
+    request<ApiUser>("/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify({ preferred_sport: preferredSport }),
+    }),
 
-  getMatch: (token: string, matchId: string) =>
-    request<MatchDetail>(`/matches/${matchId}`, {}, token),
+  getMatches: () => request<Match[]>("/matches"),
 
-  getMatchEvents: (token: string, matchId: string) =>
-    request<MatchEvent[]>(`/matches/${matchId}/events`, {}, token),
+  getMatch: (matchId: string) => request<MatchDetail>(`/matches/${matchId}`),
 
-  createMatch: (token: string, title: string, sport: string, video: File) => {
+  getMatchEvents: (matchId: string) => request<MatchEvent[]>(`/matches/${matchId}/events`),
+
+  createMatch: (title: string, sport: string, video: File) => {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("sport", sport);
     formData.append("video", video);
-    return requestForm<Match>("/matches", formData, token);
+    return requestForm<Match>("/matches", formData);
   },
 
-  analyzeMatch: (token: string, matchId: string) =>
-    request<Match>(`/matches/${matchId}/analyze`, { method: "POST" }, token),
+  analyzeMatch: (matchId: string) =>
+    request<Match>(`/matches/${matchId}/analyze`, { method: "POST" }),
 
-  deleteMatch: (token: string, matchId: string) =>
-    request<void>(`/matches/${matchId}`, { method: "DELETE" }, token),
+  deleteMatch: (matchId: string) =>
+    request<void>(`/matches/${matchId}`, { method: "DELETE" }),
 
-  chatWithCoach: (token: string, matchId: string, message: string, history: ChatTurn[]) =>
-    request<ChatResponse>(
-      `/matches/${matchId}/chat`,
-      { method: "POST", body: JSON.stringify({ message, history }) },
-      token
-    ),
+  chatWithCoach: (matchId: string, message: string, history: ChatTurn[]) =>
+    request<ChatResponse>(`/matches/${matchId}/chat`, {
+      method: "POST",
+      body: JSON.stringify({ message, history }),
+    }),
 
-  generateTrainingPlan: (token: string, sport: string) =>
-    request<TrainingPlan>(
-      "/training-plan",
-      { method: "POST", body: JSON.stringify({ sport }) },
-      token
-    ),
+  generateTrainingPlan: (sport: string) =>
+    request<TrainingPlan>("/training-plan", {
+      method: "POST",
+      body: JSON.stringify({ sport }),
+    }),
 
-  getTrainingPlans: (token: string, sport?: string) =>
-    request<TrainingPlan[]>(
-      `/training-plan${sport ? `?sport=${sport}` : ""}`,
-      {},
-      token
-    ),
+  getTrainingPlans: (sport?: string) =>
+    request<TrainingPlan[]>(`/training-plan${sport ? `?sport=${sport}` : ""}`),
 };
 
 export { ApiError };
