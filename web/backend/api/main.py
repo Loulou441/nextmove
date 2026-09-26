@@ -16,6 +16,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.routes_export import router as export_router
 from api.routes_auth import router as auth_router
 from api.routes_matches import router as matches_router
 from api.routes_coach import router as coach_router
@@ -46,7 +47,7 @@ app.include_router(matches_router)
 app.include_router(coach_router)
 app.include_router(chat_router)
 app.include_router(training_router)
-
+app.include_router(export_router)
 logger = logging.getLogger("nextmove.startup")
 
 

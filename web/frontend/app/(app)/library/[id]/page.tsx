@@ -152,7 +152,7 @@ export default function MatchDashboardPage() {
         </div>
         <div className="flex gap-2 no-print">
           <button
-            onClick={() => window.print()}
+            onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/matches/${match.id}/export-pdf`, "_blank")}
             className="bg-nm-card border border-nm-border hover:bg-nm-bg text-nm-text text-sm font-semibold rounded-nm-button px-4 py-2 transition-colors shrink-0"
           >
             📄 Export PDF
