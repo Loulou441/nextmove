@@ -29,6 +29,10 @@ web/frontend/.env*
 .DS_Store
 # Configuration du client Next.js (exemple versionné)
 !web/frontend/.env.local.example
-# App LLM secrets (do not commit)
+# App LLM secrets (do not commit) — anciens et nouveaux chemins (post-refactor ios/)
 nextmove/Secrets.plist
 nextmove/Secrets.swift
+ios/nextmove/Secrets.plist
+ios/nextmove/Secrets.swift
+**/Secrets.swift
+**/Secrets.plist
