@@ -22,11 +22,21 @@ sur le web après connexion (via POST /matches/sync).
 ## 2. Créer le service sur Railway
 
 1. Railway → **New Project** → **Deploy from GitHub repo** → choisir `Loulou441/nextmove`.
-2. Railway détecte `nixpacks.toml` et `Procfile` à la racine et construit
-   l'API à partir de `backend/requirements.railway.txt` (version allégée, sans
-   torch / ultralytics / streamlit — inutiles pour l'API).
+2. `railway.json` (à la racine) force le builder **NIXPACKS** et pointe vers
+   `nixpacks.toml`. Un `requirements.txt` racine (qui référence
+   `backend/requirements.railway.txt`) garantit aussi la détection Python si
+   Railway retombe sur son builder Railpack. Version allégée : sans
+   torch / ultralytics / streamlit / opencv (inutiles à l'API — l'app mobile
+   fait sa CV en local).
 3. Le service démarre avec :
    `python -m uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT`
+
+> **Note technique** : les dépendances lourdes de la vision (cv2, torch,
+> ultralytics) ne sont importées que si l'on lance une analyse vidéo *côté
+> serveur* (`mark_match_ready`). Sur le déploiement API, ce chemin n'est jamais
+> emprunté — l'app mobile analyse en local et pousse le résultat via
+> `POST /matches/sync`. L'import est donc différé pour que l'API démarre sans
+> ces paquets.
 
 ## 3. Variables d'environnement (Railway → Variables)
 

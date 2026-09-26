@@ -1,0 +1,4 @@
+# Racine : permet à Railway/Railpack de détecter l'app comme Python et
+# d'installer les dépendances du backend FastAPI (version allégée, sans
+# torch/ultralytics/streamlit inutiles à l'API).
+-r backend/requirements.railway.txt
