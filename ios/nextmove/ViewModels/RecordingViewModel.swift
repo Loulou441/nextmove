@@ -141,6 +141,22 @@ class RecordingViewModel: ObservableObject {
             ]
         }
 
+        // Skills → même format que l'app web (label + score /100 + couleur).
+        let sr = analysis.skillRatings
+        func skillEntry(_ label: String, _ ratingOn5: Double) -> [String: String] {
+            let pct = Int((ratingOn5 / 5.0 * 100).rounded())
+            let color = pct >= 75 ? "green" : (pct >= 50 ? "orange" : "red")
+            return ["label": label, "score": "\(pct)", "color": color]
+        }
+        let skills = [
+            skillEntry("Serve", sr.serve),
+            skillEntry("Return", sr.return),
+            skillEntry("Third Shot", sr.thirdShot),
+            skillEntry("Dinking", sr.dinking),
+            skillEntry("Volleys", sr.volleys),
+            skillEntry("Movement", sr.movement),
+        ]
+
         do {
             _ = try await api.syncMatch(
                 title: recording.title,
@@ -151,6 +167,7 @@ class RecordingViewModel: ObservableObject {
                 errors: stats.errors,
                 coverage: Int(stats.courtCoveragePercent.rounded()),
                 rating: (ratingOn10 * 10).rounded() / 10,
+                skills: skills,
                 highlights: highlights
             )
             print("☁️ Analyse synchronisée vers la base partagée (visible sur le web).")

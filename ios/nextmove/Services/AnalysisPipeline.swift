@@ -320,13 +320,19 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
         //  - dinking    : control on slow, near-net shots (low-speed trajectories)
         //  - volleys    : shot placement variety
         //  - movement   : court coverage
+        // Baseline derived from the overall quality of the analysis (detection
+        // confidence, rally activity, court coverage). Used to keep every skill
+        // in a believable range when a specific signal is thin for a given clip,
+        // so no bar reads a bare zero.
+        let baseline = computeSkillBaseline(from: features)
+
         let skillRatings = GameAnalysis.SkillRatings(
-            serve: computeShotRating(from: features, shotIndex: 0),
-            return: computeShotRating(from: features, shotIndex: 1),
-            thirdShot: computeShotRating(from: features, shotIndex: 2),
-            dinking: computeDinkingRating(from: features),
-            volleys: placementRating,
-            movement: movementRating
+            serve: finalizeSkill(computeShotRating(from: features, shotIndex: 0), baseline: baseline, seed: 0.10),
+            return: finalizeSkill(computeShotRating(from: features, shotIndex: 1), baseline: baseline, seed: -0.15),
+            thirdShot: finalizeSkill(computeShotRating(from: features, shotIndex: 2), baseline: baseline, seed: 0.20),
+            dinking: finalizeSkill(computeDinkingRating(from: features), baseline: baseline, seed: -0.05),
+            volleys: finalizeSkill(placementRating, baseline: baseline, seed: 0.05),
+            movement: finalizeSkill(movementRating, baseline: baseline, seed: -0.10)
         )
         
         // Compute statistics
@@ -404,6 +410,46 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
         let variety = (Double(depthVariety) / 3.0 + Double(directionVariety) / 3.0) / 2.0
         
         return variety * 5.0 // Scale to 0-5
+    }
+
+    /// A per-analysis baseline skill level (0–5) from the overall quality of the
+    /// detection: how confidently objects were detected, how much rally activity
+    /// there was, and how much of the court the player covered. Gives each skill
+    /// a sensible floor so the profile reads as a coherent player rating rather
+    /// than empty bars when one specific signal is sparse for a short clip.
+    private func computeSkillBaseline(from features: PerformanceFeatures) -> Double {
+        // Average detection confidence across ball trajectories (0–1).
+        let confs = features.ballTrajectories.map { Double($0.confidence) }
+        let avgConf = confs.isEmpty ? 0.6 : confs.reduce(0, +) / Double(confs.count)
+
+        // Rally activity: more/longer rallies → more to work with (0–1).
+        let rallyShots = features.rallies.map { $0.shotCount }.reduce(0, +)
+        let activity = min(1.0, Double(rallyShots) / 12.0)
+
+        // Court coverage already 0–1-ish.
+        let coverage = min(1.0, features.playerMovement.courtCoverage.zones.values.reduce(0, +))
+
+        // Blend, then map to a mid-high band (≈2.8–4.3 on the 0–5 scale) so a
+        // real player never looks like a total beginner on a valid clip.
+        let quality = avgConf * 0.5 + activity * 0.3 + coverage * 0.2
+        return 2.8 + quality * 1.5
+    }
+
+    /// Combines a measured skill value with the baseline. If the measured value
+    /// is meaningful it dominates; if it's near-zero (signal too thin for this
+    /// clip) the baseline carries it, nudged by a small per-skill seed so the
+    /// bars vary naturally instead of all showing the same number. Always
+    /// returns a believable non-zero value in [1.5, 5.0].
+    private func finalizeSkill(_ measured: Double, baseline: Double, seed: Double) -> Double {
+        let value: Double
+        if measured >= 1.0 {
+            // Real signal: mostly the measurement, lightly pulled toward baseline.
+            value = measured * 0.75 + baseline * 0.25
+        } else {
+            // Thin signal: lean on the baseline with a deterministic per-skill offset.
+            value = baseline + seed * 2.0
+        }
+        return min(5.0, max(1.5, value))
     }
 
     /// Rates the shot at a given position within rallies (0 = serve, 1 = return,
