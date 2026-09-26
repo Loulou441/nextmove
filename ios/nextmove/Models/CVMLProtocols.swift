@@ -54,6 +54,47 @@ enum AnalysisStage: String, Codable {
 
 // MARK: - Video Processor Protocol
 
+/// A pull-based async sequence of video frames.
+///
+/// Type-erases the frame source so the real `VideoProcessor` (which decodes one
+/// frame at a time on demand) and test mocks (which replay an array) can both
+/// satisfy `VideoProcessorProtocol`. Crucially, iteration is PULL-based: the
+/// producer only advances when the consumer calls `next()`, so no frame is ever
+/// silently dropped even when detection is slow.
+struct VideoFrameStream: AsyncSequence {
+    typealias Element = VideoFrame
+
+    private let makeNext: () -> (() async -> VideoFrame?)
+
+    /// Wrap any async "pull one frame" closure factory.
+    init(_ makeIterator: @escaping () -> (() async -> VideoFrame?)) {
+        self.makeNext = makeIterator
+    }
+
+    /// Convenience: build from a fixed array of frames (used by tests).
+    init(frames: [VideoFrame]) {
+        self.makeNext = {
+            var index = 0
+            return {
+                guard index < frames.count else { return nil }
+                defer { index += 1 }
+                return frames[index]
+            }
+        }
+    }
+
+    func makeAsyncIterator() -> Iterator {
+        Iterator(pull: makeNext())
+    }
+
+    struct Iterator: AsyncIteratorProtocol {
+        let pull: () async -> VideoFrame?
+        mutating func next() async -> VideoFrame? {
+            await pull()
+        }
+    }
+}
+
 /// Extracts frames from video files using AVFoundation
 /// Validates: Requirements 1.1-1.7
 protocol VideoProcessorProtocol {
@@ -61,9 +102,9 @@ protocol VideoProcessorProtocol {
     /// - Parameters:
     ///   - url: URL of the video file
     ///   - frameRate: Desired frame rate (1-30 fps)
-    /// - Returns: AsyncStream of video frames with timestamps
+    /// - Returns: A pull-based async sequence of video frames with timestamps
     /// - Throws: VideoProcessingError if extraction fails
-    func extractFrames(from url: URL, frameRate: Int) async throws -> AsyncStream<VideoFrame>
+    func extractFrames(from url: URL, frameRate: Int) async throws -> VideoFrameStream
 }
 
 // MARK: - Object Detector Protocol

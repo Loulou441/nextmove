@@ -35,6 +35,10 @@ final class ObjectTracker: ObjectTrackerProtocol {
     
     /// Minimum confidence threshold for maintaining tracks (default 0.3)
     private let minConfidence: Float
+
+    /// Max centroid distance (normalized 0–1) to link a fast ball to its track
+    /// when boxes don't overlap. ~0.4 of the frame between two 5 fps samples.
+    private let ballMaxMatchDistance: Float = 0.4
     
     /// Logger for debugging and observability
     private let logger = Logger(subsystem: "com.nextmove.cvml", category: "ObjectTracker")
@@ -141,7 +145,10 @@ final class ObjectTracker: ObjectTrackerProtocol {
             
             // Find best matching detection (same class, highest IoU above threshold)
             var bestMatch: (detection: Detection, iou: Float)?
-            
+            // Distance fallback (used for the ball, which can move too fast to
+            // overlap its own box between two sampled frames — IoU would be 0).
+            var bestDistanceMatch: (detection: Detection, distance: Float)?
+
             for detection in unmatchedDetections {
                 // Only match same object class
                 guard detection.objectClass == trackState.objectClass else { continue }
@@ -162,8 +169,26 @@ final class ObjectTracker: ObjectTrackerProtocol {
                         bestMatch = (detection, iou)
                     }
                 }
+
+                // Track nearest centroid as a fallback for fast objects (ball).
+                let d = centroidDistance(lastDetection.boundingBox, detection.boundingBox)
+                if bestDistanceMatch == nil || d < bestDistanceMatch!.distance {
+                    bestDistanceMatch = (detection, d)
+                }
             }
-            
+
+            // Ball fallback: if IoU found nothing but a nearby ball detection
+            // exists, link it by proximity so the trajectory accumulates ≥2
+            // points (required for rallies). Threshold is generous in normalized
+            // coordinates — a ball rarely jumps more than ~40% of the frame
+            // between two 5 fps samples.
+            if bestMatch == nil,
+               trackState.objectClass == .ball,
+               let near = bestDistanceMatch,
+               near.distance <= ballMaxMatchDistance {
+                bestMatch = (near.detection, iouThreshold)  // treat as a valid match
+            }
+
             // If match found, record it
             if let match = bestMatch {
                 matched.append((trackID, match.detection))
@@ -179,6 +204,14 @@ final class ObjectTracker: ObjectTrackerProtocol {
         return (matched, unmatchedDetections)
     }
     
+    /// Euclidean distance between two boxes' centroids (normalized coordinates).
+    /// Used as a fallback association metric for fast objects (the ball).
+    private func centroidDistance(_ box1: CGRect, _ box2: CGRect) -> Float {
+        let dx = Float(box1.midX - box2.midX)
+        let dy = Float(box1.midY - box2.midY)
+        return (dx * dx + dy * dy).squareRoot()
+    }
+
     /// Computes Intersection over Union (IoU) between two bounding boxes
     /// Validates: Requirements 3.1
     private func computeIoU(box1: CGRect, box2: CGRect) -> Float {

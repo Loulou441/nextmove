@@ -19,24 +19,19 @@ final class AnalysisPipelineTests: XCTestCase {
         var shouldThrowError = false
         var frameCount = 10
         
-        func extractFrames(from url: URL, frameRate: Int) async throws -> AsyncStream<VideoFrame> {
+        func extractFrames(from url: URL, frameRate: Int) async throws -> VideoFrameStream {
             if shouldThrowError {
                 throw VideoProcessingError.frameExtractionFailed(reason: "Mock error")
             }
-            
-            return AsyncStream { continuation in
-                Task {
-                    for i in 0..<frameCount {
-                        let frame = VideoFrame(
-                            image: createMockCGImage(),
-                            timestamp: CMTime(seconds: Double(i), preferredTimescale: 600),
-                            frameNumber: i
-                        )
-                        continuation.yield(frame)
-                    }
-                    continuation.finish()
-                }
+
+            let frames = (0..<frameCount).map { i in
+                VideoFrame(
+                    image: createMockCGImage(),
+                    timestamp: CMTime(seconds: Double(i), preferredTimescale: 600),
+                    frameNumber: i
+                )
             }
+            return VideoFrameStream(frames: frames)
         }
         
         private func createMockCGImage() -> CGImage {
