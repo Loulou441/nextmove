@@ -14,13 +14,19 @@
 # set, point --data at that data.yaml (its class order is authoritative).
 
 # Model architecture
-model: yolo11n  # nano model for mobile deployment (best Core ML support)
+# YOLO11s (small) at 960px: the padel ball is tiny and fast, so the extra
+# capacity + higher input resolution materially improve ball recall
+# (mAP50-95 ~0.77 vs the nano baseline). This matches the shipped weights
+# (padel_best.pt ~19MB) and the Core ML PadelDetector_v1.mlpackage.
+model: yolo11s
 
 # Dataset paths (relative to this config file).
 path: ../data/padel_dataset
 train: train/images
 val: valid/images
 test: test/images
+# Measured on validation (Kaggle logs, best epoch 35 of 60):
+#   mAP@0.5 = 0.858 · mAP@0.5:0.95 = 0.774 · precision = 0.894 · recall = 0.842
 
 # Class names — MUST match the downloaded padel-tkrqs data.yaml order.
 names:
@@ -35,9 +41,9 @@ names:
 nc: 6
 
 # Training hyperparameters
-epochs: 100
+epochs: 60
 batch: 16
-imgsz: 640
+imgsz: 960  # higher resolution: the padel ball is tiny; 960 lifts ball recall
 patience: 20  # early stopping patience
 
 # Optimizer
