@@ -14,7 +14,7 @@
 	  PROD (Railway)     : mettre l'URL HTTPS Railway, ex. https://nextmove-api.up.railway.app
 	-->
 	<key>NEXTMOVE_API_URL</key>
-	<string></string>
+	<string>https://nextmove-production-9996.up.railway.app</string>
 
 	<!--
 	  App Transport Security.
