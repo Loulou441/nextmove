@@ -117,23 +117,42 @@ final class NextMoveAPI: ObservableObject {
 
     private let tokenKey = "nextmove_auth_token"
 
-    /// IP LAN du Mac qui héberge l'API (même réseau Wi-Fi que l'iPhone).
-    /// Utilisée automatiquement sur un appareil physique (le simulateur, lui,
-    /// peut joindre localhost). Mets à jour cette valeur si l'IP du Mac change.
-    static let macLANHost = "192.168.1.175"
+    /// Résout l'URL de base dans cet ordre de priorité :
+    ///   1. Argument explicite (tests unitaires, previews).
+    ///   2. Variable d'environnement NEXTMOVE_API_URL (schéma Xcode / CI).
+    ///   3. Clé Info.plist NEXTMOVE_API_URL (réglage par target sans recompiler).
+    ///   4. Simulateur  → http://localhost:8000
+    ///   5. Appareil physique → http://192.168.1.175:8000 (IP LAN par défaut).
+    ///
+    /// Pour changer d'IP sans recompiler : ajouter la clé NEXTMOVE_API_URL
+    /// dans Info.plist (ou dans le schéma Xcode > Run > Arguments > Environment).
+    private static var resolvedBaseURL: URL {
+        // 1. Variable d'environnement (schéma Xcode ou CI)
+        if let raw = ProcessInfo.processInfo.environment["NEXTMOVE_API_URL"],
+           let url = URL(string: raw.trimmingCharacters(in: .whitespacesAndNewlines)),
+           url.scheme != nil {
+            return url
+        }
+        // 2. Info.plist
+        if let raw = Bundle.main.object(forInfoDictionaryKey: "NEXTMOVE_API_URL") as? String,
+           !raw.isEmpty,
+           let url = URL(string: raw.trimmingCharacters(in: .whitespacesAndNewlines)),
+           url.scheme != nil {
+            return url
+        }
+        // 3. Défauts selon la cible de compilation
+        #if targetEnvironment(simulator)
+        return URL(string: "http://localhost:8000")!
+        #else
+        // Appareil physique : localhost pointerait vers l'iPhone.
+        // Changer cette valeur dans Info.plist > NEXTMOVE_API_URL pour éviter
+        // de recompiler à chaque changement d'IP sur le réseau.
+        return URL(string: "http://192.168.1.175:8000")!
+        #endif
+    }
 
     init(baseURL: URL? = nil) {
-        if let baseURL {
-            self.baseURL = baseURL
-        } else {
-            #if targetEnvironment(simulator)
-            self.baseURL = URL(string: "http://localhost:8000")!
-            #else
-            // Appareil physique : localhost pointerait vers l'iPhone lui-même,
-            // on vise donc l'IP du Mac sur le réseau local.
-            self.baseURL = URL(string: "http://\(Self.macLANHost):8000")!
-            #endif
-        }
+        self.baseURL = baseURL ?? Self.resolvedBaseURL
         self.token = UserDefaults.standard.string(forKey: tokenKey)
     }
 
