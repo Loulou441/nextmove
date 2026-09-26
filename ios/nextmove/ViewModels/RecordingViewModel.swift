@@ -28,6 +28,12 @@ class RecordingViewModel: ObservableObject {
 
     private let storageKey = "savedRecordings"
 
+    /// Client de l'API partagée, injecté par ContentView une fois disponible.
+    /// Sert à synchroniser une analyse terminée vers la base partagée pour
+    /// qu'elle apparaisse aussi sur le web. Optionnel : si nil (previews, tests,
+    /// utilisateur non connecté), l'analyse locale fonctionne quand même.
+    weak var api: NextMoveAPI?
+
     init() {
         loadRecordings()
     }
@@ -114,6 +120,46 @@ class RecordingViewModel: ObservableObject {
         await processRecording(recording)
     }
 
+    /// Pousse une analyse terminée vers la base partagée (POST /matches/sync)
+    /// afin qu'elle soit visible sur le web après connexion.
+    ///
+    /// Silencieux par conception : si l'utilisateur n'est pas connecté (pas d'API
+    /// ou pas de token), on ne bloque pas et on ne montre pas d'erreur — l'analyse
+    /// locale reste disponible sur l'appareil dans tous les cas.
+    private func syncAnalysisToBackend(_ recording: GameRecording, _ analysis: GameAnalysis) async {
+        guard let api, api.isLoggedIn else { return }
+
+        let stats = analysis.statistics
+        let ratingOn10 = (analysis.overallRating / 5.0) * 10.0  // 0–5 → 0–10
+
+        // Mappe les GameAnalysis.Highlight vers le format attendu par l'API.
+        let highlights = analysis.highlights.map { h -> [String: String] in
+            [
+                "title": h.description,
+                "time": String(format: "%d:%02d", Int(h.timestamp) / 60, Int(h.timestamp) % 60),
+                "tag": h.type.rawValue,
+            ]
+        }
+
+        do {
+            _ = try await api.syncMatch(
+                title: recording.title,
+                sport: recording.sportType.rawValue,
+                duration: String(format: "%d:%02d", Int(recording.duration) / 60, Int(recording.duration) % 60),
+                rallies: stats.totalRallies,
+                winners: stats.winners,
+                errors: stats.errors,
+                coverage: Int(stats.courtCoveragePercent.rounded()),
+                rating: (ratingOn10 * 10).rounded() / 10,
+                highlights: highlights
+            )
+            print("☁️ Analyse synchronisée vers la base partagée (visible sur le web).")
+        } catch {
+            // Non bloquant : l'analyse locale reste valable.
+            print("⚠️ Sync backend échouée (non bloquant) : \(error.localizedDescription)")
+        }
+    }
+
     // MARK: - Real CV/ML Analysis
 
     /// Runs the real on-device analysis pipeline against the trained Core ML model.
@@ -173,6 +219,9 @@ class RecordingViewModel: ObservableObject {
                 self.isProcessing = false
                 self.saveRecordings()
             }
+
+            // Synchronise vers la base partagée (visible sur le web). Non bloquant.
+            await syncAnalysisToBackend(recording, analysis)
             return true
 
         } catch {
@@ -215,6 +264,7 @@ class RecordingViewModel: ObservableObject {
         }
 
         let mockAnalysis = makeMockAnalysis()
+        let recording = recordings[index]
 
         recordings[index].analysis = mockAnalysis
         recordings[index].status = .completed
@@ -222,6 +272,9 @@ class RecordingViewModel: ObservableObject {
         analysisProgressPercentage = 1.0
         isProcessing = false
         saveRecordings()
+
+        // Synchronise vers la base partagée (visible sur le web). Non bloquant.
+        await syncAnalysisToBackend(recording, mockAnalysis)
     }
 
     private func makeMockAnalysis() -> GameAnalysis {
