@@ -4,36 +4,40 @@
 <dict>
 	<!--
 	  URL de base de l'API FastAPI.
-	  • Simulateur  : laisser vide — NextMoveAPI utilise http://localhost:8000 par défaut.
-	  • iPhone physique sur le réseau local : mettre l'IP LAN du Mac, ex. http://192.168.1.175:8000
-	  • Production : mettre l'URL HTTPS du serveur déployé.
-	  Modifier cette valeur ne nécessite pas de recompiler, il suffit de rebuilder (⌘B).
+	  Priorité de résolution dans NextMoveAPI.swift :
+	    1. Variable d'environnement NEXTMOVE_API_URL (schéma Xcode)
+	    2. Cette clé Info.plist
+	    3. Défaut compilé : localhost:8000 (simulateur) / 192.168.1.175:8000 (device)
+
+	  DEV  (simulateur)  : laisser vide, le défaut http://localhost:8000 s'applique.
+	  DEV  (iPhone réel) : mettre http://192.168.1.175:8000 (IP LAN du Mac).
+	  PROD (Railway)     : mettre l'URL HTTPS Railway, ex. https://nextmove-api.up.railway.app
 	-->
 	<key>NEXTMOVE_API_URL</key>
-	<string>http://192.168.1.175:8000</string>
+	<string></string>
 
 	<!--
 	  App Transport Security.
-	  • NSAllowsLocalNetworking : autorise HTTP vers localhost et *.local (simulateur).
-	  • NSExceptionDomains : exception HTTP en clair pour les IPs LAN en développement.
-	    À supprimer en production (le backend déployé sera en HTTPS).
-	  Si l'IP du Mac change, mettre à jour NEXTMOVE_API_URL ci-dessus ET la clé
-	  de domaine ci-dessous.
+	  En production (HTTPS) aucune exception n'est nécessaire.
+	  Pour le dev sur device physique (HTTP LAN), ajouter temporairement
+	  l'exception ci-dessous et retirer avant de soumettre à l'App Store :
+
+	  <key>NSAppTransportSecurity</key>
+	  <dict>
+	    <key>NSAllowsLocalNetworking</key><true/>
+	    <key>NSExceptionDomains</key>
+	    <dict>
+	      <key>192.168.1.175</key>
+	      <dict>
+	        <key>NSExceptionAllowsInsecureHTTPLoads</key><true/>
+	      </dict>
+	    </dict>
+	  </dict>
 	-->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>192.168.1.175</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSIncludesSubdomains</key>
-				<false/>
-			</dict>
-		</dict>
 	</dict>
 </dict>
 </plist>

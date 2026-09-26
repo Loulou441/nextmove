@@ -61,6 +61,26 @@ class MatchResponse(BaseModel):
         from_attributes = True
 
 
+class MatchSyncRequest(BaseModel):
+    """
+    Payload envoyé par l'app mobile après une analyse locale (Core ML).
+    Permet de sauvegarder le résultat dans la base partagée pour qu'il
+    apparaisse aussi sur le web.
+    """
+    title: str
+    sport: str
+    duration: str | None = None
+    rallies: int | None = None
+    winners: int | None = None
+    errors: int | None = None
+    coverage: int | None = None
+    rating: float | None = None
+    skills: list | None = None
+    highlights: list | None = None
+    insights: list | None = None
+    patterns_summary: dict | None = None
+
+
 class MatchDetailResponse(BaseModel):
     """Version complète d'un match, avec le détail du dashboard (skills,
     highlights, insights, résumé de patterns) — utilisée par GET /matches/{id}."""

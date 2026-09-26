@@ -197,6 +197,37 @@ final class NextMoveAPI: ObservableObject {
         }
     }
 
+    /// Synchronise le résultat d'une analyse locale (Core ML) vers la base
+    /// partagée, pour qu'il apparaisse aussi sur le web après connexion.
+    /// À appeler à la fin de AnalysisPipeline une fois l'analyse terminée.
+    @discardableResult
+    func syncMatch(
+        title: String,
+        sport: String,
+        duration: String? = nil,
+        rallies: Int? = nil,
+        winners: Int? = nil,
+        errors: Int? = nil,
+        coverage: Int? = nil,
+        rating: Double? = nil,
+        skills: [[String: String]]? = nil,
+        highlights: [[String: String]]? = nil,
+        insights: [[String: String]]? = nil
+    ) async throws -> APIMatch {
+        var body: [String: Any] = ["title": title, "sport": sport]
+        if let duration   { body["duration"]  = duration  }
+        if let rallies    { body["rallies"]   = rallies   }
+        if let winners    { body["winners"]   = winners   }
+        if let errors     { body["errors"]    = errors    }
+        if let coverage   { body["coverage"]  = coverage  }
+        if let rating     { body["rating"]    = rating    }
+        if let skills     { body["skills"]    = skills    }
+        if let highlights { body["highlights"] = highlights }
+        if let insights   { body["insights"]  = insights  }
+
+        return try await requestAny("/matches/sync", method: "POST", body: body)
+    }
+
     // MARK: Données
 
     /// Liste les matchs de l'utilisateur connecté (les mêmes que sur le web).
@@ -230,6 +261,26 @@ final class NextMoveAPI: ObservableObject {
 
     private func post<T: Decodable>(_ path: String, body: [String: String]) async throws -> T {
         try await request(path, method: "POST", body: body)
+    }
+
+    /// POST avec un corps [String: Any] (valeurs de types mixtes — Int, String, etc.)
+    private func requestAny<T: Decodable>(_ path: String, method: String, body: [String: Any]) async throws -> T {
+        var req = URLRequest(url: baseURL.appendingPathComponent(path))
+        req.httpMethod = method
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        req.timeoutInterval = 30
+
+        let (data, response) = try await URLSession.shared.data(for: req)
+        guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+        switch http.statusCode {
+        case 200...299: return try JSONDecoder().decode(T.self, from: data)
+        case 401, 403:  throw APIError.unauthorized
+        default:
+            let detail = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["detail"] as? String
+            throw APIError.server(detail ?? "Erreur serveur (\(http.statusCode)).")
+        }
     }
 
     /// POST avec un corps Encodable arbitraire (JSON imbriqué). Utilisé par le
