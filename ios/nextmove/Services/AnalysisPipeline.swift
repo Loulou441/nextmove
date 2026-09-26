@@ -26,8 +26,17 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
     private let coachingEngine: CoachingEngineProtocol
     private let modelManager: ModelManagerProtocol
     
-    /// Progress stream continuation for reporting updates
-    private var progressContinuation: AsyncStream<AnalysisProgress>.Continuation?
+    /// Progress stream continuation for reporting updates.
+    /// Created ONCE alongside `progressStream` in init so the consumer (ViewModel)
+    /// and producer (this pipeline) share the same stream instance. Previously this
+    /// was set from a computed property that minted a new stream on every access,
+    /// which meant `finish()` could target a different stream than the one being
+    /// observed — leaving the observer's `for await` loop (and any
+    /// `await task.value`) suspended forever, freezing the app.
+    private let progressContinuation: AsyncStream<AnalysisProgress>.Continuation
+
+    /// The single progress stream, created once in init.
+    private let progressStream: AsyncStream<AnalysisProgress>
     
     /// Cancellation flag
     private var isCancelled = false
@@ -66,6 +75,12 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
         self.featureExtractor = featureExtractor
         self.coachingEngine = coachingEngine
         self.modelManager = modelManager
+
+        // Create the progress stream + continuation exactly once so producer and
+        // consumer are always bound to the same stream.
+        var continuation: AsyncStream<AnalysisProgress>.Continuation!
+        self.progressStream = AsyncStream { continuation = $0 }
+        self.progressContinuation = continuation
     }
     
     // MARK: - AnalysisPipelineProtocol Implementation
@@ -73,9 +88,7 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
     /// Stream of progress updates during analysis
     /// Validates: Requirement 15.3
     var progress: AsyncStream<AnalysisProgress> {
-        AsyncStream { continuation in
-            self.progressContinuation = continuation
-        }
+        progressStream
     }
     
     /// Analyzes a game recording and returns complete analysis results
@@ -102,14 +115,12 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
         }
         
         do {
-            // Stage 1: Frame Extraction
-            // Validates: Requirements 15.2, 15.5, 24.1
-            let frames = try await executeFrameExtraction(videoURL: videoURL)
-            try checkCancellation()
-            
-            // Stage 2: Object Detection
-            // Validates: Requirements 15.2, 15.5, 24.2, 24.3, 24.4
-            let detections = try await executeObjectDetection(frames: frames, sportType: sportType)
+            // Stages 1+2: Frame extraction AND detection, STREAMED together.
+            // We detect on each frame as it is decoded and keep only the small
+            // Detection results — the frame's CGImage is released immediately.
+            // This caps memory at ~one frame instead of buffering the whole video
+            // (which caused out-of-memory crashes on longer clips).
+            let detections = try await executeStreamingDetection(videoURL: videoURL, sportType: sportType)
             try checkCancellation()
             
             // Stage 3: Object Tracking
@@ -144,7 +155,7 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
             }
             
             // Finish progress stream
-            progressContinuation?.finish()
+            progressContinuation.finish()
             
             return gameAnalysis
             
@@ -153,14 +164,14 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
             // Validates: Requirement 15.6, 15.7
             if isCancelled {
                 logger.info("Analysis cancelled by user")
-                progressContinuation?.finish()
+                progressContinuation.finish()
                 throw CancellationError()
             }
             
             // Log and rethrow other errors
             // Validates: Requirement 15.4
             logger.error("Analysis failed: \(error.localizedDescription)")
-            progressContinuation?.finish()
+            progressContinuation.finish()
             throw error
         }
     }
@@ -177,82 +188,63 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
     
     // MARK: - Private Methods - Stage Execution
     
-    /// Executes frame extraction stage
-    /// Validates: Requirements 15.2, 15.3, 15.5, 24.1
-    private func executeFrameExtraction(videoURL: URL) async throws -> [VideoFrame] {
+    /// Maximum frames to process. Bounds both memory and total analysis time so
+    /// the demo stays smooth even on long clips. At 5 fps this covers ~60s of play.
+    private let maxFramesToProcess = 300
+
+    /// Streams frame extraction + object detection together.
+    ///
+    /// Instead of decoding the ENTIRE video into an in-memory array and then
+    /// detecting (which spiked memory and crashed on longer clips), we run
+    /// detection on each frame as it is produced and keep only the small
+    /// `Detection` results. Each `CGImage` is released as soon as its frame goes
+    /// out of scope, so peak memory stays at roughly one frame.
+    /// Validates: Requirements 15.2, 15.3, 15.5, 24.1, 24.2, 24.3, 24.4
+    private func executeStreamingDetection(videoURL: URL, sportType: SportType) async throws -> [Detection] {
         reportProgress(stage: .frameExtraction, percentage: 0.0, message: "Extracting frames from video...")
-        
+
         let frameRate = 5 // 5 fps for balance of speed and accuracy
         let frameStream = try await videoProcessor.extractFrames(from: videoURL, frameRate: frameRate)
-        
-        var frames: [VideoFrame] = []
+
+        var allDetections: [Detection] = []
         var frameCount = 0
-        
+
         for await frame in frameStream {
             try checkCancellation()
-            
-            frames.append(frame)
-            frameCount += 1
-            
-            // Update progress periodically
-            if frameCount % 10 == 0 {
-                let percentage = 0.2 // Frame extraction is ~20% of total work
-                reportProgress(
-                    stage: .frameExtraction,
-                    percentage: percentage,
-                    message: "Extracted \(frameCount) frames..."
-                )
-            }
-        }
-        
-        logger.info("Extracted \(frames.count) frames")
-        
-        guard !frames.isEmpty else {
-            throw VideoProcessingError.frameExtractionFailed(reason: "No frames extracted from video")
-        }
-        
-        reportProgress(stage: .frameExtraction, percentage: 0.2, message: "Frame extraction complete")
-        
-        return frames
-    }
-    
-    /// Executes object detection stage
-    /// Validates: Requirements 15.2, 15.3, 15.5, 24.2, 24.3, 24.4
-    private func executeObjectDetection(frames: [VideoFrame], sportType: SportType) async throws -> [Detection] {
-        reportProgress(stage: .objectDetection, percentage: 0.2, message: "Detecting objects in frames...")
-        
-        var allDetections: [Detection] = []
-        let totalFrames = frames.count
-        
-        // Process frames sequentially (could be parallelized in future optimization)
-        // Validates: Requirement 24.2
-        for (index, frame) in frames.enumerated() {
-            try checkCancellation()
-            
+
+            // Detect on this frame, then let it be freed (no buffering of frames).
             let detections = try await objectDetector.detect(in: frame, sportType: sportType)
             allDetections.append(contentsOf: detections)
-            
-            // Update progress
-            let frameProgress = Double(index + 1) / Double(totalFrames)
-            let overallProgress = 0.2 + (frameProgress * 0.3) // Detection is 20-50% of total work
-            
-            if (index + 1) % 10 == 0 || index == totalFrames - 1 {
+            frameCount += 1
+
+            if frameCount % 10 == 0 {
+                // Extraction+detection together span ~0-50% of total work.
+                let progress = min(0.5, 0.05 + (Double(frameCount) / Double(maxFramesToProcess)) * 0.45)
                 reportProgress(
                     stage: .objectDetection,
-                    percentage: overallProgress,
-                    message: "Detected objects in \(index + 1)/\(totalFrames) frames..."
+                    percentage: progress,
+                    message: "Analyzed \(frameCount) frames..."
                 )
             }
+
+            // Hard cap: bounded memory + bounded time for a smooth demo.
+            if frameCount >= maxFramesToProcess {
+                logger.info("Reached frame cap (\(self.maxFramesToProcess)); stopping extraction.")
+                (videoProcessor as? VideoProcessor)?.cancel()
+                break
+            }
         }
-        
-        logger.info("Detected \(allDetections.count) objects across \(totalFrames) frames")
-        
+
+        logger.info("Analyzed \(frameCount) frames, \(allDetections.count) detections")
+
+        guard frameCount > 0 else {
+            throw VideoProcessingError.frameExtractionFailed(reason: "No frames extracted from video")
+        }
         guard !allDetections.isEmpty else {
             throw InsufficientDataError(component: "object detection")
         }
-        
+
         reportProgress(stage: .objectDetection, percentage: 0.5, message: "Object detection complete")
-        
         return allDetections
     }
     
@@ -466,7 +458,7 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
             message: message
         )
         
-        progressContinuation?.yield(progress)
+        progressContinuation.yield(progress)
         logger.debug("Progress: \(stage.rawValue) - \(String(format: "%.1f", percentage * 100))% - \(message)")
     }
     

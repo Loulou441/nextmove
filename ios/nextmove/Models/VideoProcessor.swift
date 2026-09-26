@@ -20,6 +20,15 @@ final class VideoProcessor: VideoProcessorProtocol {
     // MARK: - Properties
     
     private var isCancelled = false
+
+    /// Reused across all frames. Creating a CIContext per frame is very expensive
+    /// (allocates Metal/GPU resources each time) and was a major source of the
+    /// memory blowup — create it once and reuse it.
+    private lazy var ciContext = CIContext(options: [.useSoftwareRenderer: false])
+
+    /// Frames are downscaled so their long side is at most this many pixels before
+    /// detection. Keeps per-frame memory small; the model input is smaller anyway.
+    private let maxFrameDimension: CGFloat = 960
     private let supportedFormats: Set<String> = ["mp4", "mov", "m4v"]
     private let maxDuration: TimeInterval = 60 * 60 // 60 minutes
     private let minFrameRate = 1
@@ -63,8 +72,12 @@ final class VideoProcessor: VideoProcessorProtocol {
             throw VideoProcessingError.frameExtractionFailed(reason: "No video track found")
         }
         
-        // Create AsyncStream for memory-efficient frame yielding
-        return AsyncStream { continuation in
+        // Bounded buffer (keep only the newest pending frame) so the decoder
+        // CANNOT run ahead of the detector. Without this, the AsyncStream's default
+        // unbounded buffer queues hundreds of full-resolution CGImages faster than
+        // detection drains them → out-of-memory crash. bufferingNewest(1) applies
+        // backpressure: at most one frame is in flight at a time.
+        return AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
             Task {
                 do {
                     try await self.processFrames(
@@ -157,39 +170,46 @@ final class VideoProcessor: VideoProcessorProtocol {
         var frameNumber = 0
         var lastProcessedTime = CMTime.zero
         
-        while reader.status == .reading {
+        var reachedEnd = false
+        while reader.status == .reading && !reachedEnd {
             // Check for cancellation
             if isCancelled {
                 reader.cancelReading()
                 break
             }
-            
-            // Read next sample buffer
-            guard let sampleBuffer = readerOutput.copyNextSampleBuffer() else {
-                break
-            }
-            
-            let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-            
-            // Check if we should process this frame based on frame rate
-            if shouldProcessFrame(
-                currentTime: presentationTime,
-                lastProcessedTime: lastProcessedTime,
-                frameInterval: frameInterval
-            ) {
-                // Extract CGImage from sample buffer
-                if let cgImage = createCGImage(from: sampleBuffer) {
-                    let videoFrame = VideoFrame(
-                        image: cgImage,
-                        timestamp: presentationTime,
-                        frameNumber: frameNumber
-                    )
-                    
-                    continuation.yield(videoFrame)
-                    
-                    frameNumber += 1
-                    lastProcessedTime = presentationTime
+
+            // Decode + convert inside an autorelease pool so the CMSampleBuffer,
+            // CIImage and other temporaries are freed EVERY iteration rather than
+            // accumulating for the lifetime of the loop (a key OOM cause).
+            // Returns the produced frame (if any); sets reachedEnd when the reader
+            // has no more sample buffers.
+            let produced: VideoFrame? = autoreleasepool {
+                guard let sampleBuffer = readerOutput.copyNextSampleBuffer() else {
+                    reachedEnd = true
+                    return nil
                 }
+                let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+
+                guard shouldProcessFrame(
+                    currentTime: presentationTime,
+                    lastProcessedTime: lastProcessedTime,
+                    frameInterval: frameInterval
+                ) else {
+                    return nil  // skip this frame (frame-rate downsampling), keep reading
+                }
+
+                guard let cgImage = createCGImage(from: sampleBuffer) else {
+                    return nil
+                }
+                lastProcessedTime = presentationTime
+                return VideoFrame(image: cgImage, timestamp: presentationTime, frameNumber: frameNumber)
+            }
+
+            if let frame = produced {
+                // Suspends here until the consumer is ready (bounded buffer applies
+                // backpressure), so the decoder can't outrun detection.
+                continuation.yield(frame)
+                frameNumber += 1
             }
         }
         
@@ -232,10 +252,23 @@ final class VideoProcessor: VideoProcessorProtocol {
             CVPixelBufferUnlockBaseAddress(imageBuffer, .readOnly)
         }
         
-        let ciImage = CIImage(cvPixelBuffer: imageBuffer)
-        let context = CIContext(options: [.useSoftwareRenderer: false])
-        
-        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
+        let sourceImage = CIImage(cvPixelBuffer: imageBuffer)
+
+        // Downscale so the long side is at most `maxFrameDimension`. The detection
+        // model runs at a fixed small input size anyway, so full-resolution frames
+        // waste large amounts of memory (a 1080p/4K CGImage is 8–40 MB each) for no
+        // accuracy gain. Downscaling here is the biggest per-frame memory saver.
+        let extent = sourceImage.extent
+        let longSide = max(extent.width, extent.height)
+        let ciImage: CIImage
+        if longSide > maxFrameDimension {
+            let scale = maxFrameDimension / longSide
+            ciImage = sourceImage.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+        } else {
+            ciImage = sourceImage
+        }
+
+        guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else {
             return nil
         }
         

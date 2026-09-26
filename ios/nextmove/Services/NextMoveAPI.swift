@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import Combine
 
 // MARK: - Modèles renvoyés par l'API
 
@@ -48,6 +49,43 @@ struct APIMatch: Codable, Identifiable {
     let coverage: Int?
 }
 
+// MARK: - Coach IA (agents RAG partagés avec le web)
+
+/// Une séquence de jeu envoyée au coach RAG du backend.
+struct CoachSequenceInput: Codable {
+    var timestamp: String
+    var evenement_cle: String
+    var contexte_tactique: String
+    // Métriques libres (clé -> valeur texte). Simple et suffisant pour le RAG.
+    var metriques_video: [String: String]
+}
+
+struct CoachRecommendationsRequest: Codable {
+    let sport: String
+    let sequences: [CoachSequenceInput]
+    let joueur: [String: String]
+}
+
+struct CoachRecommendationContent: Codable {
+    let constat: String
+    let analyse: String
+    let action_corrective: String
+    let pro_tip: String?
+    let exercice_source_id: String?
+}
+
+struct CoachRecommendation: Codable, Identifiable {
+    var id: String { timestamp + titre }
+    let timestamp: String
+    let titre: String
+    let contenu: CoachRecommendationContent
+}
+
+struct CoachRecommendationsResponse: Codable {
+    let sport: String
+    let recommandations_coach: [CoachRecommendation]
+}
+
 enum APIError: LocalizedError {
     case invalidResponse
     case unauthorized
@@ -79,23 +117,23 @@ final class NextMoveAPI: ObservableObject {
 
     private let tokenKey = "nextmove_auth_token"
 
-    /// Adresse configurable dans le schéma Xcode ou Info.plist.
-    /// Le serveur est désormais fourni par backend/ à la racine du dépôt.
-    private static var configuredBaseURL: URL {
-        let raw = ProcessInfo.processInfo.environment["NEXTMOVE_API_URL"]
-            ?? (Bundle.main.object(forInfoDictionaryKey: "NEXTMOVE_API_URL") as? String)
-            ?? "http://localhost:8000"
-        let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let url = URL(string: value),
-              let scheme = url.scheme, ["http", "https"].contains(scheme),
-              let host = url.host, !host.isEmpty else {
-            preconditionFailure("NEXTMOVE_API_URL doit être une URL HTTP(S) absolue.")
-        }
-        return url
-    }
+    /// IP LAN du Mac qui héberge l'API (même réseau Wi-Fi que l'iPhone).
+    /// Utilisée automatiquement sur un appareil physique (le simulateur, lui,
+    /// peut joindre localhost). Mets à jour cette valeur si l'IP du Mac change.
+    static let macLANHost = "192.168.1.175"
 
     init(baseURL: URL? = nil) {
-        self.baseURL = baseURL ?? Self.configuredBaseURL
+        if let baseURL {
+            self.baseURL = baseURL
+        } else {
+            #if targetEnvironment(simulator)
+            self.baseURL = URL(string: "http://localhost:8000")!
+            #else
+            // Appareil physique : localhost pointerait vers l'iPhone lui-même,
+            // on vise donc l'IP du Mac sur le réseau local.
+            self.baseURL = URL(string: "http://\(Self.macLANHost):8000")!
+            #endif
+        }
         self.token = UserDefaults.standard.string(forKey: tokenKey)
     }
 
@@ -147,6 +185,18 @@ final class NextMoveAPI: ObservableObject {
         try await get("/matches")
     }
 
+    /// Demande au coach RAG du backend (mêmes agents que le web) des
+    /// recommandations structurées pour des séquences de jeu.
+    /// Nécessite une session (token) — le coaching est propre à l'utilisateur.
+    func fetchCoachRecommendations(
+        sport: String,
+        sequences: [CoachSequenceInput],
+        joueur: [String: String] = [:]
+    ) async throws -> CoachRecommendationsResponse {
+        let payload = CoachRecommendationsRequest(sport: sport, sequences: sequences, joueur: joueur)
+        return try await postEncodable("/coach/recommendations", body: payload)
+    }
+
     // MARK: - Bas niveau
 
     private func applySession(_ auth: AuthResponse) {
@@ -161,6 +211,34 @@ final class NextMoveAPI: ObservableObject {
 
     private func post<T: Decodable>(_ path: String, body: [String: String]) async throws -> T {
         try await request(path, method: "POST", body: body)
+    }
+
+    /// POST avec un corps Encodable arbitraire (JSON imbriqué). Utilisé par le
+    /// coach RAG dont la requête n'est pas un simple dictionnaire [String:String].
+    private func postEncodable<Body: Encodable, T: Decodable>(_ path: String, body: Body) async throws -> T {
+        var req = URLRequest(url: baseURL.appendingPathComponent(path))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        req.httpBody = try JSONEncoder().encode(body)
+        // Le coach RAG peut être lent au premier appel (chargement du modèle
+        // d'embedding côté serveur) — on laisse une marge confortable.
+        req.timeoutInterval = 120
+
+        let (data, response) = try await URLSession.shared.data(for: req)
+        guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+
+        switch http.statusCode {
+        case 200...299:
+            return try JSONDecoder().decode(T.self, from: data)
+        case 401, 403:
+            throw APIError.unauthorized
+        default:
+            let detail = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["detail"] as? String
+            throw APIError.server(detail ?? "Erreur serveur (\(http.statusCode)).")
+        }
     }
 
     private func request<T: Decodable>(_ path: String, method: String, body: [String: String]?) async throws -> T {

@@ -10,8 +10,25 @@
 	-->
 	<key>NSAppTransportSecurity</key>
 	<dict>
+		<!-- Autorise le HTTP en clair vers localhost / *.local (simulateur). -->
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
+		<!--
+		  Exception explicite pour l'IP LAN du Mac de dev : nécessaire pour qu'un
+		  iPhone PHYSIQUE puisse joindre http://192.168.1.175:8000 en clair.
+		  Si l'IP du Mac change, mets à jour la clé de domaine ci-dessous.
+		  À RETIRER en production (backend en HTTPS).
+		-->
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>192.168.1.175</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
 </dict>
 </plist>

@@ -100,3 +100,49 @@ class MatchEventResponse(BaseModel):
 
 
 TokenResponse.model_rebuild()
+TokenResponse.model_rebuild()
+
+
+# ---------- Coach IA (agents RAG) ----------
+
+class CoachSequenceInput(BaseModel):
+    """Une séquence de jeu à analyser par le coach RAG.
+
+    Les clients (iOS) envoient des séquences dérivées de leur analyse locale
+    (highlights, événements). Les champs correspondent au format attendu par
+    les agents RAG (`donnees_sequences`).
+    """
+    timestamp: str = ""
+    evenement_cle: str = Field(default="", description="Événement clé de la séquence")
+    contexte_tactique: str = Field(default="", description="Contexte tactique")
+    metriques_video: dict = Field(default_factory=dict)
+
+
+class CoachRecommendationsRequest(BaseModel):
+    """Requête iOS/web pour obtenir des recommandations du coach RAG."""
+    sport: str = Field(description="pickleball | padel | tennis")
+    sequences: list[CoachSequenceInput] = Field(
+        default_factory=list,
+        description="Séquences de jeu à coacher (au moins une).",
+    )
+    joueur: dict = Field(default_factory=dict, description="Infos joueur optionnelles (nom, position…).")
+
+
+class CoachRecommendationContent(BaseModel):
+    constat: str
+    analyse: str
+    action_corrective: str
+    pro_tip: str | None = None
+    exercice_source_id: str | None = None
+
+
+class CoachRecommendation(BaseModel):
+    timestamp: str
+    titre: str
+    contenu: CoachRecommendationContent
+
+
+class CoachRecommendationsResponse(BaseModel):
+    """Réponse structurée du coach RAG (miroir de RecommandationsCoach)."""
+    sport: str
+    recommandations_coach: list[CoachRecommendation]

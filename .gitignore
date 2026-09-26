@@ -10,27 +10,25 @@ data/videos/
 nextmove_demo.db
 .env.api.local
 .venv_api/
-
 # Environnement Python web
 backend/venv/
 backend/.venv/
 __pycache__/
 *.pyc
-
 # Configuration locale web
 backend/.env
 backend/.env.*
 !backend/.env.example
 backend/*payload*.json
-
 # Next.js
 web/frontend/node_modules/
 web/frontend/.next/
 web/frontend/.env*
 !web/frontend/.env.example
-
 # macOS
 .DS_Store
-
 # Configuration du client Next.js (exemple versionné)
 !web/frontend/.env.local.example
+# App LLM secrets (do not commit)
+nextmove/Secrets.plist
+nextmove/Secrets.swift

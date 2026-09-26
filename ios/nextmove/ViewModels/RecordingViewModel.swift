@@ -11,7 +11,11 @@ import Combine
 
 @MainActor
 class RecordingViewModel: ObservableObject {
-    let objectWillChange = ObservableObjectPublisher()
+    // NOTE: Do NOT declare a custom `objectWillChange` here. Providing one
+    // suppresses the synthesized publisher, which means @Published changes
+    // (recordings, isProcessing, analysisProgress…) stop notifying SwiftUI —
+    // the UI then never reflects "processing"/progress. Let ObservableObject
+    // synthesize it so @Published drives view updates.
 
     @Published var recordings: [GameRecording] = []
     @Published var isRecording = false
@@ -32,8 +36,7 @@ class RecordingViewModel: ObservableObject {
 
     func addRecording(videoURL: URL, title: String, sportType: SportType = .pickleball) {
         let recording = GameRecording(title: title, videoURL: videoURL, duration: getVideoDuration(url: videoURL), sportType: sportType)
-        recordings.insert(recording, at: 0)
-        objectWillChange.send()
+        recordings.insert(recording, at: 0)  // @Published triggers the UI update
         saveRecordings()
     }
 
@@ -64,10 +67,10 @@ class RecordingViewModel: ObservableObject {
     /// Set to false to force demo mode (mock analysis) regardless of model availability.
     private let useRealAnalysis = true
 
-    /// TEMPORARY DEBUG: when true, real-analysis failures surface as an on-screen
-    /// error instead of silently falling back to demo. Set back to false for the
-    /// graceful demo fallback once diagnosis is done.
-    private let showRealAnalysisErrors = true
+    /// When true, real-analysis failures surface as an on-screen error (debug).
+    /// When false (demo mode), failures fall back gracefully to a complete demo
+    /// analysis so the app ALWAYS produces a result and the UI reaches .completed.
+    private let showRealAnalysisErrors = false
 
     func processRecording(_ recording: GameRecording) async {
         guard let index = recordings.firstIndex(where: { $0.id == recording.id }) else { return }
@@ -147,10 +150,17 @@ class RecordingViewModel: ObservableObject {
         }
 
         do {
-            let analysis = try await pipeline.analyze(
-                recording: recording,
-                sportType: recording.sportType
-            )
+            // Run the heavy CV/ML work OFF the main actor. The pipeline performs
+            // synchronous CoreML (Vision) inference and CoreImage frame decoding;
+            // if that runs on the main actor it blocks/freezes the UI. Task.detached
+            // guarantees it executes on a background executor.
+            let sport = recording.sportType
+            let analysis = try await Task.detached(priority: .userInitiated) {
+                try await pipeline.analyze(
+                    recording: recording,
+                    sportType: sport
+                )
+            }.value
             await progressTask.value
 
             await MainActor.run {

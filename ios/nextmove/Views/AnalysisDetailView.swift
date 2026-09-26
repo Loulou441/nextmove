@@ -12,6 +12,7 @@ struct AnalysisDetailView: View {
     /// recording to display; live state is read from the view model below.
     let recording: GameRecording
     @ObservedObject var viewModel: RecordingViewModel
+    @EnvironmentObject var api: NextMoveAPI
     @State private var selectedTab = 0
     @StateObject private var playerManager = VideoPlayerManager()
     @Environment(\.dismiss) private var dismiss
@@ -88,7 +89,7 @@ struct AnalysisDetailView: View {
     /// Entry point into the conversational AI coach, grounded in this game's analysis.
     private func askCoachButton(analysis: GameAnalysis) -> some View {
         NavigationLink {
-            CoachChatView(sportType: recording.sportType, analysis: analysis)
+            CoachChatView(sportType: recording.sportType, analysis: analysis, api: api)
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: "bubble.left.and.text.bubble.right.fill")
