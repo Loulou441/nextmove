@@ -67,6 +67,7 @@ class Match(Base):
     user = relationship("User", back_populates="matches")
     events = relationship("MatchEvent", back_populates="match", cascade="all, delete-orphan")
     analyses = relationship("Analysis", back_populates="match", cascade="all, delete-orphan")
+    chat_messages = relationship("ChatMessage", back_populates="match", cascade="all, delete-orphan")
 
 
 class MatchEvent(Base):
@@ -115,3 +116,20 @@ class TrainingPlan(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="training_plans")
+
+
+class ChatMessage(Base):
+    """
+    Un message de la conversation Coach Chat, pour persister l'historique
+    entre deux visites (sans ça, tout se perd à la fermeture de la page).
+    """
+    __tablename__ = "chat_messages"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    match_id = Column(UUID(as_uuid=False), ForeignKey("matches.id"), nullable=False, index=True)
+
+    role = Column(String(10), nullable=False)  # "user" ou "coach"
+    text = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    match = relationship("Match", back_populates="chat_messages")

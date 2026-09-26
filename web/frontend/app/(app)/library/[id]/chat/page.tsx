@@ -73,6 +73,7 @@ export default function CoachChatPage() {
 
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [history, setHistory] = useState<ChatTurn[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +82,19 @@ export default function CoachChatPage() {
   useEffect(() => {
     if (!id) return;
     api.getMatch(id).then(setMatch).catch(() => {});
+  }, [id]);
+
+  // Charge l'historique déjà sauvegardé en base — la conversation survit
+  // maintenant à la fermeture de la page, contrairement à avant.
+  useEffect(() => {
+    if (!id) return;
+    api
+      .getChatHistory(id)
+      .then((saved) => {
+        setHistory(saved.map((m) => ({ role: m.role, text: m.text })));
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingHistory(false));
   }, [id]);
 
   const suggestions = useMemo(() => buildSuggestions(match), [match]);
@@ -124,7 +138,11 @@ export default function CoachChatPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-4">
-        {history.length === 0 && (
+        {isLoadingHistory && (
+          <p className="text-nm-text-secondary text-sm">Chargement de la conversation...</p>
+        )}
+
+        {!isLoadingHistory && history.length === 0 && (
           <>
             <div className="bg-nm-card rounded-nm-card shadow-sm p-4 text-sm text-nm-text-secondary">
               Pose une question sur ce match — technique, tactique, ou ce que tu peux travailler pour progresser.

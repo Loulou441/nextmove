@@ -3,6 +3,10 @@ Route de chat conversationnel avec le coach IA — inspirée de l'expérience
 iOS (échange libre, multi-tours) mais ancrée sur les vraies données du match
 et le RAG (exercices validés), contrairement au chat iOS qui n'utilise ni
 l'un ni l'autre.
+
+Chaque message (utilisateur et coach) est persisté en base (table
+chat_messages), pour que la conversation survive à la fermeture de la page —
+contrairement à la version précédente où tout se perdait au rechargement.
 """
 from pathlib import Path
 
@@ -11,7 +15,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from api.deps import get_db, get_current_user
-from db.models import User, Match
+from api.schemas import ChatMessageResponse
+from db.models import User, Match, ChatMessage
 from config import PROMPT_PATHS, MODEL_NAME_PADEL, MODEL_NAME_PICKELBALL, MODEL_NAME_TENNIS, GROQ_TEMPERATURE
 from agents.agentmanager.agent import Agent
 from agents.agentmanager.schemas import ChatReply
@@ -46,18 +51,49 @@ def _extract_persona(context_text: str) -> str:
     return context_text[:idx].strip() if idx != -1 else context_text.strip()
 
 
-class ChatMessage(BaseModel):
+def _get_owned_match(db: Session, match_id: str, user: User) -> Match:
+    """Récupère un match en vérifiant qu'il appartient bien à l'utilisateur,
+    ou lève 404 — factorisé car utilisé par les deux routes de ce fichier."""
+    match = (
+        db.query(Match)
+        .filter(Match.id == match_id, Match.user_id == user.id)
+        .first()
+    )
+    if match is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match introuvable")
+    return match
+
+
+class ChatMessage_(BaseModel):
     role: str  # "user" ou "coach"
     text: str
 
 
 class ChatRequest(BaseModel):
     message: str
-    history: list[ChatMessage] = []
+    history: list[ChatMessage_] = []
 
 
 class ChatResponse(BaseModel):
     reply: str
+
+
+@router.get("/{match_id}/chat", response_model=list[ChatMessageResponse])
+def get_chat_history(
+    match_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Renvoie l'historique de conversation déjà sauvegardé pour ce match."""
+    _get_owned_match(db, match_id, current_user)
+
+    messages = (
+        db.query(ChatMessage)
+        .filter(ChatMessage.match_id == match_id)
+        .order_by(ChatMessage.created_at)
+        .all()
+    )
+    return [ChatMessageResponse.model_validate(m) for m in messages]
 
 
 @router.post("/{match_id}/chat", response_model=ChatResponse)
@@ -72,13 +108,7 @@ def chat_with_coach(
     métriques du match et sur des exercices réels retrouvés par RAG —
     contrairement au chat iOS, plus simple, qui n'utilise ni l'un ni l'autre.
     """
-    match = (
-        db.query(Match)
-        .filter(Match.id == match_id, Match.user_id == current_user.id)
-        .first()
-    )
-    if match is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match introuvable")
+    match = _get_owned_match(db, match_id, current_user)
 
     sport = match.sport
     if sport not in _CONTEXT_FILES:
@@ -157,5 +187,12 @@ def chat_with_coach(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Le coach IA n'a pas pu répondre : {exc}",
         )
+
+    # Persistance : on sauvegarde le message utilisateur ET la réponse du
+    # coach, dans cet ordre, pour que l'historique reste cohérent même si
+    # l'utilisateur recharge la page juste après.
+    db.add(ChatMessage(match_id=match_id, role="user", text=message))
+    db.add(ChatMessage(match_id=match_id, role="coach", text=result.reply))
+    db.commit()
 
     return ChatResponse(reply=result.reply)

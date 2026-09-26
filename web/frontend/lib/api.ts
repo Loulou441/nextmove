@@ -80,6 +80,13 @@ export interface ChatTurn {
   text: string;
 }
 
+export interface ChatHistoryMessage {
+  id: string;
+  role: "user" | "coach";
+  text: string;
+  created_at: string;
+}
+
 export interface ChatResponse {
   reply: string;
 }
@@ -220,6 +227,9 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ message, history }),
     }),
+
+  getChatHistory: (matchId: string) =>
+    request<ChatHistoryMessage[]>(`/matches/${matchId}/chat`),
 
   generateTrainingPlan: (sport: string) =>
     request<TrainingPlan>("/training-plan", {

@@ -100,3 +100,13 @@ class MatchEventResponse(BaseModel):
 
 
 TokenResponse.model_rebuild()
+
+
+class ChatMessageResponse(BaseModel):
+    id: str
+    role: str
+    text: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
