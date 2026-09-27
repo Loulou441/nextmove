@@ -307,19 +307,18 @@ def main():
                         continue
                     if field_top > 0.0 and box_bottom < field_top - 0.03:
                         continue
-                    # Reject players standing OUTSIDE the court's horizontal
-                    # span (e.g. a person to the left of the field). A small
-                    # margin lets near players who straddle the sideline pass.
                     if field_left is not None:
                         margin = 0.01
                         if cx < field_left - margin or cx > field_right + margin:
                             continue
-                    # Kill the phantom on the LEFT GLASS wall. A real player in
-                    # the far-left strip (cx < 0.17) is the near-left player,
-                    # whose feet sit low in frame (box_bottom >= 0.82). The
-                    # glass reflection/person-behind-glass sits higher up, so
-                    # drop any far-left box that doesn't reach the near zone.
-                    if cx < 0.17 and box_bottom < 0.82:
+                    # Reject people at the extreme left/right MARGINS of the
+                    # frame. In this camera angle the court's playing area is
+                    # centered; anyone hugging the far edges (cx < 0.16 or
+                    # cx > 0.84) is a spectator / waiting player standing
+                    # outside the court by the back glass, not someone in the
+                    # rally. Real on-court players — even the near pair lunging
+                    # at the net — stay well inside these margins.
+                    if cx < 0.16 or cx > 0.84:
                         continue
                     if os.environ.get("NM_DEBUG"):
                         print(f"[dbg] player cx={cx:.3f} cy={cy:.3f} "
