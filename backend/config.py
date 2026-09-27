@@ -14,10 +14,13 @@ load_dotenv(REPO_ROOT / ".env", override=False)
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 # Model name for GROQ (les valeurs par défaut doivent être des modèles Groq valides)
-MODEL_NAME_PICKELBALL = "openai/gpt-oss-safeguard-20b"
-MODEL_NAME_TENNIS = "openai/gpt-oss-safeguard-20b"
-MODEL_NAME_PADEL = "openai/gpt-oss-safeguard-20b"
-MODEL_NAME_MODERATOR = "openai/gpt-oss-safeguard-20b"
+# Modèles Groq (open models hébergés par Groq). "openai/gpt-oss-20b" est le nom
+# du modèle open-weights côté Groq — ce n'est PAS un appel à l'API OpenAI.
+_DEFAULT_GROQ_MODEL = "openai/gpt-oss-20b"
+MODEL_NAME_PICKELBALL = os.environ.get("MODEL_NAME_PICKELBALL", _DEFAULT_GROQ_MODEL)
+MODEL_NAME_TENNIS = os.environ.get("MODEL_NAME_TENNIS", _DEFAULT_GROQ_MODEL)
+MODEL_NAME_PADEL = os.environ.get("MODEL_NAME_PADEL", _DEFAULT_GROQ_MODEL)
+MODEL_NAME_MODERATOR = os.environ.get("MODEL_NAME_MODERATOR", _DEFAULT_GROQ_MODEL)
 
 # Température des complétions Groq (0.0 = réponses déterministes/reproductibles)
 GROQ_TEMPERATURE = float(os.environ.get("GROQ_TEMPERATURE", "0.0"))

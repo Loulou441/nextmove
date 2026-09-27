@@ -80,6 +80,7 @@ Le pipeline Core ML reste local. L’app peut envoyer ses résultats à
 | POST | `/matches/{id}/analyze` | Analyse vidéo |
 | GET | `/matches/{id}/events` | Événements |
 | POST | `/matches/{id}/coach-report` | Rapport de coaching |
+| POST | `/coach/recommendations` | Coaching RAG à partir des séquences iOS |
 | GET / POST | `/matches/{id}/chat` | Historique et chat persistants |
 | GET | `/matches/{id}/export-pdf` | Rapport PDF via Chromium |
 | GET / POST | `/training-plan` | Historique et génération de plans |

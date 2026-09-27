@@ -173,3 +173,19 @@ def test_native_client_can_login_again_without_origin_header(client, database):
         for _ in range(2):
             response = client.post("/auth/login", json={"email": user.email, "password": "password"})
             assert response.status_code == 200
+
+
+def test_mobile_coaching_route_survives_web_integration(client, database):
+    _, user, _, _ = database
+    client.headers["Authorization"] = f"Bearer {create_session_token(user.id)}"
+    with patch("backend.api.routes_coach._get_coach_class") as coach_class:
+        coach_class.return_value.return_value.generate_recommendations.return_value.model_dump.return_value = {
+            "recommandations_coach": []
+        }
+        response = client.post("/coach/recommendations", json={
+            "sport": "padel", "sequences": [{"timestamp": "0:10", "evenement_cle": "Service"}]
+        })
+    assert response.status_code == 200
+    assert response.json() == {"sport": "padel", "recommandations_coach": []}
+    coach_class.assert_called_once_with("padel")
+    assert client.post("/coach/recommendations", json={"sport": "padel", "sequences": []}).status_code == 400

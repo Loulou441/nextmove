@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes_export import router as export_router
 from backend.api.routes_auth import router as auth_router
 from backend.api.routes_matches import router as matches_router
-from backend.api.routes_coach import router as coach_router
+from backend.api.routes_coach import router as coach_report_router, coach_router
 from backend.api.routes_chat import router as chat_router
 from backend.api.routes_training import router as training_router
 
@@ -59,7 +59,8 @@ async def protect_cookie_writes(request: Request, call_next):
 
 app.include_router(auth_router)
 app.include_router(matches_router)
-app.include_router(coach_router)
+app.include_router(coach_report_router)   # POST /matches/{id}/coach-report (web)
+app.include_router(coach_router)          # POST /coach/recommendations (mobile, RAG-grounded)
 app.include_router(chat_router)
 app.include_router(training_router)
 app.include_router(export_router)
