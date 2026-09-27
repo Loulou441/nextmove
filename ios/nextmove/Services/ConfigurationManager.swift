@@ -97,7 +97,6 @@ class ConfigurationManager {
     
     private func loadFromEnvironment() {
         let envKeys = [
-            "OPENAI_API_KEY", "OPENAI_API_BASE_URL", "OPENAI_MODEL", "OPENAI_ORG_ID",
             "GROQ_API_KEY", "GROQ_API_BASE_URL", "GROQ_MODEL"
         ]
         for key in envKeys {
@@ -115,25 +114,23 @@ class ConfigurationManager {
         return config[key] ?? defaultValue
     }
     
-    // The AI Coach uses an OpenAI-compatible client. Groq is OpenAI-compatible,
-    // so GROQ_* keys are accepted as aliases and take precedence when present.
+    // NextMove uses Groq exclusively for LLM coaching. The Groq API is
+    // OpenAI-compatible at the wire level, so the property names below keep the
+    // "openAI*" spelling that the networking layer expects — but every value
+    // resolves to Groq. No OpenAI keys or endpoints are read anywhere.
     var openAIAPIKey: String? {
-        return get("GROQ_API_KEY") ?? get("OPENAI_API_KEY")
+        return get("GROQ_API_KEY")
     }
-    
+
     var openAIBaseURL: String {
-        if let groqBase = get("GROQ_API_BASE_URL") { return groqBase }
-        // If a Groq key is configured but no explicit base URL, default to Groq's endpoint.
-        if get("GROQ_API_KEY") != nil { return get("OPENAI_API_BASE_URL", default: "https://api.groq.com/openai/v1") }
-        return get("OPENAI_API_BASE_URL", default: "https://api.openai.com/v1")
+        return get("GROQ_API_BASE_URL", default: "https://api.groq.com/openai/v1")
     }
-    
+
     var openAIModel: String {
-        if let groqModel = get("GROQ_MODEL") { return groqModel }
-        return get("OPENAI_MODEL", default: "gpt-4o-mini")
+        return get("GROQ_MODEL", default: "llama-3.3-70b-versatile")
     }
-    
+
     var openAIOrgID: String? {
-        return get("OPENAI_ORG_ID")
+        return nil  // Not used with Groq.
     }
 }

@@ -3,3 +3,9 @@
 # commande de démarrage : lancer uvicorn sur le module de l'API.
 [start]
 cmd = "python -m uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT"
+
+[phases.build]
+cmds = ["python -m playwright install --with-deps chromium"]
+
+[variables]
+PLAYWRIGHT_BROWSERS_PATH = "/opt/playwright-browsers"

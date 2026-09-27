@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
 import { api, MatchDetail, ApiError } from "@/lib/api";
 
 const COLOR_CLASS: Record<string, string> = {
@@ -24,7 +23,6 @@ const POLL_INTERVAL_MS = 4000;
 
 export default function MatchDashboardPage() {
   const { id } = useParams<{ id: string }>();
-  const { token } = useAuth();
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,18 +30,18 @@ export default function MatchDashboardPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!token || !id) return;
+    if (!id) return;
 
     let cancelled = false;
 
     function fetchMatch() {
       api
-        .getMatch(token!, id)
+        .getMatch(id)
         .then((data) => {
           if (cancelled) return;
           setMatch(data);
           setError(null);
-          // Dès que l'analyse est terminée (succès ou échec), on arrête de sonder.
+          // Dès que l’analyse est terminée (succès ou échec), on arrête de sonder.
           if (data.status !== "processing" && intervalRef.current) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
@@ -66,18 +64,18 @@ export default function MatchDashboardPage() {
       cancelled = true;
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [token, id]);
+  }, [id]);
 
   async function handleStartAnalysis() {
-    if (!token || !id) return;
+    if (!id) return;
     setIsStartingAnalysis(true);
     try {
-      const updated = await api.analyzeMatch(token, id);
-      setMatch(updated);
+      const updated = await api.analyzeMatch(id);
+      setMatch((previous) => previous ? { ...previous, ...updated } : previous);
       // Relance le polling maintenant que le statut est passé à "processing".
       if (!intervalRef.current) {
         intervalRef.current = setInterval(() => {
-          api.getMatch(token, id).then((data) => {
+          api.getMatch(id).then((data) => {
             setMatch(data);
             if (data.status !== "processing" && intervalRef.current) {
               clearInterval(intervalRef.current);
@@ -87,7 +85,7 @@ export default function MatchDashboardPage() {
         }, POLL_INTERVAL_MS);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible de démarrer l'analyse.");
+      setError(err instanceof ApiError ? err.message : "Impossible de démarrer l’analyse.");
     } finally {
       setIsStartingAnalysis(false);
     }
@@ -122,14 +120,14 @@ export default function MatchDashboardPage() {
       <div className="bg-nm-card rounded-nm-card shadow-sm p-8 text-center">
         <p className="text-nm-text font-medium mb-1">Vidéo importée, analyse pas encore lancée</p>
         <p className="text-nm-text-secondary text-sm mb-4">
-          Clique ci-dessous pour démarrer l'analyse CV de ce match.
+          Clique ci-dessous pour démarrer l’analyse CV de ce match.
         </p>
         <button
           onClick={handleStartAnalysis}
           disabled={isStartingAnalysis}
           className="bg-nm-green hover:bg-nm-green-dark text-white font-semibold rounded-nm-button px-6 py-2.5 text-sm transition-colors disabled:opacity-60"
         >
-          {isStartingAnalysis ? "Démarrage..." : "Lancer l'analyse"}
+          {isStartingAnalysis ? "Démarrage..." : "Lancer l’analyse"}
         </button>
       </div>
     );
@@ -154,7 +152,7 @@ export default function MatchDashboardPage() {
         </div>
         <div className="flex gap-2 no-print">
           <button
-            onClick={() => window.print()}
+            onClick={() => window.open(api.getExportUrl(match.id), "_blank", "noopener,noreferrer")}
             className="bg-nm-card border border-nm-border hover:bg-nm-bg text-nm-text text-sm font-semibold rounded-nm-button px-4 py-2 transition-colors shrink-0"
           >
             📄 Export PDF
