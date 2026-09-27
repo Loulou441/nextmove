@@ -185,6 +185,11 @@ def main():
                     help="higher confidence gate for the 'player' class")
     ap.add_argument("--keep", default="player,ball,field",
                     help="comma-separated class names to draw (others are dropped)")
+    ap.add_argument("--ball-motion", type=float, default=0.006,
+                    help="min normalized center displacement between consecutive "
+                         "ball detections to treat it as the MOVING ball. Static "
+                         "balls (displacement below this) are not drawn, matching "
+                         "the analysis pipeline which only tracks the moving ball.")
     args = ap.parse_args()
 
     keep_names = {k.strip().lower() for k in args.keep.split(",") if k.strip()}
@@ -228,6 +233,12 @@ def main():
 
     processed = 0
     tracker = PlayerTracker()
+
+    # Track the moving ball across frames. We only draw a ball once it has
+    # moved meaningfully from its previous position, so a ball sitting static
+    # on the court (or resting in a hand) is NOT flagged as a detection. This
+    # mirrors the analysis pipeline, which only tracks the ball in play.
+    ball_state = {"prev": None, "moving": False}
 
     def draw_box(frame, box_px, label, color):
         x1, y1, x2, y2 = box_px
@@ -340,8 +351,39 @@ def main():
                 parts.append(f"p{pid}@{fcx:.2f},y{bn[1]:.2f}-{bn[3]:.2f}")
             print(f"[f{processed}] " + " | ".join(parts))
 
-        # Draw non-player classes first (field, ball) so player boxes sit on top
-        for cid, box, score in other_dets:
+        # Separate ball detections so we can gate them on motion. Only the
+        # single best ball per frame is a candidate for the "ball in play".
+        ball_dets = [(cid, box, score) for cid, box, score in other_dets
+                     if names.get(cid, "").lower() == "ball"]
+        non_ball_dets = [(cid, box, score) for cid, box, score in other_dets
+                         if names.get(cid, "").lower() != "ball"]
+
+        moving_ball = None  # (cid, box, score) to actually draw
+        if ball_dets:
+            cid, box, score = max(ball_dets, key=lambda d: d[2])
+            cx, cy = box[0], box[1]
+            prev = ball_state["prev"]
+            if prev is not None:
+                disp = ((cx - prev[0]) ** 2 + (cy - prev[1]) ** 2) ** 0.5
+                # Once the ball is confirmed moving, keep drawing it while it
+                # stays in play; only stop when it clearly comes to rest.
+                if disp >= args.ball_motion:
+                    ball_state["moving"] = True
+                elif disp < args.ball_motion * 0.4:
+                    ball_state["moving"] = False
+            ball_state["prev"] = (cx, cy)
+            if ball_state["moving"]:
+                moving_ball = (cid, box, score)
+        else:
+            # No ball this frame -> reset so a later static ball isn't drawn
+            # just because the previous in-play ball had moved.
+            ball_state["prev"] = None
+            ball_state["moving"] = False
+
+        # Draw non-player classes first (field, moving ball) so player boxes
+        # sit on top.
+        draw_dets = non_ball_dets + ([moving_ball] if moving_ball else [])
+        for cid, box, score in draw_dets:
             cx, cy, bw, bh = box
             box_px = (int((cx - bw / 2) * vw), int((cy - bh / 2) * vh),
                       int((cx + bw / 2) * vw), int((cy + bh / 2) * vh))
