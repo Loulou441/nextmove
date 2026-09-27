@@ -45,3 +45,17 @@ PROMPT_PATHS = {
 APP_PAGE_TITLE = os.environ.get("APP_PAGE_TITLE", "NextMove")
 APP_PAGE_ICON = os.environ.get("APP_PAGE_ICON", "🏓")
 DEFAULT_SPORT = os.environ.get("DEFAULT_SPORT", "pickleball")
+
+# Origines explicites : nécessaires aux cookies envoyés par le navigateur.
+CORS_ORIGINS = [origin.strip().rstrip("/") for origin in os.environ.get(
+    "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+).split(",") if origin.strip()]
+if "*" in CORS_ORIGINS:
+    raise ValueError("CORS_ORIGINS doit contenir des origines explicites, pas *")
+AUTH_COOKIE_NAME = "access_token"
+AUTH_COOKIE_SECURE = os.environ.get("AUTH_COOKIE_SECURE", "false").lower() == "true"
+AUTH_COOKIE_SAMESITE = os.environ.get("AUTH_COOKIE_SAMESITE", "lax").lower()
+if AUTH_COOKIE_SAMESITE not in {"lax", "strict", "none"}:
+    raise ValueError("AUTH_COOKIE_SAMESITE doit être lax, strict ou none")
+if AUTH_COOKIE_SAMESITE == "none" and not AUTH_COOKIE_SECURE:
+    raise ValueError("SameSite=None exige AUTH_COOKIE_SECURE=true et HTTPS")

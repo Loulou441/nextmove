@@ -11,7 +11,7 @@ const SPORTS = [
 ];
 
 export default function TrainingPlanPage() {
-  const { token, user } = useAuth();
+  const { user } = useAuth();
   const [sport, setSport] = useState(user?.preferred_sport ?? "padel");
   const [plans, setPlans] = useState<TrainingPlan[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
@@ -19,21 +19,20 @@ export default function TrainingPlanPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
-    setIsLoadingHistory(true);
+    let cancelled = false;
     api
-      .getTrainingPlans(token, sport)
-      .then(setPlans)
-      .catch(() => setPlans([]))
-      .finally(() => setIsLoadingHistory(false));
-  }, [token, sport]);
+      .getTrainingPlans(sport)
+      .then((saved) => { if (!cancelled) setPlans(saved); })
+      .catch(() => { if (!cancelled) setPlans([]); })
+      .finally(() => { if (!cancelled) setIsLoadingHistory(false); });
+    return () => { cancelled = true; };
+  }, [sport]);
 
   async function handleGenerate() {
-    if (!token) return;
     setError(null);
     setIsGenerating(true);
     try {
-      const plan = await api.generateTrainingPlan(token, sport);
+      const plan = await api.generateTrainingPlan(sport);
       setPlans((prev) => [plan, ...prev]);
     } catch (err) {
       setError(
@@ -51,7 +50,7 @@ export default function TrainingPlanPage() {
   return (
     <div className="max-w-2xl flex flex-col gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-nm-text mb-1">Programme d'entraînement</h1>
+        <h1 className="text-2xl font-bold text-nm-text mb-1">Programme d’entraînement</h1>
         <p className="text-nm-text-secondary text-sm">
           Généré à partir de tes matchs analysés récemment.
         </p>
@@ -61,7 +60,13 @@ export default function TrainingPlanPage() {
         {SPORTS.map((s) => (
           <button
             key={s.value}
-            onClick={() => setSport(s.value)}
+            disabled={isGenerating}
+            onClick={() => {
+              if (sport === s.value) return;
+              setIsLoadingHistory(true);
+              setPlans([]);
+              setSport(s.value);
+            }}
             className={`flex-1 py-2 rounded-nm-button text-sm font-medium border transition-colors ${
               sport === s.value
                 ? "bg-nm-green-light border-nm-green text-nm-text"
@@ -75,7 +80,7 @@ export default function TrainingPlanPage() {
 
       <button
         onClick={handleGenerate}
-        disabled={isGenerating}
+        disabled={isGenerating || isLoadingHistory}
         className="bg-nm-green hover:bg-nm-green-dark text-white font-semibold rounded-nm-button py-3 text-sm transition-colors disabled:opacity-60"
       >
         {isGenerating ? "Génération en cours..." : "Générer un nouveau programme"}
@@ -88,13 +93,13 @@ export default function TrainingPlanPage() {
       )}
 
       {isLoadingHistory && (
-        <p className="text-nm-text-secondary text-sm">Chargement de l'historique...</p>
+        <p className="text-nm-text-secondary text-sm">Chargement de l’historique...</p>
       )}
 
       {!isLoadingHistory && !latestPlan && !error && (
         <div className="bg-nm-card rounded-nm-card shadow-sm p-8 text-center">
           <p className="text-nm-text-secondary text-sm">
-            Aucun programme pour ce sport pour l'instant. Génère-en un à partir de tes matchs analysés.
+            Aucun programme pour ce sport pour l’instant. Génère-en un à partir de tes matchs analysés.
           </p>
         </div>
       )}

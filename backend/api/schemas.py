@@ -120,7 +120,6 @@ class MatchEventResponse(BaseModel):
 
 
 TokenResponse.model_rebuild()
-TokenResponse.model_rebuild()
 
 
 # ---------- Coach IA (agents RAG) ----------
@@ -166,3 +165,13 @@ class CoachRecommendationsResponse(BaseModel):
     """Réponse structurée du coach RAG (miroir de RecommandationsCoach)."""
     sport: str
     recommandations_coach: list[CoachRecommendation]
+
+
+class ChatMessageResponse(BaseModel):
+    id: str
+    role: str
+    text: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

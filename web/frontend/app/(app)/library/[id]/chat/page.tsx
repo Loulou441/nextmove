@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
 import { api, ChatTurn, MatchDetail, ApiError } from "@/lib/api";
 
 function buildSuggestions(match: MatchDetail | null): string[] {
@@ -71,19 +70,32 @@ function buildSuggestions(match: MatchDetail | null): string[] {
 
 export default function CoachChatPage() {
   const { id } = useParams<{ id: string }>();
-  const { token } = useAuth();
 
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [history, setHistory] = useState<ChatTurn[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!token || !id) return;
-    api.getMatch(token, id).then(setMatch).catch(() => {});
-  }, [token, id]);
+    if (!id) return;
+    api.getMatch(id).then(setMatch).catch(() => {});
+  }, [id]);
+
+  // Charge l'historique déjà sauvegardé en base — la conversation survit
+  // maintenant à la fermeture de la page, contrairement à avant.
+  useEffect(() => {
+    if (!id) return;
+    api
+      .getChatHistory(id)
+      .then((saved) => {
+        setHistory(saved.map((m) => ({ role: m.role, text: m.text })));
+      })
+      .catch(() => setError("Impossible de charger la conversation. Réessaie en rechargeant la page."))
+      .finally(() => setIsLoadingHistory(false));
+  }, [id]);
 
   const suggestions = useMemo(() => buildSuggestions(match), [match]);
 
@@ -92,7 +104,7 @@ export default function CoachChatPage() {
   }, [history]);
 
   async function sendMessage(message: string) {
-    if (!token || !id || !message.trim() || isSending) return;
+    if (!id || !message.trim() || isSending || isLoadingHistory) return;
 
     const newHistory: ChatTurn[] = [...history, { role: "user", text: message }];
     setHistory(newHistory);
@@ -101,7 +113,7 @@ export default function CoachChatPage() {
     setIsSending(true);
 
     try {
-      const res = await api.chatWithCoach(token, id, message, history);
+      const res = await api.chatWithCoach(id, message, history);
       setHistory([...newHistory, { role: "coach", text: res.reply }]);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Le coach n'a pas pu répondre.");
@@ -126,7 +138,11 @@ export default function CoachChatPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-4">
-        {history.length === 0 && (
+        {isLoadingHistory && (
+          <p className="text-nm-text-secondary text-sm">Chargement de la conversation...</p>
+        )}
+
+        {!isLoadingHistory && history.length === 0 && (
           <>
             <div className="bg-nm-card rounded-nm-card shadow-sm p-4 text-sm text-nm-text-secondary">
               Pose une question sur ce match — technique, tactique, ou ce que tu peux travailler pour progresser.

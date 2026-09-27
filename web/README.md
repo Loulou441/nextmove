@@ -46,6 +46,17 @@ L’adresse de l’API doit être accessible au navigateur. Redémarrer le front
 après modification de `.env.local`. Aucune clé serveur ne doit figurer dans les
 variables `NEXT_PUBLIC_*`.
 
+## Session web
+
+La session utilise un cookie HttpOnly ; le frontend ne stocke plus le JWT
+avec `localStorage`. Une reconnexion est nécessaire après cette migration.
+Configurer côté API `CORS_ORIGINS`, `AUTH_COOKIE_SECURE` et
+`AUTH_COOKIE_SAMESITE` selon [les instructions backend](../backend/README.md).
+Le jeton Bearer de l’app iOS reste accepté.
+
+Avant de tester le chat persistant, appliquer la migration `chat_messages`.
+L’export PDF nécessite Chromium sur le serveur, pas sur le poste utilisateur.
+
 ## Organisation
 
 | Dossier | Rôle |
@@ -63,7 +74,10 @@ variables `NEXT_PUBLIC_*`.
 2. Importer une vidéo où la balle est visible.
 3. Lancer l’analyse et suivre l’état jusqu’à `ready` ou `failed`.
 4. Vérifier le détail, les événements et les métriques du match.
-5. Tester le chat et les plans d’entraînement avec des matchs exploitables.
+5. Tester le chat, recharger la page et vérifier que la conversation est conservée.
+6. Exporter un rapport PDF et vérifier son contenu.
+7. Tester les plans d’entraînement et la déconnexion.
+8. Supprimer un match de test et vérifier le nettoyage de sa vidéo.
 
 Les données utilisent la base configurée côté backend. Si elle est partagée
 avec Streamlit, les créations et suppressions affectent les mêmes données.

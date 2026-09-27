@@ -16,10 +16,9 @@ les comptes et accepter les tokens existants. Ne pas écraser un `.env` existant
 
 ## Installation et configuration
 
-Les dépendances sont déclarées dans `requirements.txt`. Le dépôt ne fixe pas
-de version Python de référence et cette réorganisation n’a pas validé une
-installation complète : conserver la version de l’environnement fonctionnel
-existant et vérifier l’installation avant de changer de version Python.
+Les dépendances complètes sont déclarées dans `requirements.txt` et la
+version du déploiement Railway dans le fichier `.python-version` à la racine.
+L’export PDF nécessite aussi Chromium, installé après les paquets Python.
 
 Depuis la racine du dépôt :
 
@@ -27,6 +26,7 @@ Depuis la racine du dépôt :
 python3 -m venv backend/.venv
 source backend/.venv/bin/activate
 python -m pip install -r backend/requirements.txt
+python -m playwright install chromium
 ```
 
 Créer `backend/.env` à partir de `backend/.env.example`. Il contient la connexion
@@ -62,8 +62,8 @@ et la préparation des connaissances RAG. `/health` ne valide pas les services e
 - Valeur locale commune : `http://localhost:8000`.
 
 Pour un iPhone physique, choisir une URL accessible depuis le téléphone.
-La bibliothèque iOS et le pipeline Core ML restent locaux ; aucune synchronisation
-supplémentaire n’est introduite par ce déplacement.
+Le pipeline Core ML reste local. L’app peut envoyer ses résultats à
+`POST /matches/sync` pour les retrouver côté web ; cet envoi n’inclut pas la vidéo.
 
 ## Routes principales
 
@@ -72,44 +72,44 @@ supplémentaire n’est introduite par ce déplacement.
 | GET | `/health` | Disponibilité HTTP |
 | POST | `/auth/register` | Inscription |
 | POST | `/auth/login` | Connexion |
+| POST | `/auth/logout` | Suppression du cookie web |
 | GET / PATCH | `/auth/me` | Profil et sport préféré |
 | GET / POST | `/matches` | Bibliothèque et import vidéo |
+| POST | `/matches/sync` | Enregistrement des analyses iOS |
 | GET / DELETE | `/matches/{id}` | Détail et suppression |
 | POST | `/matches/{id}/analyze` | Analyse vidéo |
 | GET | `/matches/{id}/events` | Événements |
 | POST | `/matches/{id}/coach-report` | Rapport de coaching |
-| POST | `/matches/{id}/chat` | Chat |
+| POST | `/coach/recommendations` | Coaching RAG à partir des séquences iOS |
+| GET / POST | `/matches/{id}/chat` | Historique et chat persistants |
+| GET | `/matches/{id}/export-pdf` | Rapport PDF via Chromium |
 | GET / POST | `/training-plan` | Historique et génération de plans |
 
-Les routes protégées attendent `Authorization: Bearer <token>`.
+Les routes protégées acceptent le Bearer iOS ou le cookie HttpOnly web.
+Le JWT reste présent dans les réponses de connexion pour les clients natifs.
+Le frontend envoie les requêtes avec `credentials: "include"`.
+
+Configurer `CORS_ORIGINS` (origines séparées par des virgules, sans `*`),
+`AUTH_COOKIE_SECURE=true` en HTTPS, et `AUTH_COOKIE_SAMESITE` selon le déploiement.
+En local, utiliser le même nom d’hôte pour le frontend et l’API (par exemple
+`localhost` pour les deux). Si les sites frontend/API sont différents,
+`SameSite=None` exige HTTPS ; certains navigateurs bloquent néanmoins les
+cookies tiers. Préférer des sous-domaines du même site ou un proxy de même origine.
+Les écritures par cookie contrôlent l’origine ; les appels natifs Bearer restent acceptés.
 
 ## Base de données
 
-Les migrations existantes restent dans `streamlit/alembic/` et ne sont pas
-dupliquées. Depuis la racine, pour appliquer ces migrations avec la configuration
-du backend :
+Depuis la racine :
 
 ```bash
-python - <<'PY'
-import subprocess
-import sys
-from backend.config import REPO_ROOT
-
-subprocess.run(
-    [sys.executable, "-m", "alembic", "upgrade", "head"],
-    cwd=REPO_ROOT / "streamlit",
-    check=True,
-)
-PY
+python -m alembic -c backend/alembic.ini current
+python -m alembic -c backend/alembic.ini upgrade head
 ```
 
-Vérifier la base ciblée avant d’appliquer les migrations. Pour une base de test
-vide uniquement, `python -m backend.api.init_db` crée les tables des modèles ;
-cette commande ne remplace pas les migrations et ne met pas à niveau un schéma existant.
-
-La priorité de configuration est la même que pour l’API : environnement du
-processus, `backend/.env`, puis `.env` racine. Pour une base Streamlit distincte,
-voir [la documentation des migrations](../streamlit/alembic/README).
+Cette configuration reprend les anciennes révisions et ajoute `chat_messages`.
+Elle fonctionne sur une base vide ou déjà suivie par cet historique. Pour
+les autres cas, suivre [le guide des migrations](alembic/README) avant toute
+commande. L’application ne déclenche aucune migration automatiquement.
 
 ## Modèles et connaissances
 
@@ -120,7 +120,14 @@ gardent leur emplacement relatif lors du déplacement.
 
 ## Vérification
 
-Tester l’inscription, la connexion, `/auth/me` et `/matches` depuis les deux
-clients, puis un import, une analyse et le coaching côté web.
-Les paramètres CORS actuels sont destinés au développement ; configurer les
-origines autorisées et HTTPS avant une exposition en production.
+```bash
+python -m pip install -r backend/requirements-dev.txt
+python -m pytest backend/tests -q
+```
+
+Les tests utilisent une base SQLite isolée ou des doubles de test ; ils ne
+contactent ni Supabase ni Groq et ne téléchargent pas les modèles RAG.
+Ils couvrent notamment la connexion cookie/Bearer, la synchronisation iOS,
+la persistance du chat, les droits d’accès, les migrations et la préparation
+du PDF. Le rendu Chromium et l’analyse vidéo réelle restent à vérifier sur
+l’environnement déployé.
