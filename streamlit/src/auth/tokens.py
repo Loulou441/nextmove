@@ -14,7 +14,9 @@ import jwt
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parents[3]
+# Charge .env ET .env.api.local (SECRET_KEY vit dans le fichier API local).
 load_dotenv(ROOT / ".env")
+load_dotenv(ROOT / ".env.api.local")
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:

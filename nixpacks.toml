@@ -1,0 +1,5 @@
+# Nixpacks détecte automatiquement Python via requirements.txt à la racine et
+# installe les dépendances avec pip dans un venv. On ne surcharge que la
+# commande de démarrage : lancer uvicorn sur le module de l'API.
+[start]
+cmd = "python -m uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT"

@@ -223,7 +223,7 @@ class FeatureExtractor: FeatureExtractorProtocol {
                             startTime: rallyStart,
                             endTime: rallyEnd,
                             shotCount: currentShotCount,
-                            outcome: .unknown
+                            outcome: classifyRallyOutcome(shotCount: currentShotCount)
                         )
                         rallies.append(rally)
                     }
@@ -251,12 +251,29 @@ class FeatureExtractor: FeatureExtractorProtocol {
                 startTime: rallyStart,
                 endTime: rallyEnd,
                 shotCount: currentShotCount,
-                outcome: .unknown
+                outcome: classifyRallyOutcome(shotCount: currentShotCount)
             )
             rallies.append(rally)
         }
         
         return rallies
+    }
+
+    /// Approximate rally outcome from its length.
+    ///
+    /// HEURISTIC (documented, not a real umpire call): a rally that sustained
+    /// several exchanges before ending is more likely finished by a decisive
+    /// shot (winner); a very short one is more likely an unforced error. Bounding-
+    /// box detection alone can't truly judge winner vs error, so this is a
+    /// reasonable stand-in that yields non-zero winner/error counts rather than
+    /// leaving every rally `.unknown`.
+    private func classifyRallyOutcome(shotCount: Int) -> RallyOutcome {
+        if shotCount >= 4 {
+            return .winner
+        } else if shotCount >= 1 {
+            return .error
+        }
+        return .unknown
     }
     
     // MARK: - Player Movement Analysis (Requirements 5.1-5.8)

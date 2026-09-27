@@ -8,9 +8,22 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from backend.db.models import Match, MatchEvent
-from backend.services.cv_pipeline import analyze_video, CVPipelineError
 
 __all__ = ["create_pending_match", "mark_match_ready", "get_user_matches", "CVPipelineError"]
+
+
+class CVPipelineError(Exception):
+    """
+    Erreur d'analyse vidéo (vidéo illisible, aucune balle détectée…).
+
+    Défini ici plutôt qu'importé de cv_pipeline pour que ce module — et donc
+    l'API FastAPI — s'importe SANS tirer les dépendances lourdes de la CV
+    (cv2, torch, ultralytics). Ces dépendances ne sont chargées que si l'on
+    lance réellement une analyse vidéo côté serveur (mark_match_ready), ce qui
+    n'arrive pas sur le déploiement API léger : l'app mobile fait sa CV en local
+    et pousse le résultat via POST /matches/sync.
+    """
+    pass
 
 
 def create_pending_match(
@@ -52,7 +65,14 @@ def mark_match_ready(db: Session, match_id: str) -> Match:
     if match is None:
         raise ValueError(f"Match {match_id} introuvable")
 
-    result = analyze_video(match.sport, match.video_storage_path)
+    # Import différé : ne charge cv2/torch/ultralytics qu'au moment d'une vraie
+    # analyse vidéo serveur (pas sur le déploiement API léger de Railway).
+    from backend.services.cv_pipeline import analyze_video, CVPipelineError as _PipelineError
+
+    try:
+        result = analyze_video(match.sport, match.video_storage_path)
+    except _PipelineError as exc:
+        raise CVPipelineError(str(exc)) from exc
 
     match.status = "ready"
     match.rating = result.rating

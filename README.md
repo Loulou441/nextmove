@@ -4,7 +4,7 @@ NextMove analyse des vidéos de sports de raquette pour produire des
 indicateurs de performance et des recommandations de coaching.
 
 Le projet couvre le padel, le pickleball et le tennis. Il propose trois
-interfaces : une application iOS, une application Streamlit et une
+interfaces : une application mobile, une application Streamlit et une
 application web React / Next.js.
 
 ![Démonstration de détection sur une vidéo de padel](docs/media/demo_padel_nofield.gif)
@@ -13,7 +13,7 @@ application web React / Next.js.
 
 | Application | Technologies | Analyse vidéo |
 |---|---|---|
-| iOS | SwiftUI, AVFoundation, Vision, Core ML | Sur l’appareil |
+| Mobile | SwiftUI, AVFoundation, Vision, Core ML | Sur l’appareil |
 | Streamlit | Python, Streamlit, SQLAlchemy | Côté serveur avec YOLO |
 | Web | React, Next.js, TypeScript, FastAPI | Côté serveur avec YOLO |
 
@@ -28,7 +28,7 @@ fonctionnelle restent distinctes.
 | `ios/` | Application Swift, projet Xcode et tests |
 | `streamlit/` | Application Streamlit, services Python et migrations |
 | `web/frontend/` | Interface React / Next.js |
-| `backend/` | API FastAPI commune à React et iOS, services et agents |
+| `backend/` | API FastAPI commune à React et à l'application mobile, services et agents |
 | `training/` | Préparation des données, entraînement, évaluation et export |
 | `docs/` | Documentation, exemples, maquettes et médias |
 | `scripts/` | Vérifications et maintenance |
@@ -50,7 +50,7 @@ Lancer le backend Python et le frontend dans deux terminaux.
 Les commandes, variables d’environnement et vérifications sont détaillées
 dans [web/README.md](web/README.md).
 
-### iOS
+### Application mobile
 
 Depuis la racine :
 
@@ -74,7 +74,7 @@ Voir [streamlit/README.md](streamlit/README.md) pour son organisation et sa conf
 
 ## API et données
 
-Une seule API HTTP est conservée, dans `backend/`, pour React et iOS.
+Une seule API HTTP est conservée, dans `backend/`, pour React et l'application mobile.
 Depuis la racine du dépôt, après installation et configuration :
 
 ```bash
@@ -84,14 +84,14 @@ python -m uvicorn backend.api.main:app --reload --port 8000
 Voir [backend/README.md](backend/README.md) pour la configuration et le passage
 depuis l’ancienne organisation. L’ancien dossier `streamlit/src/api/` a été retiré.
 
-React utilise `NEXT_PUBLIC_API_URL`. iOS utilise `NEXTMOVE_API_URL`, avec
+React utilise `NEXT_PUBLIC_API_URL`. L'application mobile utilise `NEXTMOVE_API_URL`, avec
 `http://localhost:8000` par défaut pour le simulateur. L’API se déploie séparément
 de l’interface Streamlit.
 
 Streamlit conserve ses services, son authentification et ses accès SQL.
 Pour partager les comptes et accepter les tokens existants, configurer la même
 base et la même `SECRET_KEY` côté Streamlit et backend.
-Les vidéos et analyses iOS restent locales : ce déplacement n’ajoute pas de
+Les vidéos et analyses mobiles restent locales : ce déplacement n’ajoute pas de
 synchronisation complète de sa bibliothèque et ne modifie pas son pipeline Core ML.
 
 ## Base de données et migrations
@@ -124,7 +124,7 @@ Les fichiers `.env` et les clés privées ne doivent pas être versionnés.
 
 ## Modèles de vision
 
-| Sport | iOS — Core ML | Python — YOLO |
+| Sport | Mobile — Core ML | Python — YOLO |
 |---|---|---|
 | Padel | `ios/nextmove/Models/Padel/PadelDetector_v1.mlpackage` | `training/models/exported/padel_best.pt` |
 | Pickleball | `ios/nextmove/Models/Pickleball/PickleballDetector_v1.mlpackage` | `training/models/exported/pickleball_best.pt` |
@@ -136,7 +136,7 @@ un autre dossier ; utiliser de préférence un chemin absolu.
 
 Les modèles Core ML sont des exports adaptés à l’application Apple.
 
-Le code iOS mentionne également le badminton avec un repli sur le modèle
+Le code de l'application mobile mentionne également le badminton avec un repli sur le modèle
 tennis. Aucun modèle badminton dédié n’est fourni.
 
 ## Entraînement
@@ -154,7 +154,7 @@ Utiliser un environnement Python séparé de celui des applications.
 
 ## Vérifications
 
-Vérifier les fichiers et branchements du coaching iOS :
+Vérifier les fichiers et branchements du coaching mobile :
 
 ```bash
 bash scripts/verify_llm_setup.sh
@@ -165,7 +165,7 @@ et ne valide pas les appels au fournisseur LLM.
 
 Avant une fusion :
 
-1. Compiler et tester iOS dans Xcode si la partie Apple est concernée.
+1. Compiler et tester l'application mobile dans Xcode si la partie Apple est concernée.
 2. Vérifier le démarrage de l’interface et de l’API concernées.
 3. Tester la connexion, l’import vidéo et l’analyse.
 4. Vérifier les résultats et les fonctionnalités de coaching.
@@ -174,9 +174,9 @@ Avant une fusion :
 ## Documentation
 
 - [Application web](web/README.md)
-- [Application iOS](ios/README.md)
+- [Application mobile](ios/README.md)
 - [Application Streamlit](streamlit/README.md)
 - [API commune](backend/README.md)
-- [Exemple de coaching iOS](docs/ios/USAGE_EXAMPLE_LLM.swift)
+- [Exemple de coaching mobile](docs/ios/USAGE_EXAMPLE_LLM.swift)
 - [Maquettes](docs/mockups/)
 - [Médias de démonstration](docs/media/)

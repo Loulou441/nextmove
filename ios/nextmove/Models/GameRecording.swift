@@ -10,12 +10,33 @@ struct GameRecording: Identifiable, Codable {
     let id: UUID
     var title: String
     var date: Date
-    var videoURL: URL?
+    /// Only the file NAME is persisted (e.g. "ABC123.mov"), never an absolute URL.
+    /// The iOS app sandbox container path changes between launches/reinstalls, so a
+    /// stored absolute URL becomes invalid ("Video file not found"). We rebuild the
+    /// URL against the CURRENT Documents directory every time via `videoURL`.
+    var videoFileName: String?
     var thumbnailData: Data?
     var duration: TimeInterval
     var status: ProcessingStatus
     var analysis: GameAnalysis?
     var sportType: SportType
+
+    /// Absolute URL to the video, resolved against the current Documents directory.
+    /// Setting it stores just the last path component (the file name).
+    var videoURL: URL? {
+        get {
+            guard let name = videoFileName else { return nil }
+            return Self.documentsDirectory.appendingPathComponent(name)
+        }
+        set {
+            videoFileName = newValue?.lastPathComponent
+        }
+    }
+
+    /// Current app Documents directory (stable folder, path prefix may change between runs).
+    static var documentsDirectory: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
     
     enum ProcessingStatus: String, Codable {
         case pending
@@ -28,30 +49,53 @@ struct GameRecording: Identifiable, Codable {
         self.id = id
         self.title = title
         self.date = date
-        self.videoURL = videoURL
+        self.videoFileName = videoURL?.lastPathComponent
         self.duration = duration
         self.status = .pending
         self.sportType = sportType
     }
     
-    // Custom decoder to handle legacy recordings without sportType
+    // Custom decoder to handle legacy recordings (old absolute videoURL, missing sportType)
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         title = try container.decode(String.self, forKey: .title)
         date = try container.decode(Date.self, forKey: .date)
-        videoURL = try container.decodeIfPresent(URL.self, forKey: .videoURL)
         thumbnailData = try container.decodeIfPresent(Data.self, forKey: .thumbnailData)
         duration = try container.decode(TimeInterval.self, forKey: .duration)
         status = try container.decode(ProcessingStatus.self, forKey: .status)
         analysis = try container.decodeIfPresent(GameAnalysis.self, forKey: .analysis)
-        
+
+        // Prefer the new videoFileName; migrate legacy records that stored a full URL
+        // by keeping only its file name (resolved against the current Documents dir).
+        if let name = try container.decodeIfPresent(String.self, forKey: .videoFileName) {
+            videoFileName = name
+        } else if let legacyURL = try container.decodeIfPresent(URL.self, forKey: .videoURL) {
+            videoFileName = legacyURL.lastPathComponent
+        } else {
+            videoFileName = nil
+        }
+
         // Migration logic: default to .pickleball for legacy recordings
         sportType = try container.decodeIfPresent(SportType.self, forKey: .sportType) ?? .pickleball
     }
+
+    // Encode only videoFileName going forward (not the volatile absolute URL).
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encode(date, forKey: .date)
+        try container.encodeIfPresent(videoFileName, forKey: .videoFileName)
+        try container.encodeIfPresent(thumbnailData, forKey: .thumbnailData)
+        try container.encode(duration, forKey: .duration)
+        try container.encode(status, forKey: .status)
+        try container.encodeIfPresent(analysis, forKey: .analysis)
+        try container.encode(sportType, forKey: .sportType)
+    }
     
     private enum CodingKeys: String, CodingKey {
-        case id, title, date, videoURL, thumbnailData, duration, status, analysis, sportType
+        case id, title, date, videoURL, videoFileName, thumbnailData, duration, status, analysis, sportType
     }
 }
 

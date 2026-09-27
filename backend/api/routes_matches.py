@@ -10,7 +10,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, UploadFile, File, Form,
 from sqlalchemy.orm import Session
 
 from backend.api.deps import get_db, get_current_user
-from backend.api.schemas import MatchResponse, MatchDetailResponse, MatchEventResponse
+from backend.api.schemas import MatchResponse, MatchDetailResponse, MatchEventResponse, MatchSyncRequest
 from backend.db.models import User, Match, MatchEvent
 from backend.db.session import SessionLocal
 from backend.services.match_service import get_user_matches, create_pending_match, mark_match_ready, CVPipelineError
@@ -27,6 +27,47 @@ def list_my_matches(
     """Liste les matchs de l'utilisateur connecté (les mêmes que sur le web)."""
     matches = get_user_matches(db, current_user.id)
     return [MatchResponse.model_validate(m) for m in matches]
+
+
+@router.post("/sync", response_model=MatchDetailResponse, status_code=status.HTTP_201_CREATED)
+def sync_mobile_match(
+    payload: MatchSyncRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Reçoit le résultat d'une analyse effectuée localement sur l'app mobile
+    (Core ML sur l'appareil) et le persiste dans la base partagée.
+
+    Permet à l'utilisateur de retrouver ses analyses mobiles sur le web
+    après connexion, sans avoir à uploader la vidéo.
+    """
+    import uuid
+    from datetime import datetime
+
+    match = Match(
+        id=str(uuid.uuid4()),
+        user_id=current_user.id,
+        title=payload.title,
+        sport=payload.sport,
+        status="ready",
+        duration=payload.duration,
+        rallies=payload.rallies,
+        winners=payload.winners,
+        errors=payload.errors,
+        coverage=payload.coverage,
+        rating=payload.rating,
+        skills=payload.skills,
+        highlights=payload.highlights,
+        insights=payload.insights,
+        patterns_summary=payload.patterns_summary,
+        match_date=datetime.utcnow(),
+        created_at=datetime.utcnow(),
+    )
+    db.add(match)
+    db.commit()
+    db.refresh(match)
+    return MatchDetailResponse.model_validate(match)
 
 
 @router.post("", response_model=MatchResponse, status_code=status.HTTP_201_CREATED)

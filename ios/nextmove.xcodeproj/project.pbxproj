@@ -33,6 +33,7 @@
 		32884D102F5EB4FA00F40472 /* Exceptions for "nextmove" folder in "nextmove" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Info.plist,
 				Models/Padel/README.md,
 				Models/Pickleball/README.md,
 				Models/README_ModelManager.md,
