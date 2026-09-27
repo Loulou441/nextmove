@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth-context";
 import { api, Match, MatchDetail } from "@/lib/api";
 
 const ROWS: { label: string; key: keyof MatchDetail; suffix?: string }[] = [
@@ -13,7 +12,6 @@ const ROWS: { label: string; key: keyof MatchDetail; suffix?: string }[] = [
 ];
 
 export default function ComparePage() {
-  const { token } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [leftId, setLeftId] = useState<string>("");
   const [rightId, setRightId] = useState<string>("");
@@ -21,8 +19,7 @@ export default function ComparePage() {
   const [right, setRight] = useState<MatchDetail | null>(null);
 
   useEffect(() => {
-    if (!token) return;
-    api.getMatches(token).then((all) => {
+    api.getMatches().then((all) => {
       const ready = all.filter((m) => m.status === "ready");
       setMatches(ready);
       if (ready.length >= 2) {
@@ -30,17 +27,17 @@ export default function ComparePage() {
         setRightId(ready[1].id);
       }
     });
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    if (!token || !leftId) return;
-    api.getMatch(token, leftId).then(setLeft);
-  }, [token, leftId]);
+    if (!leftId) return;
+    api.getMatch(leftId).then(setLeft);
+  }, [leftId]);
 
   useEffect(() => {
-    if (!token || !rightId) return;
-    api.getMatch(token, rightId).then(setRight);
-  }, [token, rightId]);
+    if (!rightId) return;
+    api.getMatch(rightId).then(setRight);
+  }, [rightId]);
 
   if (matches.length < 2) {
     return (

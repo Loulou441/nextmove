@@ -22,21 +22,18 @@ sur le web après connexion (via POST /matches/sync).
 ## 2. Créer le service sur Railway
 
 1. Railway → **New Project** → **Deploy from GitHub repo** → choisir `Loulou441/nextmove`.
-2. `railway.json` (à la racine) force le builder **NIXPACKS** et pointe vers
-   `nixpacks.toml`. Un `requirements.txt` racine (qui référence
-   `backend/requirements.railway.txt`) garantit aussi la détection Python si
-   Railway retombe sur son builder Railpack. Version allégée : sans
-   torch / ultralytics / streamlit / opencv (inutiles à l'API — l'app mobile
-   fait sa CV en local).
+2. `railway.json` utilise Nixpacks avec `nixpacks.toml`. Les dépendances API
+   sont installées depuis `requirements.txt` à la racine ; le build installe
+   aussi Chromium et ses dépendances système pour l’export PDF.
 3. Le service démarre avec :
    `python -m uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT`
 
-> **Note technique** : les dépendances lourdes de la vision (cv2, torch,
-> ultralytics) ne sont importées que si l'on lance une analyse vidéo *côté
-> serveur* (`mark_match_ready`). Sur le déploiement API, ce chemin n'est jamais
-> emprunté — l'app mobile analyse en local et pousse le résultat via
-> `POST /matches/sync`. L'import est donc différé pour que l'API démarre sans
-> ces paquets.
+Cette configuration n’installe pas OpenCV ni Ultralytics. Elle permet de
+recevoir les analyses mobiles, mais ne suffit pas pour analyser les vidéos
+web côté serveur. Pour ce parcours, installer les dépendances complètes de
+`backend/requirements.txt` et disposer des poids YOLO et des ressources
+nécessaires. Les embeddings RAG utilisent sentence-transformers et peuvent
+installer PyTorch même dans la configuration API.
 
 ## 3. Variables d'environnement (Railway → Variables)
 
@@ -49,7 +46,10 @@ Copier ces clés (valeurs dans `.env.api.local`, **jamais** commitées) :
 | `SUPABASE_URL` | Projet Supabase (Storage vidéos) |
 | `SUPABASE_KEY` | Clé publique Supabase |
 | `SUPABASE_SERVICE_KEY` | Clé service Supabase (Storage) |
-| `GROQ_API_KEY` | Coaching IA (optionnel — sans clé, mode dégradé) |
+| `GROQ_API_KEY` | Coaching IA |
+| `CORS_ORIGINS` | Origines exactes du frontend, séparées par des virgules |
+| `AUTH_COOKIE_SECURE` | `true` en production HTTPS |
+| `AUTH_COOKIE_SAMESITE` | `lax` pour le même site ; `none` si sites différents |
 
 > `DATABASE_URL` et `SECRET_KEY` doivent être **identiques** à ceux du web
 > pour que les comptes et les tokens soient interopérables.
@@ -74,19 +74,26 @@ Dans `ios/nextmove/Info.plist`, renseigner la clé `NEXTMOVE_API_URL` :
 En HTTPS, aucune exception ATS n'est nécessaire (le bloc `NSAppTransportSecurity`
 ne garde que `NSAllowsLocalNetworking` pour le dev en simulateur).
 
-## 6. La base est déjà migrée
+## 6. Migrer la base pour le chat persistant
 
-Le schéma Supabase est à jour (révision Alembic `56822ee323a9`, dernière).
-Aucune migration à relancer. Pour une future évolution du schéma :
+Avant de servir cette version, vérifier la base cible et sauvegarder ses données :
 
 ```bash
-cd streamlit
-DATABASE_URL="<url-supabase>" python -m alembic upgrade head
+python -m alembic -c backend/alembic.ini current
+python -m alembic -c backend/alembic.ini upgrade head
 ```
 
-## Notes
+La nouvelle révision est `7b9e20260927`, après `56822ee323a9`. Ne pas supposer
+que la base est déjà à jour. Voir [les cas particuliers](alembic/README) si
+elle a été créée avec `init_db` ou depuis l’historique indépendant de `nextmove_web`.
+Aucune commande de migration n’est exécutée automatiquement par le service.
 
-- Le premier appel au coaching IA peut être lent (chargement du modèle
-  d'embeddings RAG) — préchargé au démarrage du serveur (`main.py`).
-- Railway peut mettre le service en veille sur le plan gratuit ; le plan
-  hobby (~5 $/mois) le garde éveillé — recommandé pour une démo.
+## 7. Vérifier le déploiement
+
+Vérifier la connexion web et iOS, la synchronisation mobile, le chat après
+rechargement et le téléchargement d’un PDF. `/health` seul ne prouve pas que
+la base, Groq, Storage ou Chromium fonctionnent.
+
+Le premier appel au coaching peut être lent pendant le chargement des embeddings.
+Pour les cookies, préférer frontend et API sur le même site ; les cookies
+inter-sites peuvent être bloqués par le navigateur même avec `SameSite=None`.

@@ -96,29 +96,22 @@ synchronisation complète de sa bibliothèque et ne modifie pas son pipeline Cor
 
 ## Base de données et migrations
 
-Les migrations sont conservées dans `streamlit/alembic/`.
+Les migrations historiques restent dans `streamlit/alembic/versions/`.
+La configuration du backend les réutilise et ajoute les nouvelles révisions,
+dont la table des conversations du coach.
 
-Pour appliquer les migrations avec la configuration de l’API, exécuter depuis
-la racine, avec l’environnement Python du backend activé :
+Depuis la racine, avec l’environnement Python du backend activé :
 
 ```bash
-python - <<'PY'
-import subprocess
-import sys
-from backend.config import REPO_ROOT
-
-subprocess.run(
-    [sys.executable, "-m", "alembic", "upgrade", "head"],
-    cwd=REPO_ROOT / "streamlit",
-    check=True,
-)
-PY
+python -m alembic -c backend/alembic.ini current
+python -m alembic -c backend/alembic.ini upgrade head
 ```
 
-Cette commande utilise `DATABASE_URL` avec la priorité suivante : environnement
-du processus, puis `backend/.env`, puis `.env` racine. Vérifier la base ciblée
-avant de l’exécuter, surtout si Streamlit et l’API utilisent des bases distinctes.
-Voir [la documentation des migrations](streamlit/alembic/README) pour le cas Streamlit.
+La priorité de `DATABASE_URL` est : environnement du processus, `backend/.env`,
+puis `.env` racine. Vérifier la base ciblée et sauvegarder les données avant
+une mise à niveau. Pour une base partagée avec Streamlit, utiliser cette
+configuration commune. Les cas de bases initialisées sans Alembic ou issues
+de l’ancienne branche web sont décrits dans [le guide des migrations](backend/alembic/README).
 
 Les fichiers `.env` et les clés privées ne doivent pas être versionnés.
 
