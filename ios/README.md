@@ -101,6 +101,19 @@ Pour rendre l’API locale accessible au réseau, depuis la racine :
 python -m uvicorn backend.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+**Production (Railway).** Le backend est déployé sur Railway. Pour pointer l’app
+vers lui, renseigner la clé `NEXTMOVE_API_URL` dans
+`ios/nextmove/Info.plist` avec l’URL HTTPS du service, par exemple :
+
+```xml
+<key>NEXTMOVE_API_URL</key>
+<string>https://nextmove-production-9996.up.railway.app</string>
+```
+
+En HTTPS, aucune exception ATS n’est nécessaire. Vérifier
+`https://<url>/health` avant une démonstration (le service peut se mettre en
+veille sur l’offre gratuite ; le réveiller quelques minutes avant).
+
 Vérifier le pare-feu, les autorisations réseau et la politique HTTP d’iOS.
 L’application Streamlit en ligne n’est pas l’URL de cette API.
 
@@ -145,34 +158,50 @@ son inclusion dans la cible et son chargement à l’exécution.
 Les outils d’entraînement et de conversion sont dans
 [training/](../training/).
 
-## Coaching LLM en développement
+## Coaching IA (Groq)
 
-La configuration est lue par `ConfigurationManager.swift`.
+NextMove utilise **Groq** comme unique fournisseur de LLM (aucun appel à
+l’API OpenAI). Il y a deux chemins de coaching :
+
+1. **Coaching serveur (recommandé) — LLM + RAG.** L’app appelle
+   `POST /coach/recommendations` sur l’API commune. Le backend exécute le même
+   agent coach par sport que le web et ancre la réponse sur des exercices réels
+   (RAG / ChromaDB). C’est ce chemin qui donne les meilleurs conseils ; il ne
+   requiert **aucune clé côté app**, seulement que l’API soit accessible.
+2. **Enrichissement LLM local (optionnel).** `EnhancedCoachingEngine` peut
+   appeler Groq directement depuis l’appareil. La configuration est lue par
+   `ConfigurationManager.swift`.
+
+### Clé Groq pour l’enrichissement local
+
+La clé est fournie via un fichier **`Secrets.swift`** (non versionné). Copier
+le gabarit et renseigner la clé :
+
+```bash
+cp ios/nextmove/Secrets.example.swift ios/nextmove/Secrets.swift
+# puis dans Secrets.swift : renommer SecretsExample -> Secrets et coller groqAPIKey
+```
+
+Variables reconnues (toutes optionnelles — préfixe `GROQ_`) :
 
 | Variable | Rôle |
 |---|---|
-| `OPENAI_API_KEY` | Clé du fournisseur LLM |
-| `OPENAI_API_BASE_URL` | URL personnalisée, optionnelle |
-| `OPENAI_MODEL` | Modèle personnalisé, optionnel |
-| `OPENAI_ORG_ID` | Organisation, optionnelle |
+| `GROQ_API_KEY` | Clé Groq |
+| `GROQ_API_BASE_URL` | Endpoint (défaut `https://api.groq.com/openai/v1`) |
+| `GROQ_MODEL` | Modèle (défaut `openai/gpt-oss-20b`, un modèle open hébergé par Groq) |
 
-Pour un lancement local depuis Xcode, définir les variables dans :
+> Le nom `openai/gpt-oss-20b` est un modèle **open-weights hébergé par Groq** —
+> ce n’est pas un appel à l’API OpenAI.
 
-**Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables**
+Pour un lancement local depuis Xcode, ces variables peuvent aussi être
+définies dans **Product → Scheme → Edit Scheme → Run → Arguments →
+Environment Variables**.
 
-Le `.env` racine du dépôt n’est pas automatiquement lu par l’application.
-Le code recherche notamment un fichier dans le bundle et lit les variables
-d’environnement du processus.
+Sans clé (et sans API serveur joignable), le pipeline bascule sur un coaching
+**fondé sur des règles**, de sorte que l’app produit toujours un résultat.
 
-Une variable définie dans un terminal n’est pas nécessairement transmise
-à une application lancée depuis Xcode.
-
-Ne pas distribuer une application contenant une clé privée de fournisseur.
-Cette configuration est destinée aux essais de développement.
-
-Le pipeline prévoit un coaching fondé sur des règles lorsque
-l’enrichissement LLM n’est pas disponible. Vérifier séparément le
-comportement du chat en cas d’échec du service.
+Ne pas distribuer d’application contenant une clé privée. `Secrets.swift` est
+gitignored et réservé aux essais de développement.
 
 Exemple :
 [USAGE_EXAMPLE_LLM.swift](../docs/ios/USAGE_EXAMPLE_LLM.swift).
@@ -182,12 +211,14 @@ Exemple :
 Les enregistrements et leurs analyses sont actuellement gérés localement
 par l’application.
 
-`NextMoveAPI` gère la connexion, l’inscription, la récupération du profil
-et expose une méthode de lecture des matchs serveur.
+`NextMoveAPI` gère la connexion, l’inscription, la récupération du profil,
+la lecture des matchs serveur, et la **synchronisation d’une analyse terminée**
+vers la base partagée via `POST /matches/sync` (`syncMatch`).
 
-Cela ne constitue pas une synchronisation complète de la bibliothèque.
-Un match créé sur iOS ne doit pas être supposé automatiquement disponible
-dans Streamlit ou sur le web.
+Ainsi, une analyse faite sur iOS est **poussée vers la base commune** et
+apparaît sur le web après connexion avec le même compte. Les vidéos, elles,
+restent locales à l’appareil (seul le résultat d’analyse est envoyé) — ce
+n’est donc pas une synchronisation complète de la médiathèque.
 
 ## Vérification de l’intégration
 
@@ -237,7 +268,7 @@ ne prouve donc pas à lui seul que l’analyse réelle a réussi.
 | Modèle introuvable | Présence du modèle, nom attendu et inclusion dans la cible |
 | Erreur de signature | Équipe et réglages Signing & Capabilities |
 | Destination incompatible | Version du système et cible de déploiement |
-| Coaching LLM indisponible | Variables du schéma Xcode et journaux du service |
+| Coaching IA indisponible | API `/coach/recommendations` joignable, clé Groq (`Secrets.swift`), journaux |
 | Résultats de démonstration | Examiner l’erreur du pipeline réel et les options de repli |
 
 ## Documentation
