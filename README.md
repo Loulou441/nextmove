@@ -15,11 +15,19 @@ application web React / Next.js.
 |---|---|---|
 | Mobile | SwiftUI, AVFoundation, Vision, Core ML | Sur l’appareil |
 | Streamlit | Python, Streamlit, SQLAlchemy | Côté serveur avec YOLO |
-| Web | React, Next.js, TypeScript, FastAPI | Côté serveur avec YOLO |
+| Web | React, Next.js, TypeScript, FastAPI | Côté serveur avec YOLO (installation complète uniquement) |
 
 Les applications partagent un objectif produit et des modèles issus du
 pipeline d’entraînement. Leurs implémentations et leur couverture
 fonctionnelle restent distinctes.
+
+**Analyse vidéo web en production.** Le déploiement Railway de l’API utilise
+un `requirements.txt` allégé, sans `torch` / `ultralytics` / `opencv`, pour
+garder l’API légère (l’app mobile fait sa CV en local). `POST
+/matches/{id}/analyze` — l’analyse vidéo serveur pour React — dépend donc de
+l’installation locale et complète (`backend/requirements.txt`) ; sur le
+déploiement Railway actuel, cet appel échoue tant que ces dépendances n’y
+sont pas ajoutées. Voir [backend/README.md](backend/README.md).
 
 ## Organisation du dépôt
 

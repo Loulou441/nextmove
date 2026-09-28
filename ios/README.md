@@ -188,9 +188,11 @@ Variables reconnues (toutes optionnelles — préfixe `GROQ_`) :
 |---|---|
 | `GROQ_API_KEY` | Clé Groq |
 | `GROQ_API_BASE_URL` | Endpoint (défaut `https://api.groq.com/openai/v1`) |
-| `GROQ_MODEL` | Modèle (défaut `openai/gpt-oss-20b`, un modèle open hébergé par Groq) |
+| `GROQ_MODEL` | Modèle (défaut si non défini : `llama-3.3-70b-versatile` ; le gabarit `Secrets.example.swift` propose `openai/gpt-oss-20b` à titre d’exemple, à ajuster selon les modèles disponibles sur le compte Groq) |
 
-> Le nom `openai/gpt-oss-20b` est un modèle **open-weights hébergé par Groq** —
+> Les noms de modèles ci-dessus sont des modèles **hébergés par Groq**
+> (`llama-3.3-70b-versatile` est un modèle Meta servi par Groq,
+> `openai/gpt-oss-20b` un modèle open-weights également hébergé par Groq) —
 > ce n’est pas un appel à l’API OpenAI.
 
 Pour un lancement local depuis Xcode, ces variables peuvent aussi être

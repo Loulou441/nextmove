@@ -16,11 +16,26 @@ les comptes et accepter les tokens existants. Ne pas écraser un `.env` existant
 
 ## Installation et configuration
 
-Les dépendances complètes sont déclarées dans `requirements.txt` et la
-version du déploiement Railway dans le fichier `.python-version` à la racine.
-L’export PDF nécessite aussi Chromium, installé après les paquets Python.
+Il existe deux jeux de dépendances Python :
 
-Depuis la racine du dépôt :
+- `backend/requirements.txt` — installation locale complète (inclut
+  `torch`, `ultralytics`, `opencv-python-headless` : nécessaire pour que
+  `POST /matches/{id}/analyze` fasse une vraie analyse vidéo côté serveur) ;
+- `requirements.txt` à la racine du dépôt (identique à
+  `backend/requirements.railway.txt`) — version allégée utilisée par le
+  déploiement Railway (Nixpacks la détecte automatiquement à la racine),
+  **sans** `torch` / `ultralytics` / `opencv`. Avec ce jeu de dépendances,
+  l’app mobile fonctionne normalement (elle fait sa CV en local et n’envoie
+  que ses résultats via `/matches/sync`), mais `POST /matches/{id}/analyze`
+  échoue avec une `ImportError` : cette route n’est donc pas opérationnelle
+  sur le déploiement Railway actuel tel quel.
+
+La version Python du déploiement Railway est fixée dans le fichier
+`.python-version` à la racine. L’export PDF nécessite aussi Chromium,
+installé après les paquets Python (automatiquement sur Railway via
+`nixpacks.toml`).
+
+Pour une installation locale complète, depuis la racine du dépôt :
 
 ```bash
 python3 -m venv backend/.venv
