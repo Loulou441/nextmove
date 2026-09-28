@@ -10,12 +10,21 @@ import SwiftUI
 struct LibraryView: View {
     @EnvironmentObject var viewModel: RecordingViewModel
     @EnvironmentObject var sportManager: SportManager
-    
+
+    @State private var showComparison = false
+
     private var filteredRecordings: [GameRecording] {
         guard let sport = sportManager.currentSport else { return [] }
         return viewModel.recordings(for: sport)
     }
-    
+
+    /// Matchs déjà analysés du sport courant : seuls ceux-ci sont comparables.
+    private var analyzedRecordings: [GameRecording] {
+        filteredRecordings.filter { $0.status == .completed && $0.analysis != nil }
+    }
+
+    private var canCompare: Bool { analyzedRecordings.count >= 2 }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -26,6 +35,20 @@ struct LibraryView: View {
                 }
             }
             .navigationTitle("Library")
+            .toolbar {
+                if canCompare {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            showComparison = true
+                        } label: {
+                            Label("Comparer", systemImage: "square.on.square")
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showComparison) {
+                MatchComparisonView(recordings: analyzedRecordings)
+            }
         }
     }
     

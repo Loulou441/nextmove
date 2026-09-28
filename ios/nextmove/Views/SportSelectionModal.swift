@@ -58,9 +58,9 @@ struct SportCard: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 16) {
-                Text(sport.icon)
-                    .font(.system(size: 60))
-                
+                sportIcon
+                    .frame(height: 72)
+
                 VStack(spacing: 4) {
                     Text(sport.displayName)
                         .font(.headline)
@@ -82,6 +82,20 @@ struct SportCard: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    /// Brand image icon when the sport ships artwork, otherwise the emoji.
+    @ViewBuilder
+    private var sportIcon: some View {
+        if let assetName = sport.assetIconName {
+            Image(assetName)
+                .resizable()
+                .scaledToFit()
+                .accessibilityLabel(sport.displayName)
+        } else {
+            Text(sport.icon)
+                .font(.system(size: 60))
+        }
     }
 }
 

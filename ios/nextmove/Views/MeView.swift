@@ -10,6 +10,7 @@ import SwiftUI
 struct MeView: View {
     @EnvironmentObject var viewModel: RecordingViewModel
     @EnvironmentObject var sportManager: SportManager
+    @EnvironmentObject var languageManager: LanguageManager
     @EnvironmentObject var api: NextMoveAPI
     
     private var filteredRecordings: [GameRecording] {
@@ -26,7 +27,9 @@ struct MeView: View {
                     if !filteredRecordings.isEmpty {
                         progressSection
                     }
-                    
+
+                    coachingSection
+
                     settingsSection
                 }
                 .padding()
@@ -117,6 +120,28 @@ struct MeView: View {
         return sum / Double(completed.count)
     }
     
+    private var coachingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Analyse")
+                .font(.title3)
+                .fontWeight(.semibold)
+
+            NavigationLink {
+                EvolutionView(recordings: filteredRecordings)
+            } label: {
+                SettingsRow(icon: "chart.line.uptrend.xyaxis", title: "Evolution", color: .blue)
+            }
+
+            NavigationLink {
+                TrainingPlanView()
+                    .environmentObject(sportManager)
+                    .environmentObject(api)
+            } label: {
+                SettingsRow(icon: "list.clipboard.fill", title: "Training Plan", color: .green)
+            }
+        }
+    }
+
     private var settingsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Settings")
@@ -126,6 +151,7 @@ struct MeView: View {
             NavigationLink {
                 SettingsView()
                     .environmentObject(sportManager)
+                    .environmentObject(languageManager)
             } label: {
                 SettingsRow(icon: "gearshape.fill", title: "App Settings", color: .gray)
             }
@@ -146,7 +172,7 @@ struct MeView: View {
 
 struct SettingsRow: View {
     let icon: String
-    let title: String
+    let title: LocalizedStringKey
     let color: Color
     
     var body: some View {

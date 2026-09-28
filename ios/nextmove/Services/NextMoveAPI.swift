@@ -86,6 +86,20 @@ struct CoachRecommendationsResponse: Codable {
     let recommandations_coach: [CoachRecommendation]
 }
 
+// MARK: - Programme d'entraînement (même endpoint que le web /training-plan)
+
+/// Un programme d'entraînement généré par le coach IA à partir des matchs
+/// analysés récents de l'utilisateur. Miroir du type `TrainingPlan` du web.
+struct TrainingPlan: Codable, Identifiable {
+    let id: String
+    let sport: String
+    let content: TrainingPlanContent
+
+    struct TrainingPlanContent: Codable {
+        let recommandations_coach: [CoachRecommendation]
+    }
+}
+
 enum APIError: LocalizedError {
     case invalidResponse
     case unauthorized
@@ -93,8 +107,8 @@ enum APIError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidResponse: return "Réponse invalide du serveur."
-        case .unauthorized: return "Email ou mot de passe incorrect."
+        case .invalidResponse: return String(localized: "Réponse invalide du serveur.")
+        case .unauthorized: return String(localized: "Email ou mot de passe incorrect.")
         case .server(let msg): return msg
         }
     }
@@ -116,6 +130,10 @@ final class NextMoveAPI: ObservableObject {
     @Published private(set) var currentUser: APIUser?
 
     private let tokenKey = "nextmove_auth_token"
+
+    /// URLSession used for all requests. Injectable so tests can stub the
+    /// network layer (via URLProtocol) without hitting a real server.
+    private let session: URLSession
 
     /// Résout l'URL de base dans cet ordre de priorité :
     ///   1. Argument explicite (tests unitaires, previews).
@@ -151,8 +169,9 @@ final class NextMoveAPI: ObservableObject {
         #endif
     }
 
-    init(baseURL: URL? = nil) {
+    init(baseURL: URL? = nil, session: URLSession = .shared) {
         self.baseURL = baseURL ?? Self.resolvedBaseURL
+        self.session = session
         self.token = UserDefaults.standard.string(forKey: tokenKey)
     }
 
@@ -247,6 +266,63 @@ final class NextMoveAPI: ObservableObject {
         return try await postEncodable("/coach/recommendations", body: payload)
     }
 
+    /// Conversation avec le coach IA côté serveur (endpoint /matches/{id}/chat).
+    ///
+    /// C'est le MÊME pipeline que le web : la question passe d'abord par
+    /// l'agent modérateur (détection de prompt injection ET de hors-sujet)
+    /// avant tout appel au LLM, puis est ancrée sur les vraies données du match
+    /// et le RAG. Router le coach iOS ici plutôt que d'appeler Groq en direct
+    /// donne à iOS exactement les mêmes garde-fous que le web, et évite
+    /// d'exposer une clé API sur l'appareil.
+    ///
+    /// - Une requête bloquée par le modérateur revient en HTTP 400 : on la
+    ///   mappe sur APIError.server(detail) pour afficher le message renvoyé.
+    /// - Nécessite un match synchronisé côté serveur (matchId) et une session.
+    func chatWithCoach(
+        matchId: String,
+        message: String,
+        history: [CoachChatMessage],
+        languageCode: String = "en"
+    ) async throws -> String {
+        struct HistoryTurn: Encodable {
+            let role: String
+            let text: String
+        }
+        struct Body: Encodable {
+            let message: String
+            let history: [HistoryTurn]
+            /// Langue attendue de la réponse ("en"/"fr"). Le backend force le
+            /// coach à répondre dans cette langue (ancien comportement : FR).
+            let lang: String
+        }
+        struct Reply: Decodable { let reply: String }
+
+        // Le backend attend les rôles "user" / "coach", ce qui correspond déjà
+        // à CoachChatMessage.Role.rawValue.
+        let turns = history.map { HistoryTurn(role: $0.role.rawValue, text: $0.text) }
+        let body = Body(message: message, history: turns, lang: languageCode)
+        let response: Reply = try await postEncodable("/matches/\(matchId)/chat", body: body)
+        return response.reply
+    }
+
+    /// Génère un nouveau programme d'entraînement pour un sport. Le backend
+    /// construit les séquences à partir des matchs analysés récents de
+    /// l'utilisateur (mêmes agents RAG que le web), sauvegarde et renvoie le
+    /// plan. Nécessite au moins un match analysé synchronisé pour ce sport.
+    /// Utilise postEncodable (timeout large) car la génération RAG + LLM peut
+    /// être lente au premier appel.
+    func generateTrainingPlan(sport: String) async throws -> TrainingPlan {
+        struct Body: Encodable { let sport: String }
+        return try await postEncodable("/training-plan", body: Body(sport: sport))
+    }
+
+    /// Historique des programmes générés pour l'utilisateur, du plus récent au
+    /// plus ancien. Filtrable par sport.
+    func fetchTrainingPlans(sport: String? = nil) async throws -> [TrainingPlan] {
+        let query = sport.map { [URLQueryItem(name: "sport", value: $0)] }
+        return try await getWithQuery("/training-plan", query: query)
+    }
+
     // MARK: - Bas niveau
 
     private func applySession(_ auth: AuthResponse) {
@@ -257,6 +333,34 @@ final class NextMoveAPI: ObservableObject {
 
     private func get<T: Decodable>(_ path: String) async throws -> T {
         try await request(path, method: "GET", body: Optional<[String: String]>.none)
+    }
+
+    /// GET avec des paramètres de requête, construits proprement via
+    /// URLComponents (appendingPathComponent encoderait le "?" et casserait
+    /// la query).
+    private func getWithQuery<T: Decodable>(_ path: String, query: [URLQueryItem]?) async throws -> T {
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent(path),
+            resolvingAgainstBaseURL: false
+        )
+        components?.queryItems = query
+        guard let url = components?.url else { throw APIError.invalidResponse }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "GET"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+        req.timeoutInterval = 30
+
+        let (data, response) = try await session.data(for: req)
+        guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+        switch http.statusCode {
+        case 200...299: return try JSONDecoder().decode(T.self, from: data)
+        case 401, 403:  throw APIError.unauthorized
+        default:
+            let detail = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["detail"] as? String
+            throw APIError.server(detail ?? String(localized: "Erreur serveur (\(http.statusCode))."))
+        }
     }
 
     private func post<T: Decodable>(_ path: String, body: [String: String]) async throws -> T {
@@ -272,14 +376,14 @@ final class NextMoveAPI: ObservableObject {
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
         req.timeoutInterval = 30
 
-        let (data, response) = try await URLSession.shared.data(for: req)
+        let (data, response) = try await session.data(for: req)
         guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
         switch http.statusCode {
         case 200...299: return try JSONDecoder().decode(T.self, from: data)
         case 401, 403:  throw APIError.unauthorized
         default:
             let detail = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["detail"] as? String
-            throw APIError.server(detail ?? "Erreur serveur (\(http.statusCode)).")
+            throw APIError.server(detail ?? String(localized: "Erreur serveur (\(http.statusCode))."))
         }
     }
 
@@ -297,7 +401,7 @@ final class NextMoveAPI: ObservableObject {
         // d'embedding côté serveur) — on laisse une marge confortable.
         req.timeoutInterval = 120
 
-        let (data, response) = try await URLSession.shared.data(for: req)
+        let (data, response) = try await session.data(for: req)
         guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
 
         switch http.statusCode {
@@ -307,7 +411,7 @@ final class NextMoveAPI: ObservableObject {
             throw APIError.unauthorized
         default:
             let detail = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["detail"] as? String
-            throw APIError.server(detail ?? "Erreur serveur (\(http.statusCode)).")
+            throw APIError.server(detail ?? String(localized: "Erreur serveur (\(http.statusCode))."))
         }
     }
 
@@ -322,7 +426,7 @@ final class NextMoveAPI: ObservableObject {
             req.httpBody = try JSONSerialization.data(withJSONObject: body)
         }
 
-        let (data, response) = try await URLSession.shared.data(for: req)
+        let (data, response) = try await session.data(for: req)
         guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
 
         switch http.statusCode {
@@ -332,7 +436,7 @@ final class NextMoveAPI: ObservableObject {
             throw APIError.unauthorized
         default:
             let detail = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["detail"] as? String
-            throw APIError.server(detail ?? "Erreur serveur (\(http.statusCode)).")
+            throw APIError.server(detail ?? String(localized: "Erreur serveur (\(http.statusCode))."))
         }
     }
 }
