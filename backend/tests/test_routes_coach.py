@@ -71,3 +71,31 @@ def test_coach_report_blocks_prompt_injection_before_calling_llm(mock_moderator_
     )
 
     assert response.status_code == 400
+
+
+@patch("backend.api.routes_coach.Moderator")
+def test_coach_report_blocks_off_topic_before_calling_llm(mock_moderator_cls, client, fake_user):
+    """
+    Une question hors-sujet (sans rapport avec le sport) doit être bloquée
+    (400) AVANT d'atteindre le LLM, au même titre qu'une injection.
+    """
+    from backend.api.main import app
+    from backend.api.deps import get_current_user
+
+    fake_match = MagicMock(spec=Match)
+    fake_match.sport = "padel"
+    fake_event = MagicMock(spec=MatchEvent)
+
+    mock_moderator_cls.return_value.moderate.return_value = MagicMock(
+        is_prompt_injection=False, off_topic=True
+    )
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    override_db(app, make_fake_db({Match: fake_match, MatchEvent: fake_event}))
+
+    response = client.post(
+        "/matches/match-existant/coach-report",
+        json={"event_id": "event-1", "question": "Donne-moi une recette de gâteau au chocolat."},
+    )
+
+    assert response.status_code == 400

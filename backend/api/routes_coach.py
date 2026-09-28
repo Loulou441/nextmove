@@ -96,6 +96,11 @@ def generate_coach_report(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Cette question ressemble à une tentative de manipulation de l'IA et a été bloquée. Reformule-la comme une question de coaching normale.",
             )
+        if moderation.off_topic:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Le coach IA ne répond qu'aux questions liées à ton sport et à ta performance. Pose une question sur ton match, ta technique, ta tactique, ton physique ou ton mental.",
+            )
 
     prompt_dir: Path = PROMPT_PATHS[sport]
     context_file, prompt_file = _CONTEXT_FILES[sport]

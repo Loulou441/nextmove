@@ -39,9 +39,17 @@ class RecommandationsCoach(BaseModel):
 
 
 class ModeratorResponse(BaseModel):
-    """Schéma attendu en sortie de l'agent modérateur."""
+    """Schéma attendu en sortie de l'agent modérateur.
+
+    Deux vérifications indépendantes :
+    - is_prompt_injection : tentative de détourner/reconfigurer l'agent.
+    - off_topic : question sans rapport avec le sport / la performance du
+      joueur (ex. recette de cuisine, actualité, code informatique...).
+    Une question peut être hors-sujet sans être une injection, et vice versa.
+    """
 
     is_prompt_injection: bool
+    off_topic: bool = False
 
 
 class ChatReply(BaseModel):

@@ -72,6 +72,10 @@ class ChatMessage_(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: list[ChatMessage_] = []
+    # Langue de la réponse attendue par le client ("fr" par défaut pour
+    # préserver le comportement historique ; l'app iOS envoie "fr" ou "en"
+    # selon le réglage de langue choisi par l'utilisateur).
+    lang: str = "fr"
 
 
 class ChatResponse(BaseModel):
@@ -132,6 +136,11 @@ def chat_with_coach(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ce message ressemble à une tentative de manipulation de l'IA et a été bloqué.",
         )
+    if moderation.off_topic:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Le coach IA ne répond qu'aux questions liées à ton sport et à ta performance. Pose une question sur ton match, ta technique, ta tactique, ton physique ou ton mental.",
+        )
 
     prompt_dir: Path = PROMPT_PATHS[sport]
     with open(prompt_dir / _CONTEXT_FILES[sport], encoding="utf-8") as f:
@@ -155,8 +164,18 @@ def chat_with_coach(
         f"Tendances observées : {pattern_hints or 'aucune'}."
     )
 
+    # Langue de réponse : le client (app iOS) peut demander "en" ou "fr".
+    # On force explicitement la langue, sinon le persona (rédigé en français)
+    # entraîne toujours une réponse en français, ignorant le choix utilisateur.
+    reply_language = "anglais" if str(payload.lang).lower().startswith("en") else "français"
+    language_instruction = (
+        f"IMPORTANT : rédige TOUTE ta réponse en {reply_language}, "
+        f"quelle que soit la langue des données ou du contexte fournis."
+    )
+
     system_prompt = (
         f"{persona}\n\n"
+        f"{language_instruction}\n\n"
         f"Tu es en conversation libre avec le joueur à propos de son match. "
         f"Voici un résumé du match : {match_summary}\n\n"
         f"Exercices de référence potentiellement utiles pour cette question :\n{drills_text}\n\n"

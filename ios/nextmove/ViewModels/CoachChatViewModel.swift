@@ -23,22 +23,40 @@ final class CoachChatViewModel: ObservableObject {
     private let api: NextMoveAPI?
     private let sportType: SportType
     private let analysis: GameAnalysis?
+    /// Server match id (set once the game is synced). When present with a
+    /// session, the coach chat runs through the backend, which already applies
+    /// the moderator (injection + off-topic) AND RAG grounding.
+    private let matchId: String?
     /// Whether we've already fetched the RAG plan for this session (once is enough).
     private var didFetchRAGPlan = false
 
+    /// True when the actual chat is answered by the backend (which already does
+    /// its own RAG grounding), so we skip the local drill-enrichment step to
+    /// avoid duplicating references.
+    private var usingBackendChat: Bool {
+        api != nil && matchId != nil && (api?.isLoggedIn ?? false)
+    }
+
     /// Suggested prompts shown to the user to kick off the conversation.
     let suggestedPrompts: [String] = [
-        "What should I work on?",
-        "Give me a drill",
-        "How do I win more points?",
-        "What am I good at?"
+        appLocalized("What should I work on?"),
+        appLocalized("Give me a drill"),
+        appLocalized("How do I win more points?"),
+        appLocalized("What am I good at?")
     ]
 
-    init(sportType: SportType, analysis: GameAnalysis?, feedback: CoachingFeedback? = nil, api: NextMoveAPI? = nil) {
+    init(sportType: SportType, analysis: GameAnalysis?, feedback: CoachingFeedback? = nil, api: NextMoveAPI? = nil, matchId: String? = nil) {
         self.sportType = sportType
         self.analysis = analysis
         self.api = api
-        self.agent = CoachingAgent(sportType: sportType, analysis: analysis, feedback: feedback)
+        self.matchId = matchId
+        self.agent = CoachingAgent(
+            sportType: sportType,
+            analysis: analysis,
+            feedback: feedback,
+            api: api,
+            matchId: matchId
+        )
         // Seed with the coach's greeting.
         messages = [agent.greeting()]
     }
@@ -65,21 +83,23 @@ final class CoachChatViewModel: ObservableObject {
         messages.append(CoachChatMessage(role: .user, text: trimmed))
         isThinking = true
 
-        // 1) Groq drives the conversation (on-device LLM, or rule-based if no key).
+        // 1) Drive the conversation. When logged in with a synced match, the
+        //    agent routes through the backend (same moderator + RAG as the web);
+        //    otherwise it uses the on-device LLM, or rule-based if no key.
         var replyText: String
         do {
             replyText = try await agent.send(trimmed).text
         } catch {
-            replyText = "Sorry, I couldn't respond just now. Try asking again."
+            replyText = String(localized: "Sorry, I couldn't respond just now. Try asking again.")
             messages.append(CoachChatMessage(role: .coach, text: replyText))
             isThinking = false
             return
         }
 
-        // 2) RAG is a KNOWLEDGE BASE: enrich the answer with real, validated drills
-        //    when the ask is drill/plan-oriented. It augments — never replaces — the
-        //    Groq answer, and is skipped silently if unavailable.
-        if let drills = await fetchRAGDrills(for: trimmed) {
+        // 2) Local RAG enrichment only for the on-device path. The backend chat
+        //    already grounds its answer in RAG, so enriching again would repeat
+        //    drills — skip it when the backend answered.
+        if !usingBackendChat, let drills = await fetchRAGDrills(for: trimmed) {
             replyText += "\n\n" + drills
         }
 
@@ -146,7 +166,7 @@ final class CoachChatViewModel: ObservableObject {
     /// augments the Groq answer (knowledge-base references, not a full plan).
     private static func formatDrills(_ response: CoachRecommendationsResponse) -> String {
         guard !response.recommandations_coach.isEmpty else { return "" }
-        var out = "📚 Recommended drills from the knowledge base:"
+        var out = String(localized: "📚 Recommended drills from the knowledge base:")
         for rec in response.recommandations_coach.prefix(3) {
             out += "\n• \(rec.titre): \(rec.contenu.action_corrective)"
         }

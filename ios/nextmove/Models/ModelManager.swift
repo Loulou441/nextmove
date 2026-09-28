@@ -170,7 +170,17 @@ final class ModelManager: ModelManagerProtocol {
         let modelURL = URL(fileURLWithPath: path)
 
         let configuration = MLModelConfiguration()
-        configuration.computeUnits = .all // CPU, GPU, Neural Engine
+        // DETERMINISM: pin inference to the CPU. `.all` lets Core ML schedule the
+        // model on the Neural Engine / GPU, whose floating-point results are NOT
+        // bit-reproducible run-to-run (they vary with thermal state and hardware
+        // scheduling). With a 0.3 detection threshold feeding a rally detector,
+        // those tiny numeric differences flip marginal ball detections on/off and
+        // cascade into wildly different rally counts and ratings for the SAME
+        // video (observed: 1.3 vs 4.3). CPU-only inference is deterministic, so
+        // the same clip always yields the same analysis. Clips are short and
+        // frame-capped (≤300 frames), so the speed cost is acceptable and
+        // consistency is the priority.
+        configuration.computeUnits = .cpuOnly
 
         do {
             // A folder that contains a Manifest.json is an .mlpackage (or an

@@ -21,6 +21,53 @@ from backend.services.video_storage import upload_video, VideoTooLargeError, del
 router = APIRouter(prefix="/matches", tags=["matches"])
 
 
+# Mappe le tag d'un temps fort (highlight) envoyé par l'app mobile vers un
+# type d'événement stocké en base. Les temps forts SONT les événements réels
+# détectés par l'analyse locale (Core ML). On les persiste comme MatchEvent
+# pour que le générateur de programme d'entraînement (qui interroge les
+# WINNER/ERROR) ait de quoi travailler après une synchro mobile.
+_HIGHLIGHT_TAG_TO_EVENT_TYPE = {
+    "winner": "WINNER",
+    "error": "ERROR",
+    "longrally": "SHOT",
+    "long rally": "SHOT",
+    "attack": "SHOT",
+    "greatdefense": "SHOT",
+    "great defense": "SHOT",
+}
+
+
+def _parse_minute(time_str) -> int | None:
+    """Convertit un timestamp "m:ss" (ou "mm:ss") en minutes entières."""
+    if not isinstance(time_str, str):
+        return None
+    head = time_str.split(":", 1)[0].strip()
+    return int(head) if head.isdigit() else None
+
+
+def _events_from_highlights(match_id: str, highlights) -> list[MatchEvent]:
+    """
+    Dérive des MatchEvent à partir des temps forts synchronisés. Sans ça, un
+    match synchronisé depuis mobile n'a aucun événement, et la génération de
+    programme échoue avec « Aucun événement exploitable ».
+    """
+    events: list[MatchEvent] = []
+    for h in (highlights or []):
+        if not isinstance(h, dict):
+            continue
+        tag = str(h.get("tag", "")).strip().lower()
+        event_type = _HIGHLIGHT_TAG_TO_EVENT_TYPE.get(tag, "SHOT")
+        events.append(MatchEvent(
+            match_id=match_id,
+            event_type=event_type,
+            phase=h.get("phase"),
+            minute=_parse_minute(h.get("time")),
+            x=h.get("x"),
+            y=h.get("y"),
+        ))
+    return events
+
+
 @router.get("", response_model=list[MatchResponse])
 def list_my_matches(
     current_user: User = Depends(get_current_user),
@@ -67,6 +114,12 @@ def sync_mobile_match(
         created_at=datetime.utcnow(),
     )
     db.add(match)
+
+    # Persiste les temps forts comme événements pour que la génération de
+    # programme d'entraînement dispose de vrais WINNER/ERROR à analyser.
+    for event in _events_from_highlights(match.id, payload.highlights):
+        db.add(event)
+
     db.commit()
     db.refresh(match)
     return MatchDetailResponse.model_validate(match)

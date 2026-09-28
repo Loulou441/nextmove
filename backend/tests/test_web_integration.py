@@ -81,6 +81,44 @@ def test_ios_sync_is_still_persisted_and_visible(client, database):
     assert saved.id in [m["id"] for m in client.get("/matches").json()]
 
 
+def test_ios_sync_creates_match_events_from_highlights(client, database):
+    """
+    Régression : une synchro mobile doit créer des MatchEvent à partir des
+    temps forts, sinon la génération de programme d'entraînement échoue avec
+    « Aucun événement exploitable ». On vérifie que winner/error/long rally
+    sont bien persistés et correctement typés.
+    """
+    from backend.db.models import MatchEvent
+
+    db, user, _, _ = database
+    client.headers.pop("origin", None)
+    client.headers["Authorization"] = f"Bearer {create_session_token(user.id)}"
+
+    payload = {
+        "title": "iOS avec temps forts",
+        "sport": "padel",
+        "rating": 8.0,
+        "highlights": [
+            {"title": "Powerful winning shot", "time": "3:12", "tag": "winner"},
+            {"title": "Rally error", "time": "5:40", "tag": "error"},
+            {"title": "Long rally exchange", "time": "7:01", "tag": "longRally"},
+        ],
+    }
+    response = client.post("/matches/sync", json=payload)
+    assert response.status_code == 201
+    match_id = response.json()["id"]
+
+    events = db.query(MatchEvent).filter(MatchEvent.match_id == match_id).all()
+    assert len(events) == 3
+
+    by_type = sorted(e.event_type for e in events)
+    assert by_type == ["ERROR", "SHOT", "WINNER"]
+
+    # Le timestamp "m:ss" est converti en minutes entières.
+    winner = next(e for e in events if e.event_type == "WINNER")
+    assert winner.minute == 3
+
+
 def test_chat_persists_both_turns_and_enforces_ownership(client, database):
     db, user, other, match = database
     client.headers["Authorization"] = f"Bearer {create_session_token(user.id)}"
@@ -88,6 +126,7 @@ def test_chat_persists_both_turns_and_enforces_ownership(client, database):
          patch("backend.api.routes_chat.get_knowledge_base") as kb, \
          patch("backend.api.routes_chat.Agent") as agent:
         moderator.return_value.moderate.return_value.is_prompt_injection = False
+        moderator.return_value.moderate.return_value.off_topic = False
         kb.return_value.retrieve.return_value = []
         agent.return_value.call_and_validate.return_value = SimpleNamespace(reply="Travaille le service.")
         response = client.post(f"/matches/{match.id}/chat", json={"message": "Que travailler ?"})

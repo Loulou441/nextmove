@@ -21,6 +21,12 @@ struct GameRecording: Identifiable, Codable {
     var analysis: GameAnalysis?
     var sportType: SportType
 
+    /// Server-side match id, set once this game has been synced to the backend
+    /// (see RecordingViewModel.syncMatch). Nil until synced. Used to route the
+    /// AI coach chat through the backend `/matches/{id}/chat` endpoint so it
+    /// gets the same moderator (prompt-injection + off-topic) and RAG as the web.
+    var serverMatchId: String?
+
     /// Absolute URL to the video, resolved against the current Documents directory.
     /// Setting it stores just the last path component (the file name).
     var videoURL: URL? {
@@ -78,6 +84,9 @@ struct GameRecording: Identifiable, Codable {
 
         // Migration logic: default to .pickleball for legacy recordings
         sportType = try container.decodeIfPresent(SportType.self, forKey: .sportType) ?? .pickleball
+
+        // Absent on legacy records synced before this field existed.
+        serverMatchId = try container.decodeIfPresent(String.self, forKey: .serverMatchId)
     }
 
     // Encode only videoFileName going forward (not the volatile absolute URL).
@@ -92,10 +101,11 @@ struct GameRecording: Identifiable, Codable {
         try container.encode(status, forKey: .status)
         try container.encodeIfPresent(analysis, forKey: .analysis)
         try container.encode(sportType, forKey: .sportType)
+        try container.encodeIfPresent(serverMatchId, forKey: .serverMatchId)
     }
     
     private enum CodingKeys: String, CodingKey {
-        case id, title, date, videoURL, videoFileName, thumbnailData, duration, status, analysis, sportType
+        case id, title, date, videoURL, videoFileName, thumbnailData, duration, status, analysis, sportType, serverMatchId
     }
 }
 

@@ -89,7 +89,12 @@ struct AnalysisDetailView: View {
     /// Entry point into the conversational AI coach, grounded in this game's analysis.
     private func askCoachButton(analysis: GameAnalysis) -> some View {
         NavigationLink {
-            CoachChatView(sportType: recording.sportType, analysis: analysis, api: api)
+            CoachChatView(
+                sportType: recording.sportType,
+                analysis: analysis,
+                api: api,
+                matchId: liveRecording.serverMatchId
+            )
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: "bubble.left.and.text.bubble.right.fill")
@@ -321,7 +326,7 @@ struct AnalysisDetailView: View {
 }
 
 struct TabButton: View {
-    let title: String
+    let title: LocalizedStringKey
     let isSelected: Bool
     let action: () -> Void
     
@@ -477,7 +482,7 @@ struct OverviewSection: View {
 
 struct InsightRow: View {
     let icon: String
-    let text: String
+    let text: LocalizedStringKey
     let color: Color
     
     var body: some View {
@@ -497,7 +502,7 @@ struct InsightRow: View {
 }
 
 struct QuickStatCard: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let icon: String
     let color: Color
@@ -658,7 +663,7 @@ struct SkillsSection: View {
 }
 
 struct SkillBar: View {
-    let title: String
+    let title: LocalizedStringKey
     let rating: Double
     let icon: String
     
@@ -878,7 +883,7 @@ struct StatisticsSection: View {
 }
 
 struct StatRow: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let icon: String
     

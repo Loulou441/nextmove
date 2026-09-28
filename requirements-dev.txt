@@ -1,0 +1,11 @@
+# Dépendances de développement / tests.
+# Installe d'abord les dépendances runtime, puis les outils de test.
+#
+#   pip install -r requirements-dev.txt
+#
+# (inclut requirements.txt via l'option -r ci-dessous)
+-r requirements.txt
+
+# Framework de test et dépendances des tests
+pytest==9.1.1
+pandas==3.0.6

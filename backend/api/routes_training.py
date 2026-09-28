@@ -87,9 +87,16 @@ def generate_training_plan(
         )
 
     match_ids = [m.id for m in recent_matches]
+    # WINNER/ERROR sont les plus instructifs, mais un match synchronisé depuis
+    # mobile peut n'avoir que des temps forts "SHOT" (long rally, attaque,
+    # défense). On les accepte aussi comme matière à analyser plutôt que de
+    # bloquer la génération, tout en priorisant WINNER/ERROR.
     events = (
         db.query(MatchEvent)
-        .filter(MatchEvent.match_id.in_(match_ids), MatchEvent.event_type.in_(["WINNER", "ERROR"]))
+        .filter(
+            MatchEvent.match_id.in_(match_ids),
+            MatchEvent.event_type.in_(["WINNER", "ERROR", "SHOT"]),
+        )
         .order_by(MatchEvent.minute.desc())
         .limit(MAX_EVENTS_FOR_PLAN)
         .all()

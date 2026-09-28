@@ -201,72 +201,118 @@ class FeatureExtractor: FeatureExtractorProtocol {
     
     /// Computes rally information from ball trajectories
     /// Validates: Requirement 4.7
+    /// A single ball observation on a unified timeline (flattened across all
+    /// ball tracks). This is the real signal used to segment rallies and count
+    /// shots — independent of how the tracker happened to split the ball into
+    /// tracks.
+    private struct BallSample {
+        let time: Double   // seconds
+        let y: Double      // vertical position of the ball centroid (0–1)
+        let conf: Float
+    }
+
+    /// Rally / shot detection from actual ball motion.
+    ///
+    /// Previous implementation counted one "rally" per ball TRACK and one "shot"
+    /// per track — so a game the tracker stitched into 1–2 long ball tracks
+    /// reported 1–2 rallies with 1–2 shots, regardless of the real play. That's
+    /// what produced "0–2 rallies" on a full game.
+    ///
+    /// This version works off the ball's real trajectory:
+    ///  1. Flatten every ball detection from every track into one timeline,
+    ///     sorted by timestamp.
+    ///  2. Segment RALLIES on gaps in ball activity: if the ball isn't seen for
+    ///     longer than `rallyGapSeconds`, the point is dead and a new rally
+    ///     starts.
+    ///  3. Count SHOTS within a rally by vertical direction reversals: each time
+    ///     the ball clearly changes vertical direction (a player sent it back),
+    ///     that's another shot. A small displacement threshold ignores jitter.
     private func computeRallies(from trajectories: [BallTrajectory]) -> [Rally] {
-        var rallies: [Rally] = []
-        
-        // Group trajectories into rallies based on temporal proximity
-        // A rally ends when there's a gap > 3 seconds between ball tracks
-        let sortedTrajectories = trajectories.sorted { $0.track.startTime.seconds < $1.track.startTime.seconds }
-        
-        var currentRallyStart: CMTime?
-        var currentRallyEnd: CMTime?
-        var currentShotCount = 0
-        
-        for trajectory in sortedTrajectories {
-            if let rallyEnd = currentRallyEnd {
-                let gap = trajectory.track.startTime.seconds - rallyEnd.seconds
-                
-                if gap > 3.0 {
-                    // End current rally and start new one
-                    if let rallyStart = currentRallyStart {
-                        let rally = Rally(
-                            startTime: rallyStart,
-                            endTime: rallyEnd,
-                            shotCount: currentShotCount,
-                            outcome: classifyRallyOutcome(shotCount: currentShotCount)
-                        )
-                        rallies.append(rally)
-                    }
-                    
-                    // Start new rally
-                    currentRallyStart = trajectory.track.startTime
-                    currentRallyEnd = trajectory.track.endTime
-                    currentShotCount = 1
-                } else {
-                    // Continue current rally
-                    currentRallyEnd = trajectory.track.endTime
-                    currentShotCount += 1
-                }
-            } else {
-                // Start first rally
-                currentRallyStart = trajectory.track.startTime
-                currentRallyEnd = trajectory.track.endTime
-                currentShotCount = 1
+        // Gap (seconds) of no ball detection that ends a rally. At 5 fps a live
+        // ball is seen most frames; ~1.5 s of absence means the point is over.
+        let rallyGapSeconds = 1.5
+        // Minimum vertical travel (normalized) between reversals to count as a
+        // real shot rather than detection jitter.
+        let minShotDisplacement = 0.06
+
+        // 1) Flatten all ball detections into one time-sorted timeline.
+        var samples: [BallSample] = []
+        for traj in trajectories {
+            for det in traj.track.detections {
+                samples.append(BallSample(
+                    time: det.timestamp.seconds,
+                    y: Double(det.boundingBox.midY),
+                    conf: det.confidence
+                ))
             }
         }
-        
-        // Add final rally
-        if let rallyStart = currentRallyStart, let rallyEnd = currentRallyEnd {
-            let rally = Rally(
-                startTime: rallyStart,
-                endTime: rallyEnd,
-                shotCount: currentShotCount,
-                outcome: classifyRallyOutcome(shotCount: currentShotCount)
-            )
-            rallies.append(rally)
+        guard !samples.isEmpty else { return [] }
+        samples.sort { $0.time < $1.time }
+
+        // 2) Segment into rallies on activity gaps.
+        var rallies: [Rally] = []
+        var segment: [BallSample] = [samples[0]]
+
+        func flush(_ seg: [BallSample]) {
+            guard let first = seg.first, let last = seg.last else { return }
+            let shots = countShots(in: seg, minDisplacement: minShotDisplacement)
+            // A valid rally needs at least one real shot exchange.
+            guard shots >= 1 else { return }
+            rallies.append(Rally(
+                startTime: CMTime(seconds: first.time, preferredTimescale: 600),
+                endTime: CMTime(seconds: last.time, preferredTimescale: 600),
+                shotCount: shots,
+                outcome: classifyRallyOutcome(shotCount: shots)
+            ))
         }
-        
+
+        for i in 1..<samples.count {
+            if samples[i].time - samples[i - 1].time > rallyGapSeconds {
+                flush(segment)
+                segment = [samples[i]]
+            } else {
+                segment.append(samples[i])
+            }
+        }
+        flush(segment)
+
         return rallies
+    }
+
+    /// Counts shots in a rally segment by vertical direction reversals of the
+    /// ball. In a net sport the ball travels toward one player, gets returned,
+    /// and reverses direction — each reversal ≈ one shot. Starts at 1 (the shot
+    /// that opened the rally) and adds one per clean reversal.
+    private func countShots(in samples: [BallSample], minDisplacement: Double) -> Int {
+        guard samples.count >= 2 else { return samples.isEmpty ? 0 : 1 }
+
+        var shots = 1
+        var currentDirection = 0          // -1 up, +1 down, 0 unknown
+        var lastExtremeY = samples[0].y
+
+        for s in samples.dropFirst() {
+            let delta = s.y - lastExtremeY
+            guard abs(delta) >= minDisplacement else { continue }
+            let dir = delta > 0 ? 1 : -1
+            if currentDirection == 0 {
+                currentDirection = dir
+            } else if dir != currentDirection {
+                // Ball reversed vertical direction → a return shot.
+                shots += 1
+                currentDirection = dir
+            }
+            lastExtremeY = s.y
+        }
+        return shots
     }
 
     /// Approximate rally outcome from its length.
     ///
-    /// HEURISTIC (documented, not a real umpire call): a rally that sustained
-    /// several exchanges before ending is more likely finished by a decisive
-    /// shot (winner); a very short one is more likely an unforced error. Bounding-
-    /// box detection alone can't truly judge winner vs error, so this is a
-    /// reasonable stand-in that yields non-zero winner/error counts rather than
-    /// leaving every rally `.unknown`.
+    /// HEURISTIC (documented, not a real umpire call): bounding-box detection
+    /// alone can't judge winner vs error. As a stand-in, a rally that sustained
+    /// a real exchange (several shots) is treated as ending in a winner, a very
+    /// short one as an unforced error. This yields non-zero winner/error counts
+    /// while remaining an approximation, not an umpire call.
     private func classifyRallyOutcome(shotCount: Int) -> RallyOutcome {
         if shotCount >= 4 {
             return .winner

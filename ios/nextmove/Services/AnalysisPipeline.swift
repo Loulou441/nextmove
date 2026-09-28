@@ -321,18 +321,19 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
         //  - volleys    : shot placement variety
         //  - movement   : court coverage
         // Baseline derived from the overall quality of the analysis (detection
-        // confidence, rally activity, court coverage). Used to keep every skill
-        // in a believable range when a specific signal is thin for a given clip,
-        // so no bar reads a bare zero.
+        // confidence, rally activity, court coverage). Used ONLY as a mild floor
+        // to lift a weak-but-present signal in finalizeSkill — it no longer
+        // replaces a missing measurement (a skill with no signal now reports 0
+        // honestly and is excluded from the overall average).
         let baseline = computeSkillBaseline(from: features)
 
         let skillRatings = GameAnalysis.SkillRatings(
-            serve: finalizeSkill(computeShotRating(from: features, shotIndex: 0), baseline: baseline, seed: 0.10),
-            return: finalizeSkill(computeShotRating(from: features, shotIndex: 1), baseline: baseline, seed: -0.15),
-            thirdShot: finalizeSkill(computeShotRating(from: features, shotIndex: 2), baseline: baseline, seed: 0.20),
-            dinking: finalizeSkill(computeDinkingRating(from: features), baseline: baseline, seed: -0.05),
-            volleys: finalizeSkill(placementRating, baseline: baseline, seed: 0.05),
-            movement: finalizeSkill(movementRating, baseline: baseline, seed: -0.10)
+            serve: finalizeSkill(computeShotRating(from: features, shotIndex: 0), baseline: baseline),
+            return: finalizeSkill(computeShotRating(from: features, shotIndex: 1), baseline: baseline),
+            thirdShot: finalizeSkill(computeShotRating(from: features, shotIndex: 2), baseline: baseline),
+            dinking: finalizeSkill(computeDinkingRating(from: features), baseline: baseline),
+            volleys: finalizeSkill(placementRating, baseline: baseline),
+            movement: finalizeSkill(movementRating, baseline: baseline)
         )
         
         // Compute statistics
@@ -352,13 +353,20 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
         // Create heat map from positioning history
         let heatMap = createHeatMap(from: features)
         
-        // Overall rating: average the skills that are actually measured from the
-        // CV pipeline. (Previously used consistencyRating, which was always 0
-        // because contactPoints is empty — that dragged every overall score down.)
-        let overallRating = (
-            skillRatings.serve + skillRatings.return + skillRatings.thirdShot +
-            skillRatings.dinking + skillRatings.volleys + skillRatings.movement
-        ) / 6.0
+        // Overall rating: average only the skills that produced a real signal
+        // (score > 0). A skill returns 0 when the clip had no measurable data for
+        // it (e.g. no third shot was isolated); including those hard zeros would
+        // unfairly drag the overall down. If nothing at all was measured, fall
+        // back to the detection-quality baseline so the score is still grounded
+        // in something real rather than 0.
+        let allSkills = [
+            skillRatings.serve, skillRatings.return, skillRatings.thirdShot,
+            skillRatings.dinking, skillRatings.volleys, skillRatings.movement
+        ]
+        let measuredSkills = allSkills.filter { $0 > 0 }
+        let overallRating = measuredSkills.isEmpty
+            ? baseline
+            : measuredSkills.reduce(0, +) / Double(measuredSkills.count)
         
         return GameAnalysis(
             overallRating: overallRating,
@@ -440,16 +448,24 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
     /// clip) the baseline carries it, nudged by a small per-skill seed so the
     /// bars vary naturally instead of all showing the same number. Always
     /// returns a believable non-zero value in [1.5, 5.0].
-    private func finalizeSkill(_ measured: Double, baseline: Double, seed: Double) -> Double {
-        let value: Double
-        if measured >= 1.0 {
-            // Real signal: mostly the measurement, lightly pulled toward baseline.
-            value = measured * 0.75 + baseline * 0.25
-        } else {
-            // Thin signal: lean on the baseline with a deterministic per-skill offset.
-            value = baseline + seed * 2.0
+    private func finalizeSkill(_ measured: Double, baseline: Double) -> Double {
+        // Trust the measurement. Previously, when `measured` was thin (< 1.0) we
+        // REPLACED it with `baseline + seed`, so serve/return/thirdShot often
+        // showed a synthetic number nudged by a cosmetic per-skill offset rather
+        // than anything from the video. That made the rating look plausible while
+        // being made up. Now the measurement always drives the score; the
+        // baseline acts only as a mild floor so a single sparse signal doesn't
+        // read as a hard zero, and the floor itself shrinks as the measurement
+        // approaches zero (genuinely no signal → genuinely low score).
+        guard measured > 0 else {
+            // No measurable signal for this skill on this clip. Report a low,
+            // honest score rather than inventing a mid-high one.
+            return 0.0
         }
-        return min(5.0, max(1.5, value))
+        // Weighted mostly toward the real measurement; baseline only lifts a weak
+        // (but non-zero) signal a little so it isn't punished for a short clip.
+        let value = measured * 0.85 + min(baseline, measured + 1.0) * 0.15
+        return min(5.0, value)
     }
 
     /// Rates the shot at a given position within rallies (0 = serve, 1 = return,

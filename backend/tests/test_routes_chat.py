@@ -67,6 +67,31 @@ def test_chat_blocks_prompt_injection_before_calling_llm(mock_moderator_cls, cli
     assert response.status_code == 400
 
 
+@patch("backend.api.routes_chat.Moderator")
+def test_chat_blocks_off_topic_before_calling_llm(mock_moderator_cls, client, fake_user):
+    """Un message hors-sujet doit être bloqué (400) avant tout appel au LLM."""
+    from backend.api.main import app
+    from backend.api.deps import get_current_user
+
+    fake_match = MagicMock(spec=Match)
+    fake_match.sport = "padel"
+    fake_match.patterns_summary = {}
+
+    mock_moderator_cls.return_value.moderate.return_value = MagicMock(
+        is_prompt_injection=False, off_topic=True
+    )
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    override_db(app, make_fake_db({Match: fake_match}))
+
+    response = client.post(
+        "/matches/match-existant/chat",
+        json={"message": "Quelle est la météo à Paris demain ?"},
+    )
+
+    assert response.status_code == 400
+
+
 def test_get_chat_history_returns_saved_messages(client, fake_user):
     """L'historique doit renvoyer les messages déjà sauvegardés pour ce match."""
     from backend.api.main import app
