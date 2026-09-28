@@ -203,7 +203,7 @@ struct RecordingCard: View {
 }
 
 struct StatItem: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let icon: String
     var color: Color = .secondary

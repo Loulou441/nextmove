@@ -64,7 +64,9 @@ struct DetailedProgressView: View {
                 .font(.title2)
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text("Aggregated across \(analyses.count) analyzed game\(analyses.count == 1 ? "" : "s")")
+            (analyses.count == 1
+                ? Text("Aggregated across 1 analyzed game")
+                : Text("Aggregated across \(analyses.count) analyzed games"))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -253,12 +255,12 @@ struct DetailedProgressView: View {
             analyses.map { $0.skillRatings[keyPath: keyPath] }.reduce(0, +) / count
         }
         return [
-            ("Serve", avg(\.serve), "figure.tennis"),
-            ("Return", avg(\.return), "arrow.turn.up.left"),
-            ("Third Shot", avg(\.thirdShot), "3.circle.fill"),
-            ("Dinking", avg(\.dinking), "hand.tap"),
-            ("Volleys", avg(\.volleys), "bolt.fill"),
-            ("Movement", avg(\.movement), "figure.walk")
+            (String(localized: "Serve"), avg(\.serve), "figure.tennis"),
+            (String(localized: "Return"), avg(\.return), "arrow.turn.up.left"),
+            (String(localized: "Third Shot"), avg(\.thirdShot), "3.circle.fill"),
+            (String(localized: "Dinking"), avg(\.dinking), "hand.tap"),
+            (String(localized: "Volleys"), avg(\.volleys), "bolt.fill"),
+            (String(localized: "Movement"), avg(\.movement), "figure.walk")
         ]
     }
 

@@ -34,15 +34,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				Models/Padel/README.md,
-				Models/Pickleball/README.md,
-				Models/README_ModelManager.md,
-				Models/README_VideoProcessor.md,
-				Services/README_CoachingEngine.md,
-				Services/README_FeatureExtractor.md,
-				Services/README_LLM.md,
-				Services/README_ObjectDetector.md,
-				Services/README_ObjectTracker.md,
 			);
 			target = 32884CD62F5EB4F900F40472 /* nextmove */;
 		};
@@ -214,6 +205,7 @@
 			knownRegions = (
 				en,
 				Base,
+				fr,
 			);
 			mainGroup = 32884CCE2F5EB4F900F40472;
 			minimizedProjectReferenceProxies = 1;

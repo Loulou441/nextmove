@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var sportManager: SportManager
+    @EnvironmentObject var languageManager: LanguageManager
     
     var body: some View {
         NavigationStack {
@@ -37,6 +38,22 @@ struct SettingsView: View {
                         }
                     }
                 }
+
+                Section {
+                    Picker(selection: languageBinding) {
+                        ForEach(AppLanguage.allCases) { language in
+                            Text(language.displayName).tag(language)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "globe")
+                                .foregroundStyle(.green)
+                            Text("settings.language")
+                        }
+                    }
+                } footer: {
+                    Text("settings.language.footer")
+                }
                 
                 Section("About") {
                     HStack {
@@ -50,5 +67,14 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
         }
+    }
+
+    /// Bridges the picker to LanguageManager so a change persists and re-renders
+    /// the whole app immediately.
+    private var languageBinding: Binding<AppLanguage> {
+        Binding(
+            get: { languageManager.current },
+            set: { languageManager.select($0) }
+        )
     }
 }

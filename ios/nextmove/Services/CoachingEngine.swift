@@ -108,17 +108,17 @@ class CoachingEngine: CoachingEngineProtocol {
     private func generateTitle(for issueType: IssueType) -> String {
         switch issueType {
         case .staticPositioning:
-            return "Limited Court Movement"
+            return String(localized: "Limited Court Movement")
         case .depthPositioning:
-            return "Positioning Too Deep"
+            return String(localized: "Positioning Too Deep")
         case .reactionTiming:
-            return "Delayed Reactions"
+            return String(localized: "Delayed Reactions")
         case .coverageImbalance:
-            return "Unbalanced Court Coverage"
+            return String(localized: "Unbalanced Court Coverage")
         case .sideSpecificTiming:
-            return "Timing Issues on One Side"
+            return String(localized: "Timing Issues on One Side")
         case .recoveryPositioning:
-            return "Poor Recovery Position"
+            return String(localized: "Poor Recovery Position")
         }
     }
     
@@ -154,35 +154,49 @@ class CoachingEngine: CoachingEngineProtocol {
         
         switch issueType {
         case .staticPositioning:
-            return "You tend to stay in the same area for extended periods. Try to stay more mobile and adjust your position based on the ball location."
+            return String(localized: "You tend to stay in the same area for extended periods. Try to stay more mobile and adjust your position based on the ball location.")
             
         case .depthPositioning:
-            return "You are often positioned too far behind the kitchen line. Move forward after your return to control the net."
+            return String(localized: "You are often positioned too far behind the kitchen line. Move forward after your return to control the net.")
             
         case .reactionTiming:
-            return "You show delayed movement after your opponent contacts the ball. Work on anticipating shots and reacting more quickly."
+            return String(localized: "You show delayed movement after your opponent contacts the ball. Work on anticipating shots and reacting more quickly.")
             
         case .coverageImbalance:
-            return "Your court coverage is stronger on one side than the other. Practice moving to your weaker side to improve balance."
+            return String(localized: "Your court coverage is stronger on one side than the other. Practice moving to your weaker side to improve balance.")
             
         case .sideSpecificTiming:
-            return "You are often contacting the ball late on one side. Focus on earlier preparation and weight transfer on that side."
+            return String(localized: "You are often contacting the ball late on one side. Focus on earlier preparation and weight transfer on that side.")
             
         case .recoveryPositioning:
-            return "After hitting shots, you tend to stay where you are instead of returning to center. Practice the split-step and recovery to center position."
+            return String(localized: "After hitting shots, you tend to stay where you are instead of returning to center. Practice the split-step and recovery to center position.")
         }
     }
     
     /// Applies qualifying language for medium-confidence insights
     /// Validates: Requirement 8.8
     private func applyQualifyingLanguage(_ description: String) -> String {
-        // Replace direct statements with qualifying language
-        let qualifiers = [
-            ("You tend to", "You appear to"),
-            ("You are often", "You may be"),
-            ("You show", "You seem to show"),
-            ("Your court coverage is", "Your court coverage appears to be")
-        ]
+        // Softens direct statements into hedged ones for medium-confidence
+        // insights. The phrases are language-specific, so pick the set that
+        // matches the descriptions produced for the current app language.
+        // (The templates come from String(localized:), so they're already in
+        // the user's language by the time we get here.)
+        let qualifiers: [(String, String)]
+        if LanguageManager.currentLanguage.llmLanguageCode == "fr" {
+            qualifiers = [
+                ("Tu as tendance à", "Tu sembles"),
+                ("Tu es souvent", "Tu es peut-être"),
+                ("Tu montres", "Tu sembles montrer"),
+                ("Ta couverture du court est", "Ta couverture du court semble être")
+            ]
+        } else {
+            qualifiers = [
+                ("You tend to", "You appear to"),
+                ("You are often", "You may be"),
+                ("You show", "You seem to show"),
+                ("Your court coverage is", "Your court coverage appears to be")
+            ]
+        }
         
         var qualified = description
         for (direct, qualifying) in qualifiers {
@@ -201,43 +215,43 @@ class CoachingEngine: CoachingEngineProtocol {
         case .staticPositioning:
             return PracticeSuggestion(
                 issue: issueType,
-                drill: "Shadowing Drill",
-                description: "Practice moving to different court positions without a ball. Focus on quick, efficient movements and maintaining balance."
+                drill: String(localized: "Shadowing Drill"),
+                description: String(localized: "Practice moving to different court positions without a ball. Focus on quick, efficient movements and maintaining balance.")
             )
             
         case .depthPositioning:
             return PracticeSuggestion(
                 issue: issueType,
-                drill: "Kitchen Line Drill",
-                description: "Practice dinking while maintaining position at the kitchen line. Focus on staying close to the line without stepping into the kitchen."
+                drill: String(localized: "Kitchen Line Drill"),
+                description: String(localized: "Practice dinking while maintaining position at the kitchen line. Focus on staying close to the line without stepping into the kitchen.")
             )
             
         case .reactionTiming:
             return PracticeSuggestion(
                 issue: issueType,
-                drill: "Split-Step Drill",
-                description: "Practice the split-step timing: small hop as your opponent contacts the ball. This prepares you to move quickly in any direction."
+                drill: String(localized: "Split-Step Drill"),
+                description: String(localized: "Practice the split-step timing: small hop as your opponent contacts the ball. This prepares you to move quickly in any direction.")
             )
             
         case .coverageImbalance:
             return PracticeSuggestion(
                 issue: issueType,
-                drill: "Side-to-Side Drill",
-                description: "Have a partner hit alternating shots to your weaker side. Focus on moving efficiently and maintaining good form on that side."
+                drill: String(localized: "Side-to-Side Drill"),
+                description: String(localized: "Have a partner hit alternating shots to your weaker side. Focus on moving efficiently and maintaining good form on that side.")
             )
             
         case .sideSpecificTiming:
             return PracticeSuggestion(
                 issue: issueType,
-                drill: "Wall Drill",
-                description: "Practice shots on your weaker side against a wall. Focus on early contact point and smooth weight transfer through the shot."
+                drill: String(localized: "Wall Drill"),
+                description: String(localized: "Practice shots on your weaker side against a wall. Focus on early contact point and smooth weight transfer through the shot.")
             )
             
         case .recoveryPositioning:
             return PracticeSuggestion(
                 issue: issueType,
-                drill: "Recovery Drill",
-                description: "Hit a shot, then immediately return to center position. Practice this pattern until recovery becomes automatic after every shot."
+                drill: String(localized: "Recovery Drill"),
+                description: String(localized: "Hit a shot, then immediately return to center position. Practice this pattern until recovery becomes automatic after every shot.")
             )
         }
     }
@@ -258,9 +272,9 @@ class CoachingEngine: CoachingEngineProtocol {
         
         // Add general tips if we have fewer than 3
         if tips.count < 3 {
-            tips.append("Stay on your toes and keep moving")
+            tips.append(String(localized: "Stay on your toes and keep moving"))
             if tips.count < 3 {
-                tips.append("Keep your paddle up and ready")
+                tips.append(String(localized: "Keep your paddle up and ready"))
             }
         }
         
@@ -271,17 +285,17 @@ class CoachingEngine: CoachingEngineProtocol {
     private func getQuickTip(for issueType: IssueType) -> String? {
         switch issueType {
         case .staticPositioning:
-            return "Stay on your toes and keep moving"
+            return String(localized: "Stay on your toes and keep moving")
         case .depthPositioning:
-            return "Move forward after your return"
+            return String(localized: "Move forward after your return")
         case .reactionTiming:
-            return "Split-step when your opponent contacts the ball"
+            return String(localized: "Split-step when your opponent contacts the ball")
         case .coverageImbalance:
-            return "Practice moving to your weaker side"
+            return String(localized: "Practice moving to your weaker side")
         case .sideSpecificTiming:
-            return "Prepare earlier on your weaker side"
+            return String(localized: "Prepare earlier on your weaker side")
         case .recoveryPositioning:
-            return "Recover to center after each shot"
+            return String(localized: "Recover to center after each shot")
         }
     }
     
@@ -304,17 +318,17 @@ class CoachingEngine: CoachingEngineProtocol {
     private func getFocusArea(for issueType: IssueType) -> String {
         switch issueType {
         case .staticPositioning:
-            return "Work on court mobility and dynamic positioning"
+            return String(localized: "Work on court mobility and dynamic positioning")
         case .depthPositioning:
-            return "Focus on moving forward to control the net"
+            return String(localized: "Focus on moving forward to control the net")
         case .reactionTiming:
-            return "Practice split-step timing and quick reactions"
+            return String(localized: "Practice split-step timing and quick reactions")
         case .coverageImbalance:
-            return "Improve movement and coverage on your weaker side"
+            return String(localized: "Improve movement and coverage on your weaker side")
         case .sideSpecificTiming:
-            return "Develop earlier contact timing on your weaker side"
+            return String(localized: "Develop earlier contact timing on your weaker side")
         case .recoveryPositioning:
-            return "Build automatic recovery to center position"
+            return String(localized: "Build automatic recovery to center position")
         }
     }
 }

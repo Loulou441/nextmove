@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var api: NextMoveAPI
+    @EnvironmentObject private var languageManager: LanguageManager
     @StateObject private var viewModel = RecordingViewModel()
     @StateObject private var sportManager = SportManager()
     
@@ -17,6 +18,7 @@ struct ContentView: View {
             MeView()
                 .environmentObject(viewModel)
                 .environmentObject(sportManager)
+                .environmentObject(languageManager)
                 .tabItem {
                     Label("Me", systemImage: "person.fill")
                 }
@@ -24,6 +26,7 @@ struct ContentView: View {
             LibraryView()
                 .environmentObject(viewModel)
                 .environmentObject(sportManager)
+                .environmentObject(languageManager)
                 .tabItem {
                     Label("Library", systemImage: "books.vertical.fill")
                 }
@@ -31,6 +34,7 @@ struct ContentView: View {
             UploadView()
                 .environmentObject(viewModel)
                 .environmentObject(sportManager)
+                .environmentObject(languageManager)
                 .tabItem {
                     Label("Upload", systemImage: "arrow.up.circle.fill")
                 }

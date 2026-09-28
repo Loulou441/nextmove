@@ -111,7 +111,8 @@ struct EvolutionView: View {
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                 HStack(spacing: 4) {
                     Image(systemName: up ? "arrow.up.right" : "arrow.down.right")
-                    Text(String(format: "%@%.1f depuis ton 1er match", up ? "+" : "", delta))
+                    let signed = String(format: "%@%.1f", up ? "+" : "", delta)
+                    Text("\(signed) depuis ton 1er match")
                 }
                 .font(.caption)
                 .fontWeight(.semibold)
@@ -216,7 +217,7 @@ struct EvolutionView: View {
         .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
     }
 
-    private func legendItem(color: Color, label: String, dashed: Bool) -> some View {
+    private func legendItem(color: Color, label: LocalizedStringKey, dashed: Bool) -> some View {
         HStack(spacing: 6) {
             RoundedRectangle(cornerRadius: 1)
                 .fill(color)
@@ -254,7 +255,7 @@ struct EvolutionView: View {
         }
     }
 
-    private func deltaCard(title: String, icon: String, current: String, delta: Double, unit: String, color: Color) -> some View {
+    private func deltaCard(title: LocalizedStringKey, icon: String, current: String, delta: Double, unit: String, color: Color) -> some View {
         let up = delta >= 0
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProgressCard: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let trend: String
     let icon: String

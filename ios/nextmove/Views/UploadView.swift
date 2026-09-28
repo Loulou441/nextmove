@@ -160,7 +160,7 @@ struct UploadView: View {
 
 struct TipRow: View {
     let icon: String
-    let text: String
+    let text: LocalizedStringKey
     
     var body: some View {
         HStack(spacing: 8) {
@@ -176,7 +176,7 @@ struct TipRow: View {
 
 struct InstructionRow: View {
     let number: Int
-    let text: String
+    let text: LocalizedStringKey
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
