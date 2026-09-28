@@ -76,6 +76,12 @@ class ChatRequest(BaseModel):
     # préserver le comportement historique ; l'app iOS envoie "fr" ou "en"
     # selon le réglage de langue choisi par l'utilisateur).
     lang: str = "fr"
+    # L'app iOS possède ses propres gardes locaux (InjectionGuard + TopicGuard)
+    # qui s'exécutent avant d'appeler ce endpoint. Passer skip_moderation=true
+    # évite le second appel Groq côté serveur et réduit la latence de ~2 s.
+    # Les clients web n'envoient pas ce champ, donc la modération reste active
+    # pour eux par défaut.
+    skip_moderation: bool = False
 
 
 class ChatResponse(BaseModel):
@@ -124,23 +130,25 @@ def chat_with_coach(
 
     # Modération — même politique de repli que pour le rapport ponctuel :
     # en cas de panne, on bloque par sécurité plutôt que de laisser passer.
-    try:
-        moderation = Moderator().moderate(message)
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Le modérateur est momentanément indisponible, réessaie dans un instant.",
-        )
-    if moderation.is_prompt_injection:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Ce message ressemble à une tentative de manipulation de l'IA et a été bloqué.",
-        )
-    if moderation.off_topic:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Le coach IA ne répond qu'aux questions liées à ton sport et à ta performance. Pose une question sur ton match, ta technique, ta tactique, ton physique ou ton mental.",
-        )
+    # Ignorée quand le client signale avoir déjà filtré localement (iOS).
+    if not payload.skip_moderation:
+        try:
+            moderation = Moderator().moderate(message)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Le modérateur est momentanément indisponible, réessaie dans un instant.",
+            )
+        if moderation.is_prompt_injection:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Ce message ressemble à une tentative de manipulation de l'IA et a été bloqué.",
+            )
+        if moderation.off_topic:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Le coach IA ne répond qu'aux questions liées à ton sport et à ta performance. Pose une question sur ton match, ta technique, ta tactique, ton physique ou ton mental.",
+            )
 
     prompt_dir: Path = PROMPT_PATHS[sport]
     with open(prompt_dir / _CONTEXT_FILES[sport], encoding="utf-8") as f:

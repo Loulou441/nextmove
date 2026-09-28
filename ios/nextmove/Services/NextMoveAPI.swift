@@ -294,13 +294,16 @@ final class NextMoveAPI: ObservableObject {
             /// Langue attendue de la réponse ("en"/"fr"). Le backend force le
             /// coach à répondre dans cette langue (ancien comportement : FR).
             let lang: String
+            /// iOS runs InjectionGuard + TopicGuard locally before this call,
+            /// so skipping the server-side moderator saves one Groq round-trip
+            /// (~2 s). Web clients don't send this field so they keep full
+            /// moderation.
+            let skip_moderation: Bool
         }
         struct Reply: Decodable { let reply: String }
 
-        // Le backend attend les rôles "user" / "coach", ce qui correspond déjà
-        // à CoachChatMessage.Role.rawValue.
         let turns = history.map { HistoryTurn(role: $0.role.rawValue, text: $0.text) }
-        let body = Body(message: message, history: turns, lang: languageCode)
+        let body = Body(message: message, history: turns, lang: languageCode, skip_moderation: true)
         let response: Reply = try await postEncodable("/matches/\(matchId)/chat", body: body)
         return response.reply
     }
