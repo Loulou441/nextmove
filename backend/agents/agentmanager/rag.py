@@ -162,7 +162,7 @@ class KnowledgeBase:
         collection.add(documents=documents, ids=ids, metadatas=metadatas)
         logger.info("%d exercices embeddés dans '%s'.", len(drills), self.collection_name)
 
-    def retrieve(self, query: str, k: int = 3) -> List[Dict[str, Any]]:
+    def retrieve(self, query: str, k: int = 2) -> List[Dict[str, Any]]:
         """
         Retourne les k exercices les plus proches sémantiquement de `query`,
         recherchés par similarité cosinus dans l'index ChromaDB.
@@ -205,7 +205,7 @@ def get_knowledge_base(sport: str, knowledge_path: Path, force_rebuild: bool = F
 
 
 def enrich_match_data_with_drills(
-    match_data: Dict[str, Any], knowledge_base: KnowledgeBase, k: int = 3
+    match_data: Dict[str, Any], knowledge_base: KnowledgeBase, k: int = 2
 ) -> Dict[str, Any]:
     """
     Retourne une copie de match_data où chaque séquence est enrichie d'un
