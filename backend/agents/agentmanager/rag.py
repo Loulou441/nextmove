@@ -162,7 +162,7 @@ class KnowledgeBase:
         collection.add(documents=documents, ids=ids, metadatas=metadatas)
         logger.info("%d exercices embeddés dans '%s'.", len(drills), self.collection_name)
 
-    def retrieve(self, query: str, k: int = 2) -> List[Dict[str, Any]]:
+    def retrieve(self, query: str, k: int = 3) -> List[Dict[str, Any]]:
         """
         Retourne les k exercices les plus proches sémantiquement de `query`,
         recherchés par similarité cosinus dans l'index ChromaDB.

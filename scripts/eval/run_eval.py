@@ -171,8 +171,9 @@ def cmd_moderator(_args):
 # --------------------------------------------------------------------------- A/B
 JUDGE_SYSTEM = (
     "Tu es un entraîneur expert chargé de comparer deux recommandations de coaching (A et B) pour la MÊME séquence "
-    "de jeu. Juge uniquement : (1) cohérence avec la séquence décrite, (2) caractère concret et réalisable de l'exercice, "
-    "(3) spécificité au sport. Ne tiens compte ni de la longueur ni de l'ordre. "
+    "de jeu, dans le sport indiqué (padel, tennis ou pickleball). Juge uniquement : (1) cohérence avec la séquence "
+    "décrite, (2) caractère concret et réalisable de l'exercice, (3) spécificité au sport INDIQUÉ : un conseil qui "
+    "relève d'un autre sport est un défaut. Ne tiens compte ni de la longueur ni de l'ordre. "
     'Réponds uniquement par un JSON : {"gagnant": "A"|"B"|"egalite", "raison": "une phrase"}.'
 )
 
@@ -204,6 +205,22 @@ def _recommend(sport, with_rag, query, seq_id):
     return coach.generate_recommendations(match)
 
 
+def _retry_json(fn, tries=3):
+    """Réessaie si Groq renvoie 400 `json_validate_failed` (génération vide ou refusée, souvent ponctuelle).
+    Les autres erreurs 400 (vrais bugs : mauvais modèle, requête invalide) remontent immédiatement."""
+    import groq
+
+    last = None
+    for _ in range(tries):
+        try:
+            return fn()
+        except groq.BadRequestError as exc:
+            if "json_validate_failed" not in str(exc):
+                raise
+            last = exc
+    raise last
+
+
 def cmd_ab(args):
     from backend import config
     from backend.agents.agentmanager.agent import Agent
@@ -221,22 +238,29 @@ def cmd_ab(args):
 
     rows, wins_rag, wins_base, ties = [], 0, 0, 0
     grounded = total_rec = 0
+    echecs = []  # paires abandonnées après échecs répétés : déclarées dans le bilan, jamais ignorées en silence
     for i, (sport, it) in enumerate(items):
-        with_r = _recommend(sport, True, it["query"], f"ab_{i}").recommandations_coach[0]
-        without = _recommend(sport, False, it["query"], f"ab_{i}").recommandations_coach[0]
+        try:
+            with_r = _retry_json(lambda: _recommend(sport, True, it["query"], f"ab_{i}")).recommandations_coach[0]
+            without = _retry_json(lambda: _recommend(sport, False, it["query"], f"ab_{i}")).recommandations_coach[0]
+
+            rag_is_a = rng.random() < 0.5  # ordre aléatoire pour neutraliser le biais de position
+            a, b = (with_r, without) if rag_is_a else (without, with_r)
+            render = lambda r: f"Titre : {r.titre}\nConstat : {r.contenu.constat}\nAnalyse : {r.contenu.analyse}\nAction : {r.contenu.action_corrective}"  # noqa: E731
+            v = _retry_json(lambda: judge.call_and_validate(
+                messages=[
+                    {"role": "system", "content": JUDGE_SYSTEM},
+                    {"role": "user", "content": f"Sport : {sport}\nSéquence : {it['query']}\n\n=== A ===\n{render(a)}\n\n=== B ===\n{render(b)}"},
+                ],
+                model=config.MODEL_NAME_MODERATOR, temperature=0, schema=Verdict,
+            ))
+        except Exception as exc:  # noqa: BLE001
+            echecs.append({"sport": sport, "query": it["query"], "erreur": str(exc)[:300]})
+            print(f"[{i + 1}/{len(items)}] {sport:10s} → ABANDONNÉE ({type(exc).__name__})")
+            continue
+
         total_rec += 1
         grounded += with_r.contenu.exercice_source_id in set(it["expected_ids"])
-
-        rag_is_a = rng.random() < 0.5  # ordre aléatoire pour neutraliser le biais de position
-        a, b = (with_r, without) if rag_is_a else (without, with_r)
-        render = lambda r: f"Titre : {r.titre}\nConstat : {r.contenu.constat}\nAnalyse : {r.contenu.analyse}\nAction : {r.contenu.action_corrective}"  # noqa: E731
-        v = judge.call_and_validate(
-            messages=[
-                {"role": "system", "content": JUDGE_SYSTEM},
-                {"role": "user", "content": f"Séquence : {it['query']}\n\n=== A ===\n{render(a)}\n\n=== B ===\n{render(b)}"},
-            ],
-            model=config.MODEL_NAME_MODERATOR, temperature=0, schema=Verdict,
-        )
         g = v.gagnant.strip().upper()
         winner = "egalite" if g.startswith("E") else ("rag" if (g == "A") == rag_is_a else "sans_rag")
         wins_rag += winner == "rag"; wins_base += winner == "sans_rag"; ties += winner == "egalite"
@@ -246,10 +270,11 @@ def cmd_ab(args):
         print(f"[{i + 1}/{len(items)}] {sport:10s} → {winner}")
 
     decided = wins_rag + wins_base
-    print(f"\nAvec RAG gagne : {fmt(wins_rag, decided)} des comparaisons tranchées ({ties} égalités)")
+    print(f"\nPaires évaluées : {len(rows)}/{len(items)} ({len(echecs)} abandonnée(s) après erreurs Groq répétées)")
+    print(f"Avec RAG gagne : {fmt(wins_rag, decided)} des comparaisons tranchées ({ties} égalités)")
     print(f"Exercice attendu cité avec RAG : {fmt(grounded, total_rec)}")
     save("ab.json", {"avec_rag": wins_rag, "sans_rag": wins_base, "egalites": ties,
-                     "exercice_attendu_cite": [grounded, total_rec], "detail": rows})
+                     "exercice_attendu_cite": [grounded, total_rec], "paires_abandonnees": echecs, "detail": rows})
 
     # Fichier de notation en aveugle par un entraîneur humain (à remplir avant de dévoiler les colonnes de source).
     with open(RESULTS_DIR / "ab_notation_humaine.csv", "w", encoding="utf-8", newline="") as f:

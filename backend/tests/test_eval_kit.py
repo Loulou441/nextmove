@@ -93,3 +93,40 @@ def test_ab_comparison_unblinds_winner_correctly(run_eval, fake_embeddings, fake
         rows = list(csv.reader(f, delimiter=";"))
     assert len(rows) == 3 and rows[0][:2] == ["id", "sport"]
     assert {r[-1] for r in rows[1:]} <= {"avec_rag", "sans_rag"}
+
+
+def test_ab_retries_then_skips_failed_pairs_and_reports_them(run_eval, fake_embeddings, fake_groq, monkeypatch, tmp_path):  # noqa: F811
+    """Un 400 json_validate_failed est retenté ; si l'échec persiste, la paire est abandonnée ET comptée."""
+    import httpx
+    from groq import BadRequestError
+
+    def bad_request():
+        req = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+        body = {"error": {"code": "json_validate_failed", "message": "Failed to validate JSON"}}
+        return BadRequestError("json_validate_failed", response=httpx.Response(400, request=req), body=body)
+
+    monkeypatch.setattr(run_eval, "RESULTS_DIR", tmp_path)
+    # Séquence 1 : le coach avec RAG échoue 1 fois puis réussit, tout le reste passe.
+    # Séquence 2 : le coach avec RAG échoue 3 fois de suite -> paire abandonnée.
+    fake_groq([
+        bad_request(), VALID_REPLY, VALID_REPLY, {"gagnant": "A", "raison": "x"},
+        bad_request(), bad_request(), bad_request(),
+    ])
+
+    run_eval.cmd_ab(SimpleNamespace(n=2, seed=0))
+
+    out = json.loads((tmp_path / "ab.json").read_text(encoding="utf-8"))
+    assert len(out["detail"]) == 1
+    assert len(out["paires_abandonnees"]) == 1
+    assert out["avec_rag"] + out["sans_rag"] == 1
+
+
+def test_ab_judge_is_told_the_sport(run_eval, fake_embeddings, fake_groq, monkeypatch, tmp_path):  # noqa: F811
+    monkeypatch.setattr(run_eval, "RESULTS_DIR", tmp_path)
+    client = fake_groq([VALID_REPLY, VALID_REPLY, {"gagnant": "A", "raison": "x"}])
+
+    run_eval.cmd_ab(SimpleNamespace(n=1, seed=0))
+
+    judge_messages = client.calls[2]["messages"]
+    assert "padel, tennis ou pickleball" in judge_messages[0]["content"]
+    assert judge_messages[1]["content"].startswith("Sport : ")
