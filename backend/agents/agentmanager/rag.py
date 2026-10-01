@@ -205,7 +205,7 @@ def get_knowledge_base(sport: str, knowledge_path: Path, force_rebuild: bool = F
 
 
 def enrich_match_data_with_drills(
-    match_data: Dict[str, Any], knowledge_base: KnowledgeBase, k: int = 2
+    match_data: Dict[str, Any], knowledge_base: KnowledgeBase, k: int = 3
 ) -> Dict[str, Any]:
     """
     Retourne une copie de match_data où chaque séquence est enrichie d'un
