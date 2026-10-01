@@ -1,0 +1,245 @@
+{
+  "_note": "BROUILLON à valider/corriger par un entraîneur. Les requêtes sont formulées comme le fait l'analyse vidéo (evenement_cle + contexte_tactique), volontairement différentes des textes de la base. expected_ids = exercices jugés pertinents (au moins un doit ressortir).",
+  "padel": [
+    {
+      "query": "Faute directe au filet. Le joueur monte trop tôt alors que le couple adverse enchaîne les lobs.",
+      "expected_ids": [
+        "padel_tact_001"
+      ]
+    },
+    {
+      "query": "Sortie de vitre ratée. Mauvaise lecture du rebond après la vitre de fond.",
+      "expected_ids": [
+        "padel_tech_001",
+        "padel_tech_008"
+      ]
+    },
+    {
+      "query": "Smash qui part hors du court. Frappe trop puissante, peu de contrôle.",
+      "expected_ids": [
+        "padel_tech_003",
+        "padel_tech_013"
+      ]
+    },
+    {
+      "query": "Les deux joueurs se gênent au centre sur une balle, personne ne la prend.",
+      "expected_ids": [
+        "padel_ment_012",
+        "padel_tact_002",
+        "padel_tact_004"
+      ]
+    },
+    {
+      "query": "Déplacements de plus en plus lents en fin de match, retard sur les balles latérales.",
+      "expected_ids": [
+        "padel_phys_001",
+        "padel_phys_011",
+        "padel_phys_012"
+      ]
+    },
+    {
+      "query": "Premier service raté sur un jeu décisif, pression visible.",
+      "expected_ids": [
+        "padel_ment_005",
+        "padel_ment_010"
+      ]
+    },
+    {
+      "query": "Le joueur smashe systématiquement alors que l'adversaire est reculé ; un lob était plus pertinent.",
+      "expected_ids": [
+        "padel_tact_003"
+      ]
+    },
+    {
+      "query": "Série de fautes directes puis jeu très prudent, le joueur n'ose plus attaquer.",
+      "expected_ids": [
+        "padel_ment_004"
+      ]
+    },
+    {
+      "query": "Couple mal placé juste après le service, espace ouvert au milieu du court.",
+      "expected_ids": [
+        "padel_tact_010",
+        "padel_tact_004"
+      ]
+    },
+    {
+      "query": "Bandeja défensive ratée après un lob adverse, point perdu sur le coup suivant.",
+      "expected_ids": [
+        "padel_tech_002"
+      ]
+    },
+    {
+      "query": "Service toujours identique, l'adversaire retourne sans aucune difficulté.",
+      "expected_ids": [
+        "padel_tech_009"
+      ]
+    },
+    {
+      "query": "Frustration visible après un point perdu, le joueur enchaîne avec une erreur.",
+      "expected_ids": [
+        "padel_ment_007",
+        "padel_ment_008"
+      ]
+    }
+  ],
+  "tennis": [
+    {
+      "query": "Double faute. Le lancer de balle varie d'un service à l'autre.",
+      "expected_ids": [
+        "tennis_tech_002"
+      ]
+    },
+    {
+      "query": "Volée envoyée hors du court, geste trop ample au filet.",
+      "expected_ids": [
+        "tennis_tech_005"
+      ]
+    },
+    {
+      "query": "Balle de break perdue sur une faute, tension visible du joueur.",
+      "expected_ids": [
+        "tennis_ment_001"
+      ]
+    },
+    {
+      "query": "Retour de service en retard face à un service puissant, raquette armée trop longtemps.",
+      "expected_ids": [
+        "tennis_tech_010"
+      ]
+    },
+    {
+      "query": "Le joueur reste au fond alors que l'adversaire vient de jouer une balle courte.",
+      "expected_ids": [
+        "tennis_tact_003"
+      ]
+    },
+    {
+      "query": "Fin de match : le service perd de la vitesse, le bras semble fatigué.",
+      "expected_ids": [
+        "tennis_phys_006",
+        "tennis_phys_009"
+      ]
+    },
+    {
+      "query": "Niveau de jeu qui s'effondre pendant le tie-break.",
+      "expected_ids": [
+        "tennis_ment_003",
+        "tennis_ment_011"
+      ]
+    },
+    {
+      "query": "Échange neutre, accélération prématurée suivie d'une faute directe.",
+      "expected_ids": [
+        "tennis_tact_007",
+        "tennis_tact_006"
+      ]
+    },
+    {
+      "query": "Début du set suivant très faible juste après avoir perdu le premier set.",
+      "expected_ids": [
+        "tennis_ment_009"
+      ]
+    },
+    {
+      "query": "Amortie adverse non rattrapée, premiers mètres trop lents.",
+      "expected_ids": [
+        "tennis_phys_002",
+        "tennis_phys_011"
+      ]
+    },
+    {
+      "query": "Deuxième service toujours slice au centre, retourné de manière agressive.",
+      "expected_ids": [
+        "tennis_tact_013",
+        "tennis_tact_004"
+      ]
+    },
+    {
+      "query": "Coup droit sans puissance, frappe réalisée à l'arrêt.",
+      "expected_ids": [
+        "tennis_tech_003"
+      ]
+    }
+  ],
+  "pickleball": [
+    {
+      "query": "Faute dans la zone de non-volée lors d'une accélération, corps penché vers l'avant.",
+      "expected_ids": [
+        "pb_tech_001",
+        "pb_ment_006"
+      ]
+    },
+    {
+      "query": "Montée au filet désorganisée après le retour, le partenaire arrive en retard.",
+      "expected_ids": [
+        "pb_tact_002"
+      ]
+    },
+    {
+      "query": "Smash manqué depuis la zone de transition, frappe trop forte.",
+      "expected_ids": [
+        "pb_tech_006"
+      ]
+    },
+    {
+      "query": "Troisième balle trop courte, l'adversaire attaque depuis le filet.",
+      "expected_ids": [
+        "pb_tech_003"
+      ]
+    },
+    {
+      "query": "Erreur après une longue série de dinks, accélération par impatience.",
+      "expected_ids": [
+        "pb_ment_002",
+        "pb_tact_007",
+        "pb_tact_004"
+      ]
+    },
+    {
+      "query": "Collision au centre, les deux partenaires hésitent sur la balle.",
+      "expected_ids": [
+        "pb_tact_005",
+        "pb_tact_010",
+        "pb_tact_012"
+      ]
+    },
+    {
+      "query": "Balle de match perdue, la précision chute nettement.",
+      "expected_ids": [
+        "pb_ment_012",
+        "pb_ment_003"
+      ]
+    },
+    {
+      "query": "Service trop court, retour agressif de l'adversaire.",
+      "expected_ids": [
+        "pb_tech_004"
+      ]
+    },
+    {
+      "query": "Pied posé dans le kitchen lors d'un erne raté.",
+      "expected_ids": [
+        "pb_tech_012"
+      ]
+    },
+    {
+      "query": "Retard de réaction face à un smash adverse tiré de près.",
+      "expected_ids": [
+        "pb_phys_006"
+      ]
+    },
+    {
+      "query": "Lob défensif trop court, smashé par l'adversaire au filet.",
+      "expected_ids": [
+        "pb_tech_010"
+      ]
+    },
+    {
+      "query": "Perte de confiance après plusieurs fautes au filet, jeu devenu trop défensif.",
+      "expected_ids": [
+        "pb_ment_005"
+      ]
+    }
+  ]
+}
