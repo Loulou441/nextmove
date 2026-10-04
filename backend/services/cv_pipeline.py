@@ -48,6 +48,7 @@ from backend.services.video_storage import get_supabase_client, BUCKET_NAME
 from backend.services.ios_tracker import Detection as _TrackDetection, ball_trajectories, track_detections
 from backend.services.rally_builder import build_points
 from backend.services.shot_metrics import shot_speed
+from backend.services.player_selection import build_player_payloads
 from backend.services import skill_scoring as sk
 
 logger = logging.getLogger("nextmove.cv_pipeline")
@@ -253,6 +254,7 @@ class VideoAnalysis:
     insights: list
     patterns_summary: dict
     events: list
+    players: list = field(default_factory=list)
 
 
 def analyze_video(sport: str, storage_path: str) -> VideoAnalysis:
@@ -260,6 +262,8 @@ def analyze_video(sport: str, storage_path: str) -> VideoAnalysis:
     video_path = _download_video(storage_path)
     try:
         detections, duration = _sample_and_detect(video_path, model, sport)
+        # Les vignettes se recadrent dans la vidéo : à faire avant sa suppression.
+        players = build_player_payloads(video_path, [d for f in detections for d in f.track_inputs])
     finally:
         video_path.unlink(missing_ok=True)
 
@@ -339,6 +343,7 @@ def analyze_video(sport: str, storage_path: str) -> VideoAnalysis:
         insights=insights,
         patterns_summary=patterns_summary,
         events=events,
+        players=players,
     )
 
 

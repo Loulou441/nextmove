@@ -11,15 +11,30 @@ import logging
 from fastapi import APIRouter, BackgroundTasks, Depends, UploadFile, File, Form, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.api.deps import get_db, get_current_user
-from backend.api.schemas import MatchResponse, MatchDetailResponse, MatchEventResponse, MatchSyncRequest
+from backend.api.schemas import MatchResponse, MatchDetailResponse, MatchEventResponse, MatchSyncRequest, PlayerSelectionRequest
 from backend.db.models import User, Match, MatchEvent
 from backend.db.session import SessionLocal
 from backend.services.match_service import get_user_matches, create_pending_match, mark_match_ready, CVPipelineError
 from backend.services.video_storage import upload_video, VideoTooLargeError, delete_video, get_video_url
 from collections import defaultdict
+from backend.services.player_selection import scoped_fields, viewed_fields
 
 router = APIRouter(prefix="/matches", tags=["matches"])
 
+def _detail_for(match: Match) -> MatchDetailResponse:
+    """Détail d'un match, vu pour le joueur choisi s'il y en a un (le match en base reste intact)."""
+    detail = MatchDetailResponse.model_validate(match)
+    view = scoped_fields(match.players, match.selected_player_index, match.rating, match.coverage, match.skills)
+    return detail.model_copy(update=view)
+
+
+
+def _summary_for(match: Match) -> MatchResponse:
+    """Résumé d'un match pour les listes, vu pour le joueur choisi s'il y en a un."""
+    values = viewed_fields(match)
+    return MatchResponse.model_validate(match).model_copy(
+        update={"rating": values["rating"], "coverage": values["coverage"]}
+    )
 
 # Mappe le tag d'un temps fort (highlight) envoyé par l'app mobile vers un
 # type d'événement stocké en base. Les temps forts SONT les événements réels
@@ -75,7 +90,7 @@ def list_my_matches(
 ):
     """Liste les matchs de l'utilisateur connecté (les mêmes que sur le web)."""
     matches = get_user_matches(db, current_user.id)
-    return [MatchResponse.model_validate(m) for m in matches]
+    return [_summary_for(m) for m in matches]
 
 
 @router.get("/stats/aggregate")
@@ -94,6 +109,7 @@ def get_match_stats(
     if sport:
         query = query.filter(Match.sport == sport)
     matches = query.order_by(Match.match_date, Match.created_at).all()
+    views = {m.id: viewed_fields(m) for m in matches}  # note, couverture, compétences du joueur choisi
 
     timeline = [
         {
@@ -101,8 +117,8 @@ def get_match_stats(
             "title": m.title,
             "sport": m.sport,
             "date": (m.match_date or m.created_at).isoformat(),
-            "rating": m.rating,
-            "coverage": m.coverage,
+            "rating": views[m.id]["rating"],
+            "coverage": views[m.id]["coverage"],
             "rallies": m.rallies,
             "winners": m.winners,
             "errors": m.errors,
@@ -115,7 +131,7 @@ def get_match_stats(
     # simplement pas dans sa propre moyenne (pas de valeur inventée).
     skill_totals: dict[str, list[float]] = defaultdict(list)
     for m in matches:
-        for skill in (m.skills or []):
+        for skill in (views[m.id]["skills"] or []):
             label = skill.get("label")
             score = skill.get("score")
             if label and score is not None:
@@ -135,7 +151,7 @@ def get_match_stats(
         for zone, count in (patterns.get("zone_distribution") or {}).items():
             zone_totals[zone] += count
 
-    ratings = [m.rating for m in matches if m.rating is not None]
+    ratings = [v["rating"] for v in views.values() if v["rating"] is not None]
 
     return {
         "timeline": timeline,
@@ -145,7 +161,7 @@ def get_match_stats(
         "summary": {
             "total_matches": len(matches),
             "avg_rating": round(sum(ratings) / len(ratings), 1) if ratings else None,
-            "best_match": max(matches, key=lambda m: m.rating or 0).title if matches else None,
+            "best_match": max(matches, key=lambda m: views[m.id]["rating"] or 0).title if matches else None,
         },
     }
 
@@ -304,7 +320,30 @@ def get_match_detail(
     )
     if match is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match introuvable")
-    return MatchDetailResponse.model_validate(match)
+    return _detail_for(match)
+
+@router.put("/{match_id}/player", response_model=MatchDetailResponse)
+def select_match_player(
+    match_id: str,
+    payload: PlayerSelectionRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Enregistre le joueur choisi (index d'un joueur détecté, ou null pour le match entier)
+    et renvoie le détail du match vu pour ce joueur."""
+    match = (
+        db.query(Match)
+        .filter(Match.id == match_id, Match.user_id == current_user.id)
+        .first()
+    )
+    if match is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match introuvable")
+    if payload.index is not None and payload.index not in {p.get("index") for p in (match.players or [])}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Joueur inconnu pour ce match")
+    match.selected_player_index = payload.index
+    db.commit()
+    db.refresh(match)
+    return _detail_for(match)
 
 @router.get("/{match_id}/video-url")
 def get_match_video_url(

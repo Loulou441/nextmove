@@ -18,9 +18,10 @@ def _fake_user():
     return user
 
 
+@patch("backend.api.routes_auth._create_and_send_code")
 @patch("backend.api.routes_auth.create_session_token", return_value="fake-jwt-token")
 @patch("backend.api.routes_auth.register_user")
-def test_register_success_sets_cookie_and_returns_token(mock_register, mock_token, client):
+def test_register_success_sets_cookie_and_returns_token(mock_register, mock_token, mock_send_code, client):
     """Une inscription réussie doit renvoyer le token en JSON ET poser le cookie httpOnly."""
     mock_register.return_value = _fake_user()
 

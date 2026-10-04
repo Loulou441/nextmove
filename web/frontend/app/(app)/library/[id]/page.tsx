@@ -154,6 +154,8 @@ export default function MatchDashboardPage() {
     );
   }
 
+  const selectedPlayer = match.players?.find((p) => p.index === match.selected_player_index) ?? null;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -179,6 +181,26 @@ export default function MatchDashboardPage() {
         </div>
       </div>
 
+      {match.players && match.players.length >= 2 && (
+        <div className="bg-nm-card rounded-nm-card shadow-sm p-4 flex items-center justify-between gap-3 no-print">
+          <p className="text-sm text-nm-text">
+            {selectedPlayer ? (
+              <>
+                Vue du joueur : <span className="font-semibold">{selectedPlayer.label}</span>
+              </>
+            ) : (
+              "Plusieurs joueurs détectés : choisis le tien pour voir ton analyse."
+            )}
+          </p>
+          <Link
+            href={`/library/${match.id}/player`}
+            className="bg-nm-card border border-nm-border hover:bg-nm-bg text-nm-text text-sm font-semibold rounded-nm-button px-4 py-2 transition-colors shrink-0"
+          >
+            {selectedPlayer ? "Changer de joueur" : "Choisir mon joueur"}
+          </Link>
+        </div>
+      )}
+
       {/* Vidéo — absente pour les matchs synchronisés depuis l'app mobile,
           qui n'ont pas de vidéo côté serveur. */}
       {videoUrl && (
@@ -199,7 +221,9 @@ export default function MatchDashboardPage() {
 
       {match.coverage != null && (
         <div className="bg-nm-card rounded-nm-card shadow-sm p-4">
-          <p className="text-sm font-medium text-nm-text mb-1">Couverture de terrain</p>
+          <p className="text-sm font-medium text-nm-text mb-1">
+            Couverture de terrain{selectedPlayer ? " (ce joueur)" : ""}
+          </p>
           <div className="h-2 bg-nm-border rounded-full overflow-hidden">
             <div
               className="h-full bg-nm-green rounded-full"
@@ -209,6 +233,8 @@ export default function MatchDashboardPage() {
           <p className="text-xs text-nm-text-secondary mt-1">{match.coverage}%</p>
         </div>
       )}
+
+      {selectedPlayer && <PlayerZones player={selectedPlayer} />}
 
       {/* Skills */}
       {match.skills && match.skills.length > 0 && (
@@ -384,6 +410,46 @@ function DistributionList({ title, data }: { title: string; data: Record<string,
           );
         })}
       </div>
+    </div>
+  );
+}
+
+type Player = NonNullable<MatchDetail["players"]>[number];
+
+const ZONE_ROWS = ["back", "mid", "front"] as const;
+const ZONE_COLS = ["left", "center", "right"] as const;
+
+function PlayerZones({ player }: { player: Player }) {
+  const { zones, left_right_balance: balance } = player.stats;
+  const side =
+    balance > 0.15 ? "plutôt à droite" : balance < -0.15 ? "plutôt à gauche" : "équilibré entre gauche et droite";
+
+  return (
+    <div className="bg-nm-card rounded-nm-card shadow-sm p-4">
+      <p className="text-sm font-medium text-nm-text mb-1">Positions du joueur</p>
+      <p className="text-xs text-nm-text-secondary mb-3">
+        Part du temps passée dans chaque zone de l&apos;image (le haut est le plus éloigné de la caméra). Joueur {side}.
+      </p>
+      <div className="grid grid-cols-3 gap-1.5 max-w-xs">
+        {ZONE_ROWS.flatMap((row) =>
+          ZONE_COLS.map((col) => {
+            const share = zones[`${row}_${col}`] ?? 0;
+            return (
+              <div
+                key={`${row}_${col}`}
+                className="aspect-[4/3] rounded-nm-button flex items-center justify-center text-xs font-semibold text-nm-text"
+                style={{ backgroundColor: `rgba(52, 199, 89, ${0.08 + share * 0.9})` }}
+              >
+                {Math.round(share * 100)}%
+              </div>
+            );
+          })
+        )}
+      </div>
+      <p className="text-xs text-nm-text-secondary mt-3">
+        Mesuré à partir de la position de ce joueur uniquement : échanges, winners, erreurs et autres compétences restent
+        ceux du match.
+      </p>
     </div>
   );
 }

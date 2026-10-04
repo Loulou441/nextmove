@@ -100,6 +100,8 @@ class MatchDetailResponse(BaseModel):
     highlights: list | None = None
     insights: list | None = None
     patterns_summary: dict | None = None
+    players: list | None = None
+    selected_player_index: int | None = None
     created_at: datetime
 
     class Config:
@@ -167,7 +169,6 @@ class CoachRecommendationsResponse(BaseModel):
     sport: str
     recommandations_coach: list[CoachRecommendation]
 
-
 class ChatMessageResponse(BaseModel):
     id: str
     role: str
@@ -176,3 +177,7 @@ class ChatMessageResponse(BaseModel):
 
     class Config:
         from_attributes = True
+        
+class PlayerSelectionRequest(BaseModel):
+    """Joueur dont on veut voir l'analyse (None = vue du match entier)."""
+    index: int | None = None

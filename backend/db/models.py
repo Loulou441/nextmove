@@ -62,6 +62,8 @@ class Match(Base):
     highlights = Column(JSON, nullable=True)  # [{title, time, tag, tag_class}, ...]
     insights = Column(JSON, nullable=True)    # [{color, text}, ...]
     patterns_summary = Column(JSON, nullable=True)  # {total_events, phase_distribution, zone_distribution, ...}
+    players = Column(JSON, nullable=True)                   # joueurs détectés : [{index, label, vignette, stats}, ...]
+    selected_player_index = Column(Integer, nullable=True)  # joueur choisi par l'utilisateur
 
     video_storage_path = Column(String(500), nullable=True)  # chemin dans le bucket Supabase Storage
     created_at = Column(DateTime, default=datetime.utcnow)

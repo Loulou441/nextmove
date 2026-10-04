@@ -84,6 +84,7 @@ def mark_match_ready(db: Session, match_id: str) -> Match:
     match.highlights = result.highlights
     match.insights = result.insights
     match.patterns_summary = result.patterns_summary
+    match.players = result.players
 
     for event in result.events:
         db.add(MatchEvent(

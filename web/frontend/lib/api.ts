@@ -60,13 +60,33 @@ export interface PatternsSummary {
   priority_level?: string;
 }
 
+export interface PlayerStats {
+  coverage_percent: number;
+  zones: Record<string, number>;
+  left_right_balance: number;
+  average_depth: number;
+  detection_count: number;
+  average_confidence: number;
+}
+
+export interface DetectedPlayer {
+  index: number;
+  label: string;
+  side: "near" | "far";
+  lane: "left" | "right" | null;
+  is_likely_user: boolean;
+  thumbnail: string | null;
+  stats: PlayerStats;
+}
+
 export interface MatchDetail extends Match {
   skills: Skill[] | null;
   highlights: Highlight[] | null;
   insights: Insight[] | null;
   patterns_summary: PatternsSummary | null;
+  players: DetectedPlayer[] | null;
+  selected_player_index: number | null;
 }
-
 export interface MatchEvent {
   id: string;
   event_type: string | null;
@@ -248,6 +268,12 @@ export const api = {
 
   deleteMatch: (matchId: string) =>
     request<void>(`/matches/${matchId}`, { method: "DELETE" }),
+
+  selectPlayer: (matchId: string, index: number | null) =>
+    request<MatchDetail>(`/matches/${matchId}/player`, {
+      method: "PUT",
+      body: JSON.stringify({ index }),
+    }),
 
   deleteTrainingPlan: (planId: string) =>
     request<void>(`/training-plan/${planId}`, { method: "DELETE" }),

@@ -4,6 +4,7 @@ Route de génération de plan d'entraînement — synthèse hebdomadaire constru
 pour un sport donné (pas un exemple générique statique).
 """
 import json
+import logging
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -29,7 +30,7 @@ _EVENT_LABELS = {
     "tennis": {"WINNER": "Ace", "ERROR": "Double faute", "SHOT": "Échange en jeu"},
 }
 
-MAX_EVENTS_FOR_PLAN = 6  # on ne surcharge pas le prompt avec tous les événements bruts
+MAX_EVENTS_FOR_PLAN = 3  # on ne surcharge pas le prompt avec tous les événements bruts
 
 
 def _get_coach_class(sport: str):
@@ -142,10 +143,11 @@ def generate_training_plan(
 
     try:
         recommendations = coach.generate_recommendations(match_data)
-    except Exception as exc:
+    except Exception:
+        logging.getLogger("nextmove.training").exception("Génération du programme échouée")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Le coach IA n'a pas pu générer de programme : {exc}",
+            detail="Le coach IA est momentanément indisponible. Réessaie dans une minute.",
         )
 
     recommendations_dict = recommendations.model_dump()
