@@ -15,19 +15,19 @@ application web React / Next.js.
 |---|---|---|
 | Mobile | SwiftUI, AVFoundation, Vision, Core ML | Sur l’appareil |
 | Streamlit | Python, Streamlit, SQLAlchemy | Côté serveur avec YOLO |
-| Web | React, Next.js, TypeScript, FastAPI | Côté serveur avec YOLO (installation complète uniquement) |
+| Web | React, Next.js, TypeScript, FastAPI | Côté serveur avec YOLO |
 
 Les applications partagent un objectif produit et des modèles issus du
 pipeline d’entraînement. Leurs implémentations et leur couverture
 fonctionnelle restent distinctes.
 
-**Analyse vidéo web en production.** Le déploiement Railway de l’API utilise
-un `requirements.txt` allégé, sans `torch` / `ultralytics` / `opencv`, pour
-garder l’API légère (l’app mobile fait sa CV en local). `POST
-/matches/{id}/analyze` — l’analyse vidéo serveur pour React — dépend donc de
-l’installation locale et complète (`backend/requirements.txt`) ; sur le
-déploiement Railway actuel, cet appel échoue tant que ces dépendances n’y
-sont pas ajoutées. Voir [backend/README.md](backend/README.md).
+**Déploiement.** L’interface web est hébergée sur Vercel et l’API FastAPI
+tourne dans un conteneur Docker sur une instance AWS EC2, avec Supabase pour la
+base et le stockage des vidéos. L’image Docker contient `torch`, `ultralytics`
+et Chromium : l’analyse vidéo web (`POST /matches/{id}/analyze`) et l’export PDF
+sont donc disponibles en production. L’app mobile fait toujours sa vision par
+ordinateur en local et envoie ses résultats à l’API. Voir
+[backend/DEPLOY.md](backend/DEPLOY.md).
 
 ## Organisation du dépôt
 
@@ -43,11 +43,15 @@ sont pas ajoutées. Voir [backend/README.md](backend/README.md).
 
 Fichiers de configuration à la racine :
 
+- `Dockerfile` et `.dockerignore` : image de l’API (voir [backend/DEPLOY.md](backend/DEPLOY.md)) ;
 - `.env.example` : exemple pour le `.env` racine utilisé par Streamlit ;
 - `backend/.env.example` : exemple pour `backend/.env`, utilisé par l’API ;
 - `web/frontend/.env.local.example` : adresse publique de l’API pour le web ;
 - `.gitignore` : exclusions Git ;
-- `packages.txt` : dépendances système utilisées pour le déploiement Python.
+- `packages.txt` : dépendances système utilisées pour le déploiement Python ;
+- `railway.json`, `nixpacks.toml`, `Procfile`, `requirements.txt` : anciennes
+  configurations de déploiement sur Railway, conservées pour mémoire et non utilisées
+  par le déploiement actuel (Vercel et AWS EC2).
 
 ## Démarrage rapide
 
@@ -94,7 +98,11 @@ depuis l’ancienne organisation. L’ancien dossier `streamlit/src/api/` a ét�
 
 React utilise `NEXT_PUBLIC_API_URL`. L'application mobile utilise `NEXTMOVE_API_URL`, avec
 `http://localhost:8000` par défaut pour le simulateur. L’API se déploie séparément
-de l’interface Streamlit.
+de l’interface Streamlit, dans un conteneur Docker (voir [backend/DEPLOY.md](backend/DEPLOY.md)).
+
+Les comptes web demandent une confirmation d’adresse email (code à six chiffres envoyé
+par Resend) et proposent la réinitialisation du mot de passe. Cela nécessite la variable
+`RESEND_API_KEY` côté API.
 
 Streamlit conserve ses services, son authentification et ses accès SQL.
 Pour partager les comptes et accepter les tokens existants, configurer la même
@@ -171,6 +179,7 @@ Avant une fusion :
 3. Tester la connexion, l’import vidéo et l’analyse.
 4. Vérifier les résultats et les fonctionnalités de coaching.
 5. Pour le frontend web, exécuter `npm run lint` et `npm run build`.
+6. Pour l’API, exécuter `python -m pytest backend/tests -q` (voir [backend/README.md](backend/README.md)).
 
 ## Documentation
 
@@ -178,6 +187,7 @@ Avant une fusion :
 - [Application mobile](ios/README.md)
 - [Application Streamlit](streamlit/README.md)
 - [API commune](backend/README.md)
+- [Déploiement (Vercel et AWS EC2)](backend/DEPLOY.md)
 - [Exemple de coaching mobile](docs/ios/USAGE_EXAMPLE_LLM.swift)
 - [Maquettes](docs/mockups/)
 - [Médias de démonstration](docs/media/)
