@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import uuid
 
 import pytest
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, inspect, text, select
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 from alembic import command
@@ -198,9 +198,9 @@ def test_migrations_upgrade_existing_schema_without_losing_matches(tmp_path, mon
     command.upgrade(config, "head")  # un deuxième lancement ne rejoue rien
     command.downgrade(config, "56822ee323a9")
     assert "chat_messages" not in inspect(engine).get_table_names()
-    with Session(engine) as db:
-        assert db.get(Match, mid).title == "Keep me"
-    engine.dispose()
+    matches = Match.__table__
+    with engine.connect() as conn:
+       assert conn.execute(select(matches.c.title).where(matches.c.id == mid)).scalar() == "Keep me"
 
 
 def test_streamlit_style_delete_cascades_chat_without_new_orm_relationship(database):
