@@ -24,10 +24,10 @@ serveur (YOLO) dans le conteneur.
 
 ## 1. Prérequis
 
-- Une instance AWS EC2 avec Docker installé : type **[à compléter]**, au moins 4 Go de
+- Une instance AWS EC2 avec Docker installé : au moins 4 Go de
   RAM et 20 à 30 Go de disque (l'image contient PyTorch, Chromium et le modèle
   d'embeddings ; vérifier sa taille réelle après le build).
-- Un nom de domaine pour l'API, par exemple `api.nextmoveapp.lol` **[à confirmer]**,
+- Un nom de domaine pour l'API, par exemple `api.nextmoveapp.lol`,
   dont l'enregistrement DNS pointe vers l'adresse IP de l'instance.
 - Le projet Supabase existant (base et Storage, bucket privé `videos`).
 - Un compte Resend avec le domaine `nextmoveapp.lol` vérifié (expéditeur
