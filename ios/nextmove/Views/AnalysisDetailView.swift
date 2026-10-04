@@ -17,6 +17,10 @@ struct AnalysisDetailView: View {
     @StateObject private var playerManager = VideoPlayerManager()
     @Environment(\.dismiss) private var dismiss
 
+    /// When the analysis identified players, this holds the one whose per-player
+    /// view is shown. nil = whole-match view (default).
+    @State private var selectedPlayerID: UUID?
+
     /// Always reflects the latest state of this recording from the view model,
     /// so status/analysis updates (pending → processing → completed) redraw the UI.
     private var liveRecording: GameRecording {
@@ -31,18 +35,32 @@ struct AnalysisDetailView: View {
                         videoPlayerSection
                             .id("videoPlayer")
 
-                        askCoachButton(analysis: analysis)
+                        // Coach uses the CURRENTLY SELECTED scope (match or a
+                        // specific player), so its advice matches what's shown.
+                        askCoachButton(
+                            analysis: displayedAnalysis(base: analysis),
+                            playerLabel: selectedPlayerLabel(base: analysis)
+                        )
+
+                        // Per-player selector: tapping a player re-scopes the
+                        // analysis below to that person (coverage, movement,
+                        // overall rating). Shown only when players were detected.
+                        playerSelector(analysis: analysis)
+
+                        // The analysis actually shown: whole-match by default, or
+                        // re-scoped to the selected player.
+                        let shown = displayedAnalysis(base: analysis)
 
                         tabSelector
 
                         Group {
                             switch selectedTab {
                             case 0:
-                                OverviewSection(analysis: analysis)
+                                OverviewSection(analysis: shown)
                             case 1:
-                                SkillsSection(skillRatings: analysis.skillRatings)
+                                SkillsSection(skillRatings: shown.skillRatings)
                             case 2:
-                                HighlightsSection(highlights: analysis.highlights) { timestamp in
+                                HighlightsSection(highlights: shown.highlights) { timestamp in
                                     // Seek the video to the highlight and scroll up to the player.
                                     playerManager.seek(toSeconds: timestamp)
                                     withAnimation {
@@ -50,12 +68,13 @@ struct AnalysisDetailView: View {
                                     }
                                 }
                             case 3:
-                                StatisticsSection(statistics: analysis.statistics)
+                                StatisticsSection(statistics: shown.statistics)
                             default:
                                 EmptyView()
                             }
                         }
                         .padding()
+                        .id(selectedPlayerID)  // force sections to rebuild on player change
                     } else {
                         processingView
                     }
@@ -66,6 +85,17 @@ struct AnalysisDetailView: View {
         .navigationTitle(recording.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            // Per-player analysis entry point (PB-Vision-style). Shown only when
+            // the analysis identified players to choose from.
+            if let candidates = liveRecording.analysis?.playerCandidates, !candidates.isEmpty {
+                ToolbarItem(placement: .primaryAction) {
+                    NavigationLink {
+                        PlayerSelectionView(candidates: candidates, videoURL: liveRecording.videoURL)
+                    } label: {
+                        Image(systemName: "person.2.crop.square.stack")
+                    }
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button {
@@ -86,14 +116,79 @@ struct AnalysisDetailView: View {
         }
     }
 
+    /// The analysis to display: re-scoped to the selected player when one is
+    /// chosen, otherwise the whole-match analysis.
+    private func displayedAnalysis(base: GameAnalysis) -> GameAnalysis {
+        guard let id = selectedPlayerID,
+              let candidate = base.playerCandidates?.first(where: { $0.id == id }) else {
+            return base
+        }
+        return PlayerAnalysisAdapter.analysis(for: candidate, base: base)
+    }
+
+    /// A horizontal row of player chips. Tapping one re-scopes the analysis to
+    /// that player; "Match" clears the selection back to the whole-game view.
+    @ViewBuilder
+    private func playerSelector(analysis: GameAnalysis) -> some View {
+        if let candidates = analysis.playerCandidates, !candidates.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    chip(title: "Match",
+                         systemImage: "person.3.fill",
+                         isSelected: selectedPlayerID == nil) {
+                        withAnimation { selectedPlayerID = nil }
+                    }
+                    ForEach(candidates) { candidate in
+                        chip(title: candidate.displayName,
+                             systemImage: "person.fill",
+                             isSelected: selectedPlayerID == candidate.id) {
+                            withAnimation { selectedPlayerID = candidate.id }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    private func chip(title: String, systemImage: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: systemImage).font(.caption2)
+                // `title` is either an already-localized player name (verbatim)
+                // or a static key like "Match"; LocalizedStringKey handles the
+                // latter and leaves a resolved player name unchanged.
+                Text(verbatim: title).font(.subheadline).fontWeight(.medium)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(isSelected ? recording.sportType.color : Color(.secondarySystemBackground))
+            .foregroundStyle(isSelected ? .white : .primary)
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Human label for the current scope ("Player 1" …), or nil for the whole
+    /// match. Fed to the coach so it knows whose numbers it's discussing.
+    private func selectedPlayerLabel(base: GameAnalysis) -> String? {
+        guard let id = selectedPlayerID,
+              let candidate = base.playerCandidates?.first(where: { $0.id == id }) else {
+            return nil
+        }
+        return candidate.displayName
+    }
+
     /// Entry point into the conversational AI coach, grounded in this game's analysis.
-    private func askCoachButton(analysis: GameAnalysis) -> some View {
+    private func askCoachButton(analysis: GameAnalysis, playerLabel: String?) -> some View {
         NavigationLink {
             CoachChatView(
                 sportType: recording.sportType,
                 analysis: analysis,
                 api: api,
-                matchId: liveRecording.serverMatchId
+                matchId: nil,  // Use on-device path: faster for demo, no Railway cold-start wait
+                playerLabel: playerLabel
             )
         } label: {
             HStack(spacing: 12) {
@@ -446,8 +541,10 @@ struct OverviewSection: View {
     private var quickStatsGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
             QuickStatCard(title: "Rallies", value: "\(analysis.statistics.totalRallies)", icon: "arrow.left.arrow.right", color: .blue)
-            QuickStatCard(title: "Winners", value: "\(analysis.statistics.winners)", icon: "checkmark.circle.fill", color: .green)
-            QuickStatCard(title: "Errors", value: "\(analysis.statistics.errors)", icon: "xmark.circle.fill", color: .red)
+            // Measured, reliable metrics (from ball-trajectory shot counting)
+            // rather than the winner/error spatial heuristic we can't trust.
+            QuickStatCard(title: "Longest Rally", value: "\(analysis.statistics.longestRally)", icon: "flame.fill", color: .green)
+            QuickStatCard(title: "Avg Shots / Rally", value: String(format: "%.1f", analysis.statistics.avgRallyLength), icon: "chart.bar.fill", color: .purple)
             QuickStatCard(title: "Coverage", value: "\(Int(analysis.statistics.courtCoveragePercent))%", icon: "figure.walk", color: .orange)
         }
     }
@@ -472,10 +569,10 @@ struct OverviewSection: View {
     
     private func ratingDescription(_ rating: Double) -> String {
         switch rating {
-        case 4.5...: return "Excellent Performance"
-        case 3.5..<4.5: return "Strong Performance"
-        case 2.5..<3.5: return "Good Performance"
-        default: return "Room for Improvement"
+        case 4.5...: return String(localized: "Excellent Performance")
+        case 3.5..<4.5: return String(localized: "Strong Performance")
+        case 2.5..<3.5: return String(localized: "Good Performance")
+        default: return String(localized: "Room for Improvement")
         }
     }
 }
@@ -854,23 +951,17 @@ struct StatisticsSection: View {
             }
             
             VStack(spacing: 0) {
+                // Only reliably MEASURED stats are shown. The winner/error and
+                // win-rate figures relied on a spatial heuristic we can't trust
+                // (ball's last side ≠ who won the point), so they're omitted
+                // rather than shown as fabricated numbers.
                 StatRow(title: "Total Rallies", value: "\(statistics.totalRallies)", icon: "arrow.left.arrow.right")
                 Divider().padding(.leading, 44)
                 StatRow(title: "Longest Rally", value: "\(statistics.longestRally) shots", icon: "chart.bar.fill")
                 Divider().padding(.leading, 44)
-                StatRow(title: "Winners", value: "\(statistics.winners)", icon: "checkmark.circle.fill")
+                StatRow(title: "Avg Rally Length", value: String(format: "%.1f shots", statistics.avgRallyLength), icon: "bolt.fill")
                 Divider().padding(.leading, 44)
-                StatRow(title: "Unforced Errors", value: "\(statistics.errors)", icon: "xmark.circle.fill")
-                Divider().padding(.leading, 44)
-                StatRow(title: "Attacks Attempted", value: "\(statistics.attacksAttempted)", icon: "bolt.fill")
-                Divider().padding(.leading, 44)
-                StatRow(title: "Attacks Successful", value: "\(statistics.attacksSuccessful)", icon: "target")
-                Divider().padding(.leading, 44)
-                StatRow(
-                    title: "Attack Success Rate",
-                    value: String(format: "%.0f%%", Double(statistics.attacksSuccessful) / Double(max(statistics.attacksAttempted, 1)) * 100),
-                    icon: "percent"
-                )
+                StatRow(title: "Avg Ball Speed", value: String(format: "%.2f u/s", statistics.avgBallSpeed), icon: "speedometer")
                 Divider().padding(.leading, 44)
                 StatRow(title: "Court Coverage", value: String(format: "%.0f%%", statistics.courtCoveragePercent), icon: "figure.walk")
             }

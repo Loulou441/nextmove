@@ -5,6 +5,8 @@
 
 import SwiftUI
 import PhotosUI
+import UniformTypeIdentifiers
+import CoreTransferable
 
 struct VideoImportView: View {
     @ObservedObject var viewModel: RecordingViewModel
@@ -97,43 +99,78 @@ struct VideoImportView: View {
         guard let selectedItem else { return }
         
         isImporting = true
-        
+
         Task {
             do {
-                guard let data = try await selectedItem.loadTransferable(type: Data.self) else {
+                // `PhotosPickerItem` only exposes `loadTransferable(type:)` — it has
+                // no `loadFileRepresentation` (that belongs to NSItemProvider). We
+                // load the video as a FILE via a small `Transferable` wrapper
+                // (`ImportedVideo`) that copies the picker's temporary file into our
+                // own container. This works for HEVC/H.265 and iCloud videos and
+                // doesn't load the whole video into memory the way `Data` would.
+                guard let imported = try await selectedItem.loadTransferable(type: ImportedVideo.self) else {
                     await MainActor.run {
-                        errorMessage = "Failed to load video data"
+                        errorMessage = String(localized: "Impossible de lire le format de cette vidéo.")
                         showError = true
                         isImporting = false
                     }
                     return
                 }
-                
+
                 let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                let videoURL = documentsPath.appendingPathComponent("\(UUID().uuidString).mov")
-                
-                try data.write(to: videoURL)
-                
+                let destURL = documentsPath.appendingPathComponent("\(UUID().uuidString).mov")
+
+                // Move the transfer's copied file to its final name in Documents.
+                if FileManager.default.fileExists(atPath: destURL.path) {
+                    try FileManager.default.removeItem(at: destURL)
+                }
+                try FileManager.default.moveItem(at: imported.url, to: destURL)
+                let videoURL = destURL
+
                 await MainActor.run {
-                    let title = gameTitle.isEmpty ? "Imported \(sportManager.currentSport?.displayName ?? "Game")" : gameTitle
+                    let title = gameTitle.isEmpty
+                        ? "Imported \(sportManager.currentSport?.displayName ?? "Game")"
+                        : gameTitle
                     let sport = sportManager.currentSport ?? .pickleball
                     viewModel.addRecording(videoURL: videoURL, title: title, sportType: sport)
                     isImporting = false
                 }
-                
-                // Small delay to ensure UI updates before dismissing
-                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-                
-                await MainActor.run {
-                    dismiss()
-                }
+
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                await MainActor.run { dismiss() }
+
             } catch {
                 await MainActor.run {
-                    errorMessage = "Failed to import video: \(error.localizedDescription)"
+                    errorMessage = String(localized: "Échec de l'import : \(error.localizedDescription)")
                     showError = true
                     isImporting = false
                 }
             }
+        }
+    }
+}
+
+/// A video loaded from the photo library as a FILE (not raw `Data`).
+///
+/// `PhotosPickerItem.loadTransferable(type: ImportedVideo.self)` triggers the
+/// `importing` closure below with a temporary URL that the system owns and may
+/// delete as soon as the closure returns. We immediately copy it into the app's
+/// temporary directory and hand back a URL we control, which the caller then
+/// moves into Documents. This mirrors the file-based import Apple recommends for
+/// large media (HEVC / iCloud-backed) and avoids loading the whole clip into RAM.
+struct ImportedVideo: Transferable {
+    let url: URL
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(importedContentType: .movie) { received in
+            let copy = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString)
+                .appendingPathExtension(received.file.pathExtension.isEmpty ? "mov" : received.file.pathExtension)
+            if FileManager.default.fileExists(atPath: copy.path) {
+                try FileManager.default.removeItem(at: copy)
+            }
+            try FileManager.default.copyItem(at: received.file, to: copy)
+            return ImportedVideo(url: copy)
         }
     }
 }

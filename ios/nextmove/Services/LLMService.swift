@@ -150,6 +150,9 @@ class LLMService {
 
         How to respond:
         - ANSWER THE PLAYER'S ACTUAL QUESTION directly. Do not dump a generic report.
+        - Do NOT open with a greeting or the player's name (no "Salut", "Hi", "Hey",
+          "Hello", etc.). The conversation is already underway — jump straight into
+          the answer.
         - Be conversational and warm, like a real coach texting back. 2 to 5 sentences.
         - Ground every claim in the player's real stats below when relevant; cite the
           concrete number (e.g. "your movement is 3.6/5"). Never invent stats.
@@ -175,7 +178,48 @@ class LLMService {
         }
         messages.append(LLMMessage(role: "user", content: question))
 
-        return try await sendRequest(messages: messages, temperature: temperature)
+        let reply = try await sendRequest(messages: messages, temperature: temperature)
+        return Self.stripLeadingGreeting(reply)
+    }
+
+    /// Removes a leading greeting the model sometimes still adds despite the
+    /// system prompt (e.g. "Salut ! ", "Hey, ", "Hello Player 1 —"). We only
+    /// strip when the greeting is at the very start and followed by the real
+    /// answer, so normal content is never touched.
+    static func stripLeadingGreeting(_ text: String) -> String {
+        var s = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Common greeting openers in EN + FR, case-insensitive.
+        let greetings = ["salut", "coucou", "bonjour", "bonsoir", "hey", "hi", "hello", "yo"]
+        let lower = s.lowercased()
+        for g in greetings {
+            if lower == g || lower.hasPrefix(g + " ") || lower.hasPrefix(g + ",")
+                || lower.hasPrefix(g + "!") || lower.hasPrefix(g + " !")
+                || lower.hasPrefix(g + ".") {
+                // Drop the greeting word, then any trailing punctuation/name up to
+                // the first sentence break, keeping the rest of the answer intact.
+                if let range = s.range(of: g, options: [.caseInsensitive, .anchored]) {
+                    var rest = String(s[range.upperBound...])
+                    // Trim leading punctuation, a short name, and separators like
+                    // "! ", ", ", " — ", up to the start of the real sentence.
+                    rest = rest.drop(while: { " ,!.—-:;".contains($0) }).description
+                    // If what's left starts with a short capitalized name + separator
+                    // (e.g. "Player 1 — "), drop up to the first dash/comma too.
+                    if let sep = rest.firstIndex(where: { "—-,:".contains($0) }),
+                       rest.distance(from: rest.startIndex, to: sep) <= 12 {
+                        let after = rest[rest.index(after: sep)...]
+                        let candidate = after.drop(while: { " ,!.—-:;".contains($0) }).description
+                        if !candidate.isEmpty { rest = candidate }
+                    }
+                    s = rest.isEmpty ? s : rest
+                }
+                break
+            }
+        }
+        // Capitalize the first letter if we chopped a lead-in.
+        if let first = s.first, first.isLowercase {
+            s.replaceSubrange(s.startIndex...s.startIndex, with: String(first).uppercased())
+        }
+        return s
     }
 
     func enhanceCoachingDescription(

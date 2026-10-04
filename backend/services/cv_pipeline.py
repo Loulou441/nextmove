@@ -15,9 +15,15 @@ toutes les analyses. Pour chaque match :
      (accélération nette de la balle juste avant sa disparition) soit par
      une "error" (fin de rally sans accélération notable) — heuristique
      documentée, pas un arbitrage de règles de jeu réel.
-  4. La couverture de terrain est calculée comme l'aire de l'enveloppe
-     convexe des positions moyennes des joueurs, en pourcentage de la
-     surface totale du cadre.
+  4. La couverture de terrain est calculée pour le JOUEUR PRINCIPAL —
+     celui le plus proche de la caméra (bas de boîte le plus bas dans
+     l'image), c.-à-d. l'utilisateur qui filme son propre côté. On mesure
+     l'aire de l'enveloppe convexe de SES positions, pas de tous les
+     joueurs confondus, pour que l'analyse soit personnelle. De même, les
+     points (winner/error) sont attribués de son point de vue selon le côté
+     du terrain où la balle finit (même heuristique que l'app iOS). Repli
+     sur l'ensemble des joueurs si aucun joueur principal n'est identifiable
+     (cadrage lointain, angle inhabituel).
 
 Ce qui est réellement mesuré (rallies, couverture, winners/errors, la
 trajectoire de balle) sort de la détection. Ce qui reste hors de portée
@@ -168,7 +174,12 @@ class _FrameDetections:
     t: float  # secondes depuis le début de la vidéo
     ball_xy: Optional[tuple]  # (x, y) normalisé 0-100, ou None si non détectée
     ball_conf: float
-    player_xys: list = field(default_factory=list)  # [(x, y), ...] normalisés 0-100
+    player_xys: list = field(default_factory=list)  # [(x, y), ...] normalisés 0-100 (tous les joueurs)
+    # Joueur "principal" = celui le plus proche de la caméra sur cette frame.
+    # Heuristique : on filme son propre côté du terrain, donc le joueur dont le
+    # bas de boîte (les pieds) est le plus bas dans l'image est l'utilisateur.
+    # None si aucun joueur détecté sur la frame.
+    primary_player_xy: Optional[tuple] = None
 
 
 def _sample_and_detect(video_path: Path, model, sport: str) -> tuple[list, float]:
@@ -203,6 +214,12 @@ def _sample_and_detect(video_path: Path, model, sport: str) -> tuple[list, float
 
             best_ball_xy, best_ball_conf = None, -1.0
             player_xys = []
+            # Pour désigner le joueur principal (le plus proche de la caméra) :
+            # on retient, parmi les joueurs de la frame, celui dont le bas de
+            # boîte est le plus bas dans l'image (y2 max). À égalité, la boîte
+            # la plus grande (un objet proche paraît plus gros) départage.
+            primary_player_xy = None
+            best_primary_key = None  # (y2_norm, aire_norm)
             for box in result.boxes:
                 cls_id = int(box.cls[0])
                 conf = float(box.conf[0])
@@ -213,8 +230,22 @@ def _sample_and_detect(video_path: Path, model, sport: str) -> tuple[list, float
                     best_ball_xy, best_ball_conf = (cx, cy), conf
                 elif cls_id in player_ids:
                     player_xys.append((cx, cy))
+                    # Proxy "proche de la caméra" : bas de boîte (pieds) le plus
+                    # bas dans l'image, puis aire de boîte comme départage.
+                    y2_norm = y2 / h
+                    area_norm = (abs(x2 - x1) / w) * (abs(y2 - y1) / h)
+                    key = (y2_norm, area_norm)
+                    if best_primary_key is None or key > best_primary_key:
+                        best_primary_key = key
+                        primary_player_xy = (cx, cy)
 
-            detections.append(_FrameDetections(t=t, ball_xy=best_ball_xy, ball_conf=max(best_ball_conf, 0.0), player_xys=player_xys))
+            detections.append(_FrameDetections(
+                t=t,
+                ball_xy=best_ball_xy,
+                ball_conf=max(best_ball_conf, 0.0),
+                player_xys=player_xys,
+                primary_player_xy=primary_player_xy,
+            ))
     finally:
         cap.release()
 
@@ -300,8 +331,32 @@ def analyze_video(sport: str, storage_path: str) -> VideoAnalysis:
 
     all_player_xys = [xy for f in detections for xy in f.player_xys]
     all_ball_confs = [f.ball_conf for f in detections if f.ball_xy is not None]
-    coverage = _convex_hull_coverage_pct(all_player_xys)
     avg_ball_conf = sum(all_ball_confs) / len(all_ball_confs) if all_ball_confs else 0.0
+
+    # Couverture de terrain du JOUEUR PRINCIPAL (le plus proche de la caméra =
+    # l'utilisateur qui a filmé son côté). On mesure sa propre couverture plutôt
+    # que l'enveloppe de tous les joueurs confondus, pour que le conseil le
+    # concerne lui. Repli sur l'enveloppe de tous les joueurs si trop peu de
+    # frames désignent un joueur principal (ex. cadrage lointain où tous les
+    # joueurs ont une taille/hauteur de boîte similaire).
+    primary_player_xys = [f.primary_player_xy for f in detections if f.primary_player_xy is not None]
+    has_primary_player = len(primary_player_xys) >= 3
+    if has_primary_player:
+        coverage = _convex_hull_coverage_pct(primary_player_xys)
+    else:
+        coverage = _convex_hull_coverage_pct(all_player_xys)
+
+    # Ligne médiane de terrain (en y, 0-100) pour attribuer les points au joueur
+    # principal — même logique que l'app iOS (FeatureExtractor.identifyNearSide).
+    # Le joueur principal est près de la caméra, donc bas dans l'image (y grand).
+    # La médiane se situe à mi-chemin entre son y moyen et le centre du cadre (50).
+    # Une balle qui finit côté adverse (y < médiane) = point gagné par le joueur ;
+    # une balle qui revient de son côté (y >= médiane) = erreur / retour subi.
+    if has_primary_player:
+        primary_mean_y = sum(y for (_, y) in primary_player_xys) / len(primary_player_xys)
+        court_mid_y = (primary_mean_y + 50.0) / 2.0
+    else:
+        court_mid_y = 50.0  # repli neutre : moitié du cadre
 
     events = []
     winners = 0
@@ -329,23 +384,68 @@ def analyze_video(sport: str, storage_path: str) -> VideoAnalysis:
 
         last = seg[-1]
         events.append({
-            "event_type": "PENDING",  # rempli juste après (winner/error décidé sur la médiane globale)
+            "event_type": "PENDING",  # rempli juste après (winner/error attribué au joueur principal)
             "phase": _phase_for_x(last.ball_xy[0], sport),
             "minute": int(last.t // 60),
             "x": last.ball_xy[0],
             "y": last.ball_xy[1],
             "_end_speed": end_speed,
+            "_end_ball_y": last.ball_xy[1],  # pour l'attribution côté terrain
         })
 
-    median_end_speed = float(np.median(segment_end_speeds)) if segment_end_speeds else 0.0
+    # Seuil absolu de vitesse par sport (% de cadre / seconde) pour qu'un
+    # rally soit qualifié de "winner". Calibré empiriquement : une balle de
+    # pickleball rapide parcourt ~15 % du cadre par seconde au filet, padel
+    # ~12 %, tennis ~18 %. En dessous, la fin de rally est une erreur.
+    # On remplace l'ancienne heuristique médiane qui classait mécaniquement
+    # la moitié des rallies comme "winners", produisant des comptes irréalistes
+    # (ex. 4 winners pour 8 rallies même sur un jeu médiocre).
+    _WINNER_SPEED_THRESHOLD = {
+        "pickleball": 15.0,
+        "padel": 12.0,
+        "tennis": 18.0,
+    }
+    winner_threshold = _WINNER_SPEED_THRESHOLD.get(sport, 15.0)
+
     for ev in events:
         if ev["event_type"] == "PENDING":
-            is_winner = ev.pop("_end_speed") >= median_end_speed
+            speed = ev.pop("_end_speed")
+            end_ball_y = ev.pop("_end_ball_y")
+            # Attribution AU JOUEUR PRINCIPAL (perspective de l'utilisateur).
+            # Deux signaux combinés :
+            #   1. Côté terrain : la balle finit-elle côté adverse (y < médiane) ?
+            #   2. Finition : le rally se termine-t-il sur une accélération nette ?
+            # Winner pour l'utilisateur = balle envoyée côté adverse avec finition
+            # franche. Sinon, la balle est revenue de son côté / sans finition =
+            # point perdu (erreur ou retour subi). Quand on n'a pas de joueur
+            # principal fiable, on retombe sur la seule finition (comportement
+            # d'avant, non attribué).
+            ended_opponent_side = end_ball_y < court_mid_y
+            strong_finish = speed >= winner_threshold
+            if has_primary_player:
+                is_winner = ended_opponent_side and strong_finish
+            else:
+                is_winner = strong_finish
             ev["event_type"] = "WINNER" if is_winner else "ERROR"
             if is_winner:
                 winners += 1
             else:
                 errors += 1
+
+    # Garantie de cohérence : dans une séquence courte, le nombre de winners
+    # ne doit pas dépasser ~30 % des rallies (heuristique haute, calibrée sur
+    # des statistiques de matchs amateurs). Cela protège contre les clips où
+    # la balle est très rapide tout au long (ex. échauffement serré).
+    max_realistic_winners = max(1, int(round(len(segments) * 0.30)))
+    if winners > max_realistic_winners:
+        # On reclasse les rallies "winner" excédentaires (les derniers dans
+        # l'ordre d'apparition, donc les plus proches du seuil) en "error".
+        excess = winners - max_realistic_winners
+        winner_events_list = [ev for ev in events if ev["event_type"] == "WINNER"]
+        for ev in winner_events_list[-excess:]:
+            ev["event_type"] = "ERROR"
+            winners -= 1
+            errors += 1
 
     rallies = len(segments)
     win_ratio = winners / rallies if rallies > 0 else 0.5
@@ -354,7 +454,7 @@ def analyze_video(sport: str, storage_path: str) -> VideoAnalysis:
     rating = max(1.0, min(5.0, rating))
 
     skills = _build_skills(sport, rating, coverage_norm)
-    highlights = _build_highlights(segments, segment_end_speeds, median_end_speed)
+    highlights = _build_highlights(segments, segment_end_speeds, winner_threshold)
     insights = _INSIGHT_POOL_POSITIVE if rating >= 4.0 else _INSIGHT_POOL_MIXED
     insights = [{"color": c, "text": t} for c, t in insights]
 

@@ -65,6 +65,10 @@ final class CoachingAgent {
     /// the reply language never depends on a global read from a background task.
     private let languageCode: String
 
+    /// Which player the analysis is scoped to, e.g. "Player 1", or nil for the
+    /// whole match. Used so the coach knows WHOSE numbers it is talking about.
+    private let playerLabel: String?
+
     /// Full conversation history (includes the opening message).
     private(set) var history: [CoachChatMessage] = []
 
@@ -83,7 +87,8 @@ final class CoachingAgent {
         llmService: LLMService = LLMService(),
         api: NextMoveAPI? = nil,
         matchId: String? = nil,
-        languageCode: String = LanguageManager.currentLanguage.llmLanguageCode
+        languageCode: String = LanguageManager.currentLanguage.llmLanguageCode,
+        playerLabel: String? = nil
     ) {
         self.sportType = sportType
         self.analysis = analysis
@@ -92,6 +97,7 @@ final class CoachingAgent {
         self.api = api
         self.matchId = matchId
         self.languageCode = languageCode
+        self.playerLabel = playerLabel
     }
 
     // MARK: - Public API
@@ -226,7 +232,19 @@ final class CoachingAgent {
         let s = analysis.statistics
         let r = analysis.skillRatings
 
-        var context = "Game analysis for a \(sportType.displayName) player:\n"
+        // State clearly WHOSE data this is, so the coach addresses the right
+        // person. The movement/coverage/overall figures below are already
+        // scoped to this player when one is selected (see PlayerAnalysisAdapter).
+        let subject: String
+        if let playerLabel {
+            subject = "\(playerLabel) (one player in this \(sportType.displayName) game). "
+                + "Movement, court coverage and overall rating are specific to this player; "
+                + "rally and shot counts are match-level context."
+        } else {
+            subject = "the whole \(sportType.displayName) match (all players combined)"
+        }
+
+        var context = "Game analysis for \(subject):\n"
         context += "- Overall rating: \(String(format: "%.1f", analysis.overallRating))/5.0\n"
         context += "- Skill ratings (0-5): dinking \(fmt(r.dinking)), volleys \(fmt(r.volleys)), "
         context += "movement \(fmt(r.movement)), serve \(fmt(r.serve)), return \(fmt(r.return)), thirdShot \(fmt(r.thirdShot))\n"

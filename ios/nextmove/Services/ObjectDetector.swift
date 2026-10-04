@@ -158,9 +158,9 @@ final class ObjectDetector: ObjectDetectorProtocol {
             return nil
         }
         
-        // Parse object class from label
+        // Parse object class from label — silently skips known-but-untracked
+        // classes (field, wall, outside-field from the padel model).
         guard let objectClass = parseObjectClass(from: topLabel.identifier) else {
-            logger.warning("Unknown object class: \(topLabel.identifier)")
             return nil
         }
         
@@ -202,7 +202,7 @@ final class ObjectDetector: ObjectDetectorProtocol {
         // Map to ObjectClass. Handles naming variants across datasets, e.g.
         // "tennis ball" -> "tennisball", "Player" -> "player".
         switch normalized {
-        case "ball", "tennisball", "sportsball":
+        case "ball", "tennisball", "sportsball", "padelball", "picklebal", "pickball", "pickleball":
             return .ball
         case "player", "person", "player1", "player2":
             // Some datasets label players individually (player1/player2);
@@ -216,6 +216,10 @@ final class ObjectDetector: ObjectDetectorProtocol {
             return .net
         case "netpost", "post":
             return .netPost
+        // Padel model classes that are valid detections but not tracked by
+        // the analysis pipeline. Return nil silently — no warning needed.
+        case "field", "wall", "outsidefield", "outsidefiled", "outsidecourt":
+            return nil
         default:
             return nil
         }

@@ -138,9 +138,15 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
             let coachingFeedback = try await executeCoachingGeneration(features: features, sportType: sportType)
             try checkCancellation()
             
+            // Identify the players in the clip (for the "tap the figure that's
+            // you" per-player view). Built from the raw detections we already
+            // have in scope; cheap and does not touch the models again.
+            let playerCandidates = PlayerIdentification().identifyPlayers(from: detections)
+
             // Create GameAnalysis from results
             // Validates: Requirements 15.2
-            let gameAnalysis = createGameAnalysis(from: features, coaching: coachingFeedback)
+            var gameAnalysis = createGameAnalysis(from: features, coaching: coachingFeedback)
+            gameAnalysis.playerCandidates = playerCandidates
             
             let totalTime = CFAbsoluteTimeGetCurrent() - startTime
             logger.info("Analysis completed in \(String(format: "%.2f", totalTime))s")
@@ -188,9 +194,9 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
     
     // MARK: - Private Methods - Stage Execution
     
-    /// Maximum frames to process. Bounds both memory and total analysis time so
-    /// the demo stays smooth even on long clips. At 5 fps this covers ~60s of play.
-    private let maxFramesToProcess = 300
+    /// Maximum frames to process. At 8 fps, 1440 frames = 3 minutes of play —
+    /// enough to cover a full short match clip without excessive memory use.
+    private let maxFramesToProcess = 1440
 
     /// Streams frame extraction + object detection together.
     ///
@@ -203,7 +209,12 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
     private func executeStreamingDetection(videoURL: URL, sportType: SportType) async throws -> [Detection] {
         reportProgress(stage: .frameExtraction, percentage: 0.0, message: "Extracting frames from video...")
 
-        let frameRate = 5 // 5 fps for balance of speed and accuracy
+        // 8 fps: the pickleball/padel ball is small and fast, so 5 fps captured
+        // too few ball frames — the trajectory came out sparse and whole points
+        // collapsed into a single "rally". 8 fps roughly doubles ball samples
+        // for far better rally/shot segmentation, still well within on-device
+        // speed budget for a short clip.
+        let frameRate = 8
         let frameStream = try await videoProcessor.extractFrames(from: videoURL, frameRate: frameRate)
 
         var allDetections: [Detection] = []
@@ -337,14 +348,31 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
         )
         
         // Compute statistics
+        let totalRallies = features.rallies.count
+        let winners = features.rallies.filter { $0.outcome == .winner }.count
+        let avgRallyLength: Double = totalRallies > 0
+            ? Double(features.rallies.map { $0.shotCount }.reduce(0, +)) / Double(totalRallies)
+            : 0.0
+        let speeds = features.ballTrajectories.compactMap { $0.estimatedSpeed }
+        let avgBallSpeed: Double = speeds.isEmpty ? 0.0 : speeds.reduce(0, +) / Double(speeds.count)
+        let winRate: Double = totalRallies > 0 ? (Double(winners) / Double(totalRallies)) * 100.0 : 0.0
+
         let statistics = GameAnalysis.GameStatistics(
-            totalRallies: features.rallies.count,
+            totalRallies: totalRallies,
             longestRally: features.rallies.map { $0.shotCount }.max() ?? 0,
-            winners: features.rallies.filter { $0.outcome == .winner }.count,
+            winners: winners,
             errors: features.rallies.filter { $0.outcome == .error }.count,
-            attacksAttempted: 0, // Not detected in MVP
-            attacksSuccessful: 0, // Not detected in MVP
-            courtCoveragePercent: features.playerMovement.courtCoverage.zones.values.reduce(0, +) * 100
+            avgRallyLength: avgRallyLength,
+            avgBallSpeed: avgBallSpeed,
+            winRate: winRate,
+            // Court coverage = how much of the court the player actually used,
+            // measured as the fraction of the 9-zone grid they entered.
+            // (The old code summed the per-zone TIME shares, which always total
+            // 1.0 → a constant 100%. That's the "100% couverture" bug.)
+            courtCoveragePercent: {
+                let visited = features.playerMovement.courtCoverage.zones.filter { $0.value > 0 }.count
+                return Double(visited) / 9.0 * 100.0
+            }()
         )
         
         // Create highlights from rallies
@@ -531,31 +559,63 @@ final class AnalysisPipeline: AnalysisPipelineProtocol {
         return min(5.0, (share * 0.5 + avgConf * 0.5) * 5.0)
     }
 
-    /// Creates highlights from performance features
+    /// Creates highlights from performance features.
+    ///
+    /// Highlights are derived from the actual detected rallies so there is always
+    /// something to show even when no rally reached the strict `.winner` threshold.
+    /// Priority order:
+    ///   1. Any rally classified as a genuine winner (long, dominant exchange)
+    ///   2. The top-3 longest rallies (by shot count) — always present if rallies exist
+    ///   3. Long rallies by duration as a fallback when shot-count data is sparse
     private func createHighlights(from features: PerformanceFeatures) -> [GameAnalysis.Highlight] {
         var highlights: [GameAnalysis.Highlight] = []
-        
-        // Add rally-ending winners
-        for rally in features.rallies where rally.outcome == .winner {
+        var usedRallyIDs = Set<UUID>()
+
+        let sortedRallies = features.rallies.sorted { $0.shotCount > $1.shotCount }
+
+        // 1. Genuine winners first (threshold is now high, so these are truly special)
+        for rally in sortedRallies where rally.outcome == .winner {
             highlights.append(GameAnalysis.Highlight(
                 type: .winner,
                 timestamp: rally.endTime.seconds,
-                duration: 5.0,
-                description: "Rally-ending winner"
+                duration: max(rally.duration, 3.0),
+                description: "Rally-ending winner (\(rally.shotCount) shots)"
             ))
+            usedRallyIDs.insert(rally.id)
         }
-        
-        // Add long rallies (> 10 shots)
-        for rally in features.rallies where rally.shotCount > 10 {
+
+        // 2. Top longest rallies (by shot count) — up to 3, deduped against winners
+        let longRallies = sortedRallies
+            .filter { !usedRallyIDs.contains($0.id) && $0.shotCount >= 3 }
+            .prefix(3)
+        for rally in longRallies {
             highlights.append(GameAnalysis.Highlight(
                 type: .longRally,
                 timestamp: rally.startTime.seconds,
-                duration: rally.duration,
+                duration: max(rally.duration, 3.0),
                 description: "\(rally.shotCount)-shot rally"
             ))
+            usedRallyIDs.insert(rally.id)
         }
-        
-        // Sort by timestamp and limit to top 10
+
+        // 3. Fallback: if we still have fewer than 3 highlights, add the longest
+        //    rallies by duration (covers clips where shot-count detection is thin)
+        if highlights.count < 3 {
+            let byDuration = features.rallies
+                .filter { !usedRallyIDs.contains($0.id) }
+                .sorted { $0.duration > $1.duration }
+                .prefix(3 - highlights.count)
+            for rally in byDuration {
+                highlights.append(GameAnalysis.Highlight(
+                    type: .longRally,
+                    timestamp: rally.startTime.seconds,
+                    duration: max(rally.duration, 3.0),
+                    description: String(format: "%.1fs exchange", rally.duration)
+                ))
+            }
+        }
+
+        // Sort chronologically and cap at 10
         highlights.sort { $0.timestamp < $1.timestamp }
         return Array(highlights.prefix(10))
     }

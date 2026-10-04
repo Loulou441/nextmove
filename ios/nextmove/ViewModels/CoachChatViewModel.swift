@@ -45,7 +45,7 @@ final class CoachChatViewModel: ObservableObject {
         appLocalized("What am I good at?")
     ]
 
-    init(sportType: SportType, analysis: GameAnalysis?, feedback: CoachingFeedback? = nil, api: NextMoveAPI? = nil, matchId: String? = nil) {
+    init(sportType: SportType, analysis: GameAnalysis?, feedback: CoachingFeedback? = nil, api: NextMoveAPI? = nil, matchId: String? = nil, playerLabel: String? = nil) {
         self.sportType = sportType
         self.analysis = analysis
         self.api = api
@@ -55,7 +55,8 @@ final class CoachChatViewModel: ObservableObject {
             analysis: analysis,
             feedback: feedback,
             api: api,
-            matchId: matchId
+            matchId: matchId,
+            playerLabel: playerLabel
         )
         // Seed with the coach's greeting.
         messages = [agent.greeting()]
@@ -83,9 +84,7 @@ final class CoachChatViewModel: ObservableObject {
         messages.append(CoachChatMessage(role: .user, text: trimmed))
         isThinking = true
 
-        // 1) Drive the conversation. When logged in with a synced match, the
-        //    agent routes through the backend (same moderator + RAG as the web);
-        //    otherwise it uses the on-device LLM, or rule-based if no key.
+        // 1) Get the Groq/rule-based reply — fast (~2-3 s on-device).
         var replyText: String
         do {
             replyText = try await agent.send(trimmed).text
@@ -96,31 +95,42 @@ final class CoachChatViewModel: ObservableObject {
             return
         }
 
-        // 2) Local RAG enrichment only for the on-device path. The backend chat
-        //    already grounds its answer in RAG, so enriching again would repeat
-        //    drills — skip it when the backend answered.
-        if !usingBackendChat, let drills = await fetchRAGDrills(for: trimmed) {
-            replyText += "\n\n" + drills
-        }
-
-        messages.append(CoachChatMessage(role: .coach, text: replyText))
+        // 2) Show the Groq answer immediately — user sees a response fast.
+        let coachMsg = CoachChatMessage(role: .coach, text: replyText)
+        messages.append(coachMsg)
         isThinking = false
+
+        // 3) Fire RAG enrichment in the background (non-blocking). When it
+        //    returns, patch the existing message so the drill reference
+        //    appears as a seamless addition rather than making the user wait.
+        //    Only runs on the local path — backend chat already includes RAG.
+        if !usingBackendChat {
+            Task {
+                guard let drills = await fetchRAGDrills(for: trimmed) else { return }
+                // Find the message we just appended and update its text.
+                if let idx = messages.firstIndex(where: { $0.id == coachMsg.id }) {
+                    let enriched = CoachChatMessage(
+                        id: coachMsg.id,
+                        role: .coach,
+                        text: messages[idx].text + "\n\n" + drills,
+                        timestamp: coachMsg.timestamp
+                    )
+                    messages[idx] = enriched
+                }
+            }
+        }
     }
 
     /// Retrieves grounded drill references from the backend RAG knowledge base to
     /// ENRICH the Groq answer. Returns a formatted "recommended drills" block, or
-    /// nil when it shouldn't/can't augment (no session, no analysis, off-topic,
-    /// already added this session, or backend error).
+    /// nil when it can't augment (no session, no analysis, already done this
+    /// session, or backend error). Runs once per session — the RAG call is
+    /// non-blocking so it never delays the initial coach reply.
     private func fetchRAGDrills(for userText: String) async -> String? {
         guard let api, api.isLoggedIn, let analysis else { return nil }
 
-        // Only enrich drill/plan-style asks; keep quick chit-chat lightweight.
-        // Augment at most once per session to avoid repeating the same drills.
-        let t = userText.lowercased()
-        let wantsDrills = t.contains("plan") || t.contains("work on") || t.contains("drill")
-            || t.contains("improve") || t.contains("recommend") || t.contains("practice")
-            || t.contains("exercise")
-        guard wantsDrills, !didFetchRAGPlan else { return nil }
+        // Fetch once per session — same drills stay relevant throughout the chat.
+        guard !didFetchRAGPlan else { return nil }
 
         let sequences = Self.buildSequences(from: analysis, sport: sportType)
         guard !sequences.isEmpty else { return nil }
@@ -136,6 +146,11 @@ final class CoachChatViewModel: ObservableObject {
             // Backend unavailable / unauthorized / timeout — enrich nothing.
             return nil
         }
+    }
+
+    /// Maps the game's highlights into coaching sequences the RAG agents expect.
+    static func buildSequencesPublic(from analysis: GameAnalysis, sport: SportType) -> [CoachSequenceInput] {
+        buildSequences(from: analysis, sport: sport)
     }
 
     /// Maps the game's highlights into coaching sequences the RAG agents expect.

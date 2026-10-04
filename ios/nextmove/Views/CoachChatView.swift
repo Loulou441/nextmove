@@ -12,14 +12,15 @@ struct CoachChatView: View {
     @StateObject private var viewModel: CoachChatViewModel
     let sportType: SportType
 
-    init(sportType: SportType, analysis: GameAnalysis?, feedback: CoachingFeedback? = nil, api: NextMoveAPI? = nil, matchId: String? = nil) {
+    init(sportType: SportType, analysis: GameAnalysis?, feedback: CoachingFeedback? = nil, api: NextMoveAPI? = nil, matchId: String? = nil, playerLabel: String? = nil) {
         self.sportType = sportType
         _viewModel = StateObject(wrappedValue: CoachChatViewModel(
             sportType: sportType,
             analysis: analysis,
             feedback: feedback,
             api: api,
-            matchId: matchId
+            matchId: matchId,
+            playerLabel: playerLabel
         ))
     }
 

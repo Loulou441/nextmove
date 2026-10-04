@@ -201,7 +201,11 @@ class RecordingViewModel: ObservableObject {
         let modelManager = ModelManager()
         let pipeline = AnalysisPipeline.withLLMCoaching(
             videoProcessor: VideoProcessor(),
-            objectDetector: ObjectDetector(modelManager: modelManager),
+        // 0.10 (was 0.15): the small, fast ball is frequently detected at low
+        // confidence; a slightly lower floor recovers ball frames so rallies
+        // don't collapse. Players are large and sit well above this anyway, and
+        // the tracker's per-track confidence averaging still filters noise.
+        objectDetector: ObjectDetector(modelManager: modelManager, confidenceThreshold: 0.10),
             objectTracker: ObjectTracker(),
             featureExtractor: FeatureExtractor(),
             modelManager: modelManager,
@@ -330,8 +334,9 @@ class RecordingViewModel: ObservableObject {
             longestRally: rand(18...30),
             winners: winners,
             errors: errors,
-            attacksAttempted: attacks,
-            attacksSuccessful: Int(Double(attacks) * rand(0.55...0.75)),
+            avgRallyLength: rand(3.0...8.0),
+            avgBallSpeed: rand(0.3...0.7),
+            winRate: Double(winners) / Double(max(totalRallies, 1)) * 100,
             courtCoveragePercent: rand(68...84)
         )
 

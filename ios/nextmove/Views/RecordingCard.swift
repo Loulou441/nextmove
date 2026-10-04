@@ -80,7 +80,7 @@ struct RecordingCard: View {
                 HStack(spacing: 20) {
                     StatItem(title: "Rating", value: String(format: "%.1f", analysis.overallRating), icon: "star.fill", color: ratingColor(analysis.overallRating))
                     StatItem(title: "Rallies", value: "\(analysis.statistics.totalRallies)", icon: "arrow.left.arrow.right", color: .blue)
-                    StatItem(title: "Winners", value: "\(analysis.statistics.winners)", icon: "checkmark.circle.fill", color: .green)
+                    StatItem(title: "Longest Rally", value: "\(analysis.statistics.longestRally)", icon: "flame.fill", color: .green)
                 }
             }
             

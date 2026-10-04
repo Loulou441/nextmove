@@ -37,8 +37,10 @@ final class ObjectTracker: ObjectTrackerProtocol {
     private let minConfidence: Float
 
     /// Max centroid distance (normalized 0–1) to link a fast ball to its track
-    /// when boxes don't overlap. ~0.4 of the frame between two 5 fps samples.
-    private let ballMaxMatchDistance: Float = 0.4
+    /// when boxes don't overlap. ~0.3 of the frame between two 5 fps samples —
+    /// tighter than the old 0.4 so the ball track breaks naturally at the end
+    /// of each rally when the ball disappears for more than one frame.
+    private let ballMaxMatchDistance: Float = 0.3
     
     /// Logger for debugging and observability
     private let logger = Logger(subsystem: "com.nextmove.cvml", category: "ObjectTracker")
@@ -51,12 +53,15 @@ final class ObjectTracker: ObjectTrackerProtocol {
     /// Initializes the object tracker with configurable parameters
     /// - Parameters:
     ///   - iouThreshold: IoU threshold for detection-to-track matching (default 0.3)
-    ///   - maxFrameGap: Maximum frames without detection before terminating (default 30)
+    ///   - maxFrameGap: Maximum frames without detection before terminating.
+    ///     The pipeline now samples at 8 fps, so 8 frames ≈ 1 second — enough to
+    ///     survive brief occlusions (ball behind a player) without stitching
+    ///     separate points together. (Was 5, tuned for the old 5 fps sampling.)
     ///   - minConfidence: Minimum confidence threshold for tracks (default 0.3)
     init(
         iouThreshold: Float = 0.3,
-        maxFrameGap: Int = 30,
-        minConfidence: Float = 0.3
+        maxFrameGap: Int = 8,
+        minConfidence: Float = 0.10  // Match the ObjectDetector's lowered ball floor
     ) {
         self.iouThreshold = iouThreshold
         self.maxFrameGap = maxFrameGap

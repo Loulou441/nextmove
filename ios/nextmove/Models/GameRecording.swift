@@ -115,6 +115,11 @@ struct GameAnalysis: Codable {
     var statistics: GameStatistics
     var highlights: [Highlight]
     var heatMap: CourtHeatMap?
+
+    /// Players detected in the clip, for the "tap the figure that's you" view
+    /// (PB-Vision-style per-player stats). Optional + defaulted so existing
+    /// construction sites and older persisted recordings keep working.
+    var playerCandidates: [PlayerCandidate]? = nil
     
     struct SkillRatings: Codable {
         var serve: Double
@@ -130,8 +135,9 @@ struct GameAnalysis: Codable {
         var longestRally: Int
         var winners: Int
         var errors: Int
-        var attacksAttempted: Int
-        var attacksSuccessful: Int
+        var avgRallyLength: Double   // average shots per rally
+        var avgBallSpeed: Double     // average ball speed (normalized units/s, 0–1+)
+        var winRate: Double          // % of rallies won (0–100)
         var courtCoveragePercent: Double
     }
     
