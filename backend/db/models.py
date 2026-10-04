@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    Column, String, Integer, Float, DateTime, ForeignKey, Text, JSON
+    Column, String, Integer, Float, DateTime, ForeignKey, Text, JSON,Boolean
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
@@ -28,11 +28,13 @@ class User(Base):
     id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
+    email_verified = Column(Boolean, default=False, nullable=False)
     preferred_sport = Column(String(50), default="pickleball")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     matches = relationship("Match", back_populates="user", cascade="all, delete-orphan")
     training_plans = relationship("TrainingPlan", back_populates="user", cascade="all, delete-orphan")
+    verification_codes = relationship("VerificationCode", back_populates="user", cascade="all, delete-orphan")
 
 
 class Match(Base):
@@ -133,3 +135,23 @@ class ChatMessage(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     match = relationship("Match", back_populates="chat_messages")
+
+class VerificationCode(Base):
+    """
+    Code à 6 chiffres envoyé par email, réutilisé pour deux usages distincts
+    (purpose) : la vérification d'un compte à l'inscription, et la
+    réinitialisation d'un mot de passe oublié. Un code expire après un
+    délai court et ne peut être utilisé qu'une seule fois.
+    """
+    __tablename__ = "verification_codes"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
+
+    code = Column(String(6), nullable=False)
+    purpose = Column(String(20), nullable=False)  # "email_verification" ou "password_reset"
+    expires_at = Column(DateTime, nullable=False)
+    used_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="verification_codes")

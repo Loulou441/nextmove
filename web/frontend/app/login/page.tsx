@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -29,10 +31,13 @@ export default function LoginPage() {
     try {
       if (mode === "login") {
         await login(email, password);
+        router.push("/library");
       } else {
         await register(email, password, sport);
+        // Un compte fraîchement créé n'a jamais email_verified à true :
+        // on envoie systématiquement confirmer l'email avant la bibliothèque.
+        router.push("/verify-email");
       }
-      router.push("/library");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Une erreur est survenue.");
     } finally {
@@ -44,8 +49,7 @@ export default function LoginPage() {
     <div className="flex flex-col flex-1 items-center justify-center p-6">
       <div className="bg-nm-card rounded-nm-card shadow-sm p-8 w-full max-w-sm">
         <div className="text-center mb-6">
-          <div className="text-4xl mb-2">🏓</div>
-          <h1 className="text-2xl font-bold text-nm-text">NextMove</h1>
+          <Image src="/logo-full.png" alt="NextMove" width={280} height={144} className="mx-auto rounded-2xl mb-2" priority />
         </div>
 
         {/* Sélecteur Login / Register */}
@@ -84,7 +88,14 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-nm-text mb-1">Mot de passe</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-nm-text">Mot de passe</label>
+              {mode === "login" && (
+                <Link href="/forgot-password" className="text-xs text-nm-green hover:underline">
+                  Mot de passe oublié ?
+                </Link>
+              )}
+            </div>
             <input
               type="password"
               required

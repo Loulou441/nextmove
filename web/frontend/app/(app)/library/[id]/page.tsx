@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { api, MatchDetail, ApiError } from "@/lib/api";
-
+import { SKILL_ICONS } from "@/components/SkillIcons";
 const COLOR_CLASS: Record<string, string> = {
   green: "text-nm-green",
   blue: "text-nm-blue",
@@ -27,6 +27,7 @@ export default function MatchDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStartingAnalysis, setIsStartingAnalysis] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -66,12 +67,24 @@ export default function MatchDashboardPage() {
     };
   }, [id]);
 
-  async function handleStartAnalysis() {
+  // L'URL signée expire après un moment : on la charge une fois le match
+  // prêt, séparément du reste, et on ignore l'échec silencieusement (match
+  // synchronisé depuis l'app mobile, sans vidéo côté serveur).
+  useEffect(() => {
+    if (!id || !match || match.status !== "ready") return;
+    api
+      .getMatchVideoUrl(id)
+      .then((data) => setVideoUrl(data.video_url))
+      .catch(() => setVideoUrl(null));
+  }, [id, match?.status]);
+
+    async function handleStartAnalysis() {
     if (!id) return;
     setIsStartingAnalysis(true);
     try {
-      const updated = await api.analyzeMatch(id);
-      setMatch((previous) => previous ? { ...previous, ...updated } : previous);
+      await api.analyzeMatch(id);
+      const updated = await api.getMatch(id);
+      setMatch(updated);
       // Relance le polling maintenant que le statut est passé à "processing".
       if (!intervalRef.current) {
         intervalRef.current = setInterval(() => {
@@ -166,6 +179,16 @@ export default function MatchDashboardPage() {
         </div>
       </div>
 
+      {/* Vidéo — absente pour les matchs synchronisés depuis l'app mobile,
+          qui n'ont pas de vidéo côté serveur. */}
+      {videoUrl && (
+        <div className="bg-nm-card rounded-nm-card shadow-sm overflow-hidden no-print">
+          <video controls className="w-full max-h-[480px] bg-black" src={videoUrl}>
+            Ton navigateur ne prend pas en charge la lecture vidéo.
+          </video>
+        </div>
+      )}
+
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard icon="⭐" value={match.rating ?? "-"} label="Note" />
@@ -195,8 +218,12 @@ export default function MatchDashboardPage() {
             {match.skills.map((skill) => (
               <div key={skill.label}>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm text-nm-text">
-                    {skill.icon} {skill.label}
+                  <span className="text-sm text-nm-text flex items-center gap-1.5">
+                      {(() => {
+                        const Icon = SKILL_ICONS[skill.icon];
+                        return Icon ? <Icon size={16} style={{ color: FILL_COLOR[skill.color] ?? "#34C759" }} /> : null;
+                      })()}
+                      {skill.label}
                   </span>
                   <span className={`text-sm font-semibold ${COLOR_CLASS[skill.color] ?? "text-nm-green"}`}>
                     {skill.score}

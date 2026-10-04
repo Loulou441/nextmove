@@ -163,3 +163,24 @@ def list_training_plans(
     """Historique des programmes générés pour l'utilisateur (filtrable par sport)."""
     plans = get_user_training_plans(db, current_user.id, sport=sport)
     return [TrainingPlanResponse(id=p.id, sport=p.sport, content=p.content) for p in plans]
+
+
+@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_training_plan(
+    plan_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Supprime définitivement un programme d'entraînement généré."""
+    from db.models import TrainingPlan
+
+    plan = (
+        db.query(TrainingPlan)
+        .filter(TrainingPlan.id == plan_id, TrainingPlan.user_id == current_user.id)
+        .first()
+    )
+    if plan is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Programme introuvable")
+
+    db.delete(plan)
+    db.commit()

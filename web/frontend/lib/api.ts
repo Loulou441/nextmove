@@ -4,6 +4,7 @@ export interface ApiUser {
   id: string;
   email: string;
   preferred_sport: string;
+  email_verified: boolean;
   created_at: string;
 }
 
@@ -201,8 +202,32 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ preferred_sport: preferredSport }),
     }),
+  
+  verifyEmail: (code: string) =>
+    request<{ status: string }>("/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    }),
+
+  resendVerification: () =>
+    request<{ status: string }>("/auth/resend-verification", { method: "POST" }),
+
+  forgotPassword: (email: string) =>
+    request<{ status: string }>("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (email: string, code: string, newPassword: string) =>
+    request<{ status: string }>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ email, code, new_password: newPassword }),
+    }), 
 
   getMatches: () => request<Match[]>("/matches"),
+
+  getMatchVideoUrl: (matchId: string) =>
+    request<{ video_url: string }>(`/matches/${matchId}/video-url`),
 
   getMatch: (matchId: string) => request<MatchDetail>(`/matches/${matchId}`),
 
@@ -224,6 +249,9 @@ export const api = {
   deleteMatch: (matchId: string) =>
     request<void>(`/matches/${matchId}`, { method: "DELETE" }),
 
+  deleteTrainingPlan: (planId: string) =>
+    request<void>(`/training-plan/${planId}`, { method: "DELETE" }),
+
   chatWithCoach: (matchId: string, message: string, history: ChatTurn[]) =>
     request<ChatResponse>(`/matches/${matchId}/chat`, {
       method: "POST",
@@ -242,5 +270,6 @@ export const api = {
   getTrainingPlans: (sport?: string) =>
     request<TrainingPlan[]>(`/training-plan${sport ? `?sport=${sport}` : ""}`),
 };
+
 
 export { ApiError };
