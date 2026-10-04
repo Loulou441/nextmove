@@ -10,6 +10,7 @@ interface AuthContextValue {
   register: (email: string, password: string, preferredSport: string) => Promise<void>;
   logout: () => void;
   updateSport: (sport: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -53,8 +54,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(updated);
   }
 
+  // Recharge l'utilisateur depuis le serveur sans repasser par login/register
+  // — utile après une action qui change son état côté serveur sans changer
+  // de session (ex. confirmation d'email, qui passe email_verified à true).
+  async function refreshUser() {
+    const updated = await api.me();
+    setUser(updated);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateSport }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateSport, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -16,10 +16,13 @@ export default function TrainingPlanPage() {
   const [plans, setPlans] = useState<TrainingPlan[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    setIsLoadingHistory(true);
+    setError(null);
     api
       .getTrainingPlans(sport)
       .then((saved) => { if (!cancelled) setPlans(saved); })
@@ -42,6 +45,18 @@ export default function TrainingPlanPage() {
       );
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  async function handleDelete(planId: string) {
+    setIsDeleting(true);
+    try {
+      await api.deleteTrainingPlan(planId);
+      setPlans((prev) => prev.filter((p) => p.id !== planId));
+    } catch {
+      setError("Impossible de supprimer ce programme.");
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -104,8 +119,18 @@ export default function TrainingPlanPage() {
         </div>
       )}
 
-      {latestPlan && (
+      {latestPlan && !error && (
         <div className="flex flex-col gap-3">
+          <div className="flex justify-end">
+            <button
+              onClick={() => handleDelete(latestPlan.id)}
+              disabled={isDeleting}
+              className="text-nm-red text-xs font-medium hover:underline disabled:opacity-60"
+            >
+              {isDeleting ? "Suppression..." : "🗑️ Supprimer ce programme"}
+            </button>
+          </div>
+
           {latestPlan.content.recommandations_coach.map((rec, i) => (
             <div key={i} className="bg-nm-card rounded-nm-card shadow-sm p-4">
               <p className="font-semibold text-nm-text text-sm mb-3">{rec.titre}</p>

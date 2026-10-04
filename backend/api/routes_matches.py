@@ -10,13 +10,13 @@ import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, UploadFile, File, Form, HTTPException, status
 from sqlalchemy.orm import Session
-
 from backend.api.deps import get_db, get_current_user
 from backend.api.schemas import MatchResponse, MatchDetailResponse, MatchEventResponse, MatchSyncRequest
 from backend.db.models import User, Match, MatchEvent
 from backend.db.session import SessionLocal
 from backend.services.match_service import get_user_matches, create_pending_match, mark_match_ready, CVPipelineError
-from backend.services.video_storage import upload_video, VideoTooLargeError, delete_video
+from backend.services.video_storage import upload_video, VideoTooLargeError, delete_video, get_video_url
+from collections import defaultdict
 
 router = APIRouter(prefix="/matches", tags=["matches"])
 
@@ -76,6 +76,78 @@ def list_my_matches(
     """Liste les matchs de l'utilisateur connecté (les mêmes que sur le web)."""
     matches = get_user_matches(db, current_user.id)
     return [MatchResponse.model_validate(m) for m in matches]
+
+
+@router.get("/stats/aggregate")
+def get_match_stats(
+    sport: str | None = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Agrège plusieurs matchs prêts en une seule réponse : évolution note/
+    couverture/winners/erreurs dans le temps, compétences moyennes, et
+    répartition phase/zone cumulée. Calculé côté serveur pour éviter au
+    frontend de faire une requête par match.
+    """
+    query = db.query(Match).filter(Match.user_id == current_user.id, Match.status == "ready")
+    if sport:
+        query = query.filter(Match.sport == sport)
+    matches = query.order_by(Match.match_date, Match.created_at).all()
+
+    timeline = [
+        {
+            "match_id": m.id,
+            "title": m.title,
+            "sport": m.sport,
+            "date": (m.match_date or m.created_at).isoformat(),
+            "rating": m.rating,
+            "coverage": m.coverage,
+            "rallies": m.rallies,
+            "winners": m.winners,
+            "errors": m.errors,
+        }
+        for m in matches
+    ]
+
+    # Moyenne des compétences par libellé, tous matchs confondus (filtrés
+    # par sport si demandé) — une compétence absente sur un match n'entre
+    # simplement pas dans sa propre moyenne (pas de valeur inventée).
+    skill_totals: dict[str, list[float]] = defaultdict(list)
+    for m in matches:
+        for skill in (m.skills or []):
+            label = skill.get("label")
+            score = skill.get("score")
+            if label and score is not None:
+                skill_totals[label].append(score)
+    avg_skills = [
+        {"label": label, "score": round(sum(scores) / len(scores), 1)}
+        for label, scores in skill_totals.items()
+    ]
+
+    # Cumul des répartitions phase/zone sur tous les matchs.
+    phase_totals: dict[str, int] = defaultdict(int)
+    zone_totals: dict[str, int] = defaultdict(int)
+    for m in matches:
+        patterns = m.patterns_summary or {}
+        for phase, count in (patterns.get("phase_distribution") or {}).items():
+            phase_totals[phase] += count
+        for zone, count in (patterns.get("zone_distribution") or {}).items():
+            zone_totals[zone] += count
+
+    ratings = [m.rating for m in matches if m.rating is not None]
+
+    return {
+        "timeline": timeline,
+        "avg_skills": avg_skills,
+        "phase_distribution": dict(phase_totals),
+        "zone_distribution": dict(zone_totals),
+        "summary": {
+            "total_matches": len(matches),
+            "avg_rating": round(sum(ratings) / len(ratings), 1) if ratings else None,
+            "best_match": max(matches, key=lambda m: m.rating or 0).title if matches else None,
+        },
+    }
 
 
 @router.post("/sync", response_model=MatchDetailResponse, status_code=status.HTTP_201_CREATED)
@@ -234,6 +306,33 @@ def get_match_detail(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match introuvable")
     return MatchDetailResponse.model_validate(match)
 
+@router.get("/{match_id}/video-url")
+def get_match_video_url(
+    match_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Renvoie une URL signée temporaire pour lire la vidéo du match, sans
+    jamais exposer le bucket Storage publiquement. Absente pour les matchs
+    synchronisés depuis l'app mobile, qui n'ont pas de vidéo côté serveur.
+    """
+    match = (
+        db.query(Match)
+        .filter(Match.id == match_id, Match.user_id == current_user.id)
+        .first()
+    )
+    if match is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match introuvable")
+
+    if not match.video_storage_path:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aucune vidéo associée à ce match (probablement synchronisé depuis l'app mobile).",
+        )
+
+    url = get_video_url(match.video_storage_path)
+    return {"video_url": url}
 
 @router.get("/{match_id}/events", response_model=list[MatchEventResponse])
 def list_match_events(

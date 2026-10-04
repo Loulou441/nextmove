@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -22,8 +23,8 @@ export default function Sidebar() {
 
   return (
     <aside className="no-print hidden md:flex md:flex-col w-64 shrink-0 bg-nm-card border-r border-nm-border h-screen sticky top-0 p-6">
-      <div className="flex items-center gap-2 mb-8">
-        <span className="text-2xl">🏓</span>
+      <div className="flex items-center gap-2.5 mb-8">
+        <Image src="/logo-icon.png" alt="NextMove" width={32} height={32} className="rounded-lg object-cover" />
         <span className="text-lg font-bold text-nm-text">NextMove</span>
       </div>
 

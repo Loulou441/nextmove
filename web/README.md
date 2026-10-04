@@ -54,7 +54,12 @@ Configurer côté API `CORS_ORIGINS`, `AUTH_COOKIE_SECURE` et
 `AUTH_COOKIE_SAMESITE` selon [les instructions backend](../backend/README.md).
 Le jeton Bearer de l’app iOS reste accepté.
 
-Avant de tester le chat persistant, appliquer la migration `chat_messages`.
+À l’inscription, un code à six chiffres est envoyé par email (Resend) pour confirmer
+l’adresse ; les pages `verify-email` et `forgot-password` gèrent la confirmation et la
+réinitialisation du mot de passe. L’API a besoin de `RESEND_API_KEY`.
+
+Avant de tester le chat persistant et la vérification d’email, appliquer les migrations
+(`python -m alembic -c backend/alembic.ini upgrade head`).
 L’export PDF nécessite Chromium sur le serveur, pas sur le poste utilisateur.
 
 ## Organisation
@@ -70,7 +75,7 @@ L’export PDF nécessite Chromium sur le serveur, pas sur le poste utilisateur.
 
 ## Tests manuels
 
-1. S’inscrire ou se connecter et choisir un sport.
+1. S’inscrire, saisir le code de vérification reçu par email, puis se connecter et choisir un sport (tester aussi « mot de passe oublié »).
 2. Importer une vidéo où la balle est visible.
 3. Lancer l’analyse et suivre l’état jusqu’à `ready` ou `failed`.
 4. Vérifier le détail, les événements et les métriques du match.
@@ -95,6 +100,19 @@ npm run start
 La dernière commande sert la version compilée. Le backend reste un processus
 distinct. `NEXT_PUBLIC_API_URL` doit être définie lors de la compilation.
 
+## Déploiement (Vercel)
+
+Le frontend est déployé sur Vercel ; l’API tourne séparément sur AWS EC2 (voir
+[../backend/DEPLOY.md](../backend/DEPLOY.md)).
+
+1. Importer le dépôt dans Vercel, avec **Root Directory** `web/frontend` (Next.js).
+2. Définir `NEXT_PUBLIC_API_URL` avec l’URL HTTPS de l’API. Elle est lue à la
+   compilation : redéployer après toute modification.
+3. Reporter l’URL du frontend dans `CORS_ORIGINS` côté API, et configurer
+   `AUTH_COOKIE_SECURE` et `AUTH_COOKIE_SAMESITE` (voir le README du backend).
+   Pour des cookies fiables, utiliser des sous-domaines du même site pour le frontend
+   et l’API.
+
 ## Dépannage
 
 | Symptôme | Vérification |
@@ -104,6 +122,8 @@ distinct. `NEXT_PUBLIC_API_URL` doit être définie lors de la compilation.
 | Erreur SQL | Configuration et migrations de la base ciblée |
 | Échec d’import vidéo | Bucket privé `videos` et accès Supabase |
 | Poids introuvables | `training/models/exported/` ou `CV_WEIGHTS_DIR` |
+| Connexion qui ne persiste pas | Cookie : `CORS_ORIGINS`, `AUTH_COOKIE_SECURE`, `AUTH_COOKIE_SAMESITE`, même site pour web et API |
+| Pas d’email de vérification | `RESEND_API_KEY` côté API, domaine vérifié dans Resend |
 | Chat indisponible | Clé Groq, connaissances RAG et journaux du backend |
 
 Les connaissances et modèles sont décrits dans [le README backend](../backend/README.md).

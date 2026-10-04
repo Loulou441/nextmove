@@ -1,0 +1,72 @@
+{
+  "par_sport": {
+    "padel": {
+      "n": 12,
+      "hit@1": 9,
+      "hit@3": 11,
+      "hit@5": 11,
+      "mrr": 0.819,
+      "hors_top3": [
+        {
+          "query": "Frustration visible après un point perdu, le joueur enchaîne avec une erreur.",
+          "attendus": [
+            "padel_ment_007",
+            "padel_ment_008"
+          ],
+          "top3": [
+            "padel_tact_012",
+            "padel_tech_006",
+            "padel_ment_011"
+          ]
+        }
+      ]
+    },
+    "tennis": {
+      "n": 12,
+      "hit@1": 8,
+      "hit@3": 10,
+      "hit@5": 10,
+      "mrr": 0.736,
+      "hors_top3": [
+        {
+          "query": "Balle de break perdue sur une faute, tension visible du joueur.",
+          "attendus": [
+            "tennis_ment_001"
+          ],
+          "top3": [
+            "tennis_tact_003",
+            "tennis_tech_008",
+            "tennis_phys_001"
+          ]
+        },
+        {
+          "query": "Échange neutre, accélération prématurée suivie d'une faute directe.",
+          "attendus": [
+            "tennis_tact_007",
+            "tennis_tact_006"
+          ],
+          "top3": [
+            "tennis_tech_001",
+            "tennis_tact_002",
+            "tennis_tech_012"
+          ]
+        }
+      ]
+    },
+    "pickleball": {
+      "n": 12,
+      "hit@1": 9,
+      "hit@3": 12,
+      "hit@5": 12,
+      "mrr": 0.875,
+      "hors_top3": []
+    }
+  },
+  "global": {
+    "n": 36,
+    "hit@1": 26,
+    "hit@3": 33,
+    "hit@5": 33,
+    "mrr": 0.81
+  }
+}

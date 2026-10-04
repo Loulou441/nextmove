@@ -1,0 +1,451 @@
+{
+  "avec_rag": 20,
+  "sans_rag": 12,
+  "egalites": 2,
+  "exercice_attendu_cite": [
+    29,
+    34
+  ],
+  "paires_abandonnees": [
+    {
+      "sport": "padel",
+      "query": "Le joueur smashe systématiquement alors que l'adversaire est reculé ; un lob était plus pertinent.",
+      "erreur": "Error code: 400 - {'error': {'message': \"Failed to validate JSON. Please adjust your prompt. See 'failed_generation' for more details.\", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': ''}}"
+    },
+    {
+      "sport": "padel",
+      "query": "Faute directe au filet. Le joueur monte trop tôt alors que le couple adverse enchaîne les lobs.",
+      "erreur": "Error code: 400 - {'error': {'message': \"Failed to validate JSON. Please adjust your prompt. See 'failed_generation' for more details.\", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': ''}}"
+    }
+  ],
+  "detail": [
+    {
+      "sport": "padel",
+      "query": "Bandeja défensive ratée après un lob adverse, point perdu sur le coup suivant.",
+      "gagnant": "sans_rag",
+      "raison": "B offre un exercice plus concret, réaliste et complet, incluant technique, tactique, physique et mental, tout en restant spécifique au padel.",
+      "avec_rag": "Titre : Bandeja défensive ratée après lob\nConstat : Bandeja défensive ratée après un lob adverse, point perdu sur le coup suivant.\nAnalyse : Le contrôle de la bandeja a été insuffisant, le joueur a tenté de couvrir trop rapidement sans stabiliser la raquette, ce qui a entraîné une sortie de vitres et un placement hors de la zone de réception.\nAction : Travail de la bandeja défensive avec consigne de puissance réduite et priorité donnée au replacement du couple plutôt qu'à l'agressivité du coup. Exercice : 3 séries de 10 répétitions, 2 secondes de pause entre chaque, en se concentrant sur la stabilité du corps, le suivi du ballon et le placement du partenaire. Vérifier la sortie de vitres et ajuster l'angle de raquette.",
+      "sans_rag": "Titre : Bandeja défensive après lob\nConstat : Bandeja défensive ratée après un lob adverse, point perdu sur le coup suivant.\nAnalyse : Technique : angle de raquette trop fermé, corps mal positionné, sortie de vitres insuffisante. Tactique : choix de bandeja alors que smash aurait été plus efficace. Physique : déplacement latéral trop long, fatigue. Mental : pression après le lob, manque de communication avec le partenaire.\nAction : Exercice de bandeja en situation de pression : 3 séries de 10 répétitions. Le joueur reçoit un lob, se déplace latéralement en 1 s, place la raquette à l’angle optimal, effectue la sortie de vitres et frappe la bandeja. Après chaque série, il communique le coup à son partenaire pour renforcer la coordination. Utiliser un ballon de tennis pour simuler la vitesse du lob et travailler la prise de décision rapide.",
+      "exercice_cite": "padel_tech_002",
+      "attendus": [
+        "padel_tech_002"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Double faute. Le lancer de balle varie d'un service à l'autre.",
+      "gagnant": "egalite",
+      "raison": "Les deux recommandations sont cohérentes, concrètes et spécifiques au tennis, sans avantage clair.",
+      "avec_rag": "Titre : Rituel de service constant (ball toss)\nConstat : Double faute. Le lancer de balle varie d'un service à l'autre.\nAnalyse : La variation du lancer de balle entraîne une instabilité du geste de service, réduisant la marge de sécurité pour le contact et augmentant la probabilité d'erreur sous pression.\nAction : Travail au mur ou face à un miroir : 30 lancers de balle sans frappe, en visant systématiquement le même point fixe au-dessus de l'épaule. Concentrez-vous sur la même trajectoire, même hauteur et même position du bras. Répétez jusqu’à ce que le lancer devienne automatique, puis réintégrez la frappe en gardant le même rituel. Entraînez-vous à maintenir ce même lancer à chaque service, même dans des situations de stress.",
+      "sans_rag": "Titre : Double faute due à la variation du lancer de balle\nConstat : Double faute à 10:00, le lancer de balle varie d'un service à l'autre.\nAnalyse : La variation du lancer réduit la constance du point de contact, augmentant la difficulté de contrôler la trajectoire et la puissance, surtout sous pression.\nAction : Mettre en place un rituel de service : position de départ fixe, même prise de balle, même respiration, répétitions de 20 services ciblés sur la zone de service, 3 séries. Utiliser un marqueur de hauteur pour la balle.",
+      "exercice_cite": "tennis_tech_002",
+      "attendus": [
+        "tennis_tech_002"
+      ]
+    },
+    {
+      "sport": "padel",
+      "query": "Premier service raté sur un jeu décisif, pression visible.",
+      "gagnant": "rag",
+      "raison": "B propose une routine complète incluant simulation de pression, respiration, visualisation et analyse vidéo, ce qui est plus concret et adapté à la situation.",
+      "avec_rag": "Titre : Service décisif sous pression\nConstat : Premier service raté sur un jeu décisif, pression visible.\nAnalyse : Le service a échoué probablement à cause d’une prise de décision précipitée et d’une routine mentale inadéquate, ce qui a réduit la concentration et la précision du geste.\nAction : Mise en place d’une routine de service sous pression : 1) Simuler un jeu décisif en annonçant le point avant le service. 2) Avant chaque service, effectuer une routine fixe (respiration profonde, visualisation du placement, positionnement du corps). 3) Répéter 20 services ciblés vers le revers adverse, en se concentrant sur la stabilité du geste et la gestion de la tension. 4) Analyser les vidéos pour corriger les micro‑mouvements et renforcer la confiance.",
+      "sans_rag": "Titre : Service sous pression\nConstat : Premier service raté sur un jeu décisif, pression visible.\nAnalyse : Le manque de confiance et la prise de décision lente ont conduit à un service mal placé. La posture et le timing de la prise de raquette étaient légèrement décalés, ce qui a réduit la puissance et la précision.\nAction : Exercice de service en situation de pression : 3 séries de 10 services ciblés (cible 1, 2, 3) en simulant un point décisif. Concentrez-vous sur la prise de décision rapide, la posture stable et le suivi du mouvement. Après chaque série, faites un retour de feedback visuel pour corriger la prise de raquette.",
+      "exercice_cite": "padel_ment_005",
+      "attendus": [
+        "padel_ment_005",
+        "padel_ment_010"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Troisième balle trop courte, l'adversaire attaque depuis le filet.",
+      "gagnant": "rag",
+      "raison": "La recommandation A cible directement la trajectoire et la profondeur du drop, avec un exercice concret et spécifique au pickleball, ce qui la rend plus cohérente et réalisable.",
+      "avec_rag": "Titre : Améliorer le troisième coup drop\nConstat : Troisième balle trop courte, l'adversaire attaque depuis le filet.\nAnalyse : Le drop du troisième coup est trop court, laissant l'adversaire en position de volée. L'angle de frappe et la trajectoire ne permettent pas de placer la balle juste après le filet, ce qui donne un avantage net à l'adversaire.\nAction : Travaille la trajectoire haute du troisième coup drop en suivant l'exercice \"Third shot drop en trajectoire haute\" (id: pb_tech_003). Répète 4 séries de 10 répétitions, en te concentrant sur un arc prononcé et une surface de contact légèrement en avant du centre du paddle. Vérifie que la balle atterrit juste après le filet adverse, créant ainsi un espace de déplacement pour ton partenaire.",
+      "sans_rag": "Titre : Améliorer la profondeur de la troisième balle\nConstat : Troisième balle trop courte, l'adversaire attaque depuis le filet.\nAnalyse : La prise de contact est trop avancée et le corps est trop proche du filet, ce qui réduit la profondeur de la frappe et donne à l'adversaire une position de blocage.\nAction : 1. Positionnez votre corps légèrement plus en arrière avant de frapper, gardant le regard sur la balle.\n2. Utilisez un angle de raquette légèrement vers le bas pour pousser la balle plus loin.\n3. Entraînez la profondeur avec un drill de drop shot ciblé : placez un cône à 1,5 m du filet et visez à toucher le cône sans dépasser le filet. Répétez 3 séries de 10 répétitions, en augmentant progressivement la distance.",
+      "exercice_cite": "pb_tech_003",
+      "attendus": [
+        "pb_tech_003"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Pied posé dans le kitchen lors d'un erne raté.",
+      "gagnant": "rag",
+      "raison": "L'exercice d'A cible précisément le placement du pied hors kitchen avec un drill concret et réalisable, tandis que B risque de reproduire le problème.",
+      "avec_rag": "Titre : Améliorer le placement des pieds lors de l'erne\nConstat : Pied posé dans le kitchen lors d'un erne raté.\nAnalyse : Le pied de soutien a été placé trop près de la ligne de non-volée, ce qui a limité la capacité à effectuer le contournement latéral sans entrer dans le kitchen. Le manque de contrôle visuel des pieds a entraîné une perte de stabilité et un timing incorrect.\nAction : Exercice pb_tech_012 – Erne maîtrisé : 3 séries de 10 répétitions. Positionnez un cône à 0,5 m de la ligne de non-volée. En partant du centre, effectuez un mouvement latéral de contournement vers le cône en gardant le pied de soutien à 30 cm de la ligne. Concentrez-vous sur la visualisation du pied avant chaque déplacement. Augmentez progressivement la vitesse tout en maintenant la précision.",
+      "sans_rag": "Titre : Pied posé dans le kitchen lors d'un erne raté\nConstat : Pied posé dans le kitchen lors d'un erne raté.\nAnalyse : Le joueur a placé son pied avant le contact, ce qui a limité la capacité à ajuster la trajectoire du coup et a entraîné une perte de contrôle. Le manque de déplacement latéral et d'anticipation a conduit à un placement de pied inapproprié.\nAction : Travaille ton placement de pied en anticipant la trajectoire du ball. Entraîne-toi avec un drill de footwork où tu te places à la ligne de service, puis effectues un déplacement latéral rapide vers la zone de kitchen avant de frapper. Répète 3 séries de 10 répétitions, en te concentrant sur la rapidité de déplacement et la stabilité du pied d’appui.",
+      "exercice_cite": "pb_tech_012",
+      "attendus": [
+        "pb_tech_012"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Échange neutre, accélération prématurée suivie d'une faute directe.",
+      "gagnant": "rag",
+      "raison": "L'exercice de split‑step ciblé est plus spécifique au tennis et directement lié à la séquence décrite.",
+      "avec_rag": "Titre : Accélération prématurée et faute directe\nConstat : Échange neutre, accélération prématurée suivie d'une faute directe.\nAnalyse : Le split‑step a été déclenché trop tôt, avant le contact de la balle de l’adversaire, ce qui a réduit la marge de sécurité et a conduit à une faute directe. Le timing du déplacement n’est pas synchronisé avec le mouvement de l’adversaire, entraînant une perte de contrôle du corps et du geste.\nAction : Travaillez le split‑step chronométré : répétez l’exercice en vous concentrant sur le déclenchement du split‑step exactement au moment du contact raquette‑balle de l’adversaire. Utilisez un chronomètre ou un capteur de mouvement pour mesurer la latence et ajustez votre timing jusqu’à ce que le split‑step soit déclenché de façon fluide et synchronisée. Intégrez progressivement cet exercice dans des échanges réels, en augmentant la vitesse d’exécution à mesure que la précision s’améliore.",
+      "sans_rag": "Titre : Accélération prématurée et faute directe\nConstat : Échange neutre, accélération prématurée suivie d'une faute directe.\nAnalyse : La décision de se déplacer trop tôt a déséquilibré le transfert de poids et la prise de contact, entraînant une mauvaise position du corps et un manque de contrôle du coup. Le manque de timing a également réduit la marge de sécurité pour ajuster la trajectoire.\nAction : Intégrer un exercice de déplacement en réaction à un signal visuel (ex. un cône qui s’allume) pour travailler le timing de l’accélération. 3 séries de 10 répétitions, 2 minutes de repos. Concentrez-vous sur le transfert de poids du pied arrière vers le pied avant, garder le regard sur la balle et maintenir le centre de gravité bas.",
+      "exercice_cite": "tennis_tech_001",
+      "attendus": [
+        "tennis_tact_007",
+        "tennis_tact_006"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Balle de match perdue, la précision chute nettement.",
+      "gagnant": "rag",
+      "raison": "B offre un entraînement ciblé, concret et spécifique au pickleball, répondant directement à la perte de précision.",
+      "avec_rag": "Titre : Perte de balle de match – précision en revers slicé\nConstat : Balle de match perdue, la précision chute nettement.\nAnalyse : Le revers slicé de transition a été exécuté avec un angle de frappe trop large et une surface de contact trop éloignée du centre de la raquette, ce qui a réduit la précision et la capacité à placer la balle dans la zone de non-volée.\nAction : Travail ciblé sur le revers slicé de transition :\n1. Échauffement : 5 min de swings légers, suivi de 10 répétitions de revers slicé sans balle pour se concentrer sur le contact.\n2. Drills de précision : placez 4 cibles (2 en zone de non-volée, 2 en zone de service) et effectuez 3 séries de 10 revers slicés, en visant chaque cible.\n3. Simulation de match : 2 séries de 20 points où chaque balle de match est simulée, en appliquant la même routine de slice.\n4. Retour de feedback : analyse vidéo en temps réel pour corriger l’angle de frappe et la position du corps.\nPoints de vigilance : garder le bras légèrement plié, maintenir le poignet ferme, et orienter le corps vers la cible.",
+      "sans_rag": "Titre : Perte de balle à 10:00 – Précision en baisse\nConstat : Balle de match perdue, la précision chute nettement.\nAnalyse : La chute de précision indique un problème de synchronisation du swing et de la position du corps, probablement dû à une mauvaise prise de décision rapide et à un manque de contrôle du contact.\nAction : Travaille la prise d'information en 2 secondes : avant chaque service, scanne le terrain, fixe le point de contact, puis exécute un swing court et précis. Entraîne-toi avec un exercice de « picking » : place un cône à 1,5 m du filet, effectue 3 séries de 10 frappes ciblées vers le cône, en gardant le corps aligné et le poignet stable.",
+      "exercice_cite": "pb_tech_008",
+      "attendus": [
+        "pb_ment_012",
+        "pb_ment_003"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Montée au filet désorganisée après le retour, le partenaire arrive en retard.",
+      "gagnant": "sans_rag",
+      "raison": "A propose un drill concret avec positions, signal verbal et répétitions, ce qui est plus réalisable et spécifique au pickleball que l'exercice générique de B.",
+      "avec_rag": "Titre : Montée au filet désorganisée après le retour\nConstat : Montée au filet désorganisée après le retour, le partenaire arrive en retard.\nAnalyse : La coordination entre les deux joueurs est insuffisante, entraînant un désalignement temporel et spatial. Le manque de synchronisation empêche d’optimiser la couverture du filet et augmente le risque de double faute.\nAction : Exercice pb_tact_002 : Montée synchronisée vers le filet après le retour. Entraînez-vous en double à effectuer la montée en même temps que le partenaire, en vous concentrant sur la progression au même rythme. Commencez par 3 séries de 10 répétitions, en augmentant progressivement la vitesse. Vérifiez la communication verbale courte avant chaque prise de balle ambiguë pour éviter les retards.",
+      "sans_rag": "Titre : Montée au filet désorganisée\nConstat : Montée au filet désorganisée après le retour, le partenaire arrive en retard.\nAnalyse : Le timing de la montée est compromis par une communication insuffisante et un manque de synchronisation des déplacements. Le partenaire n'arrive pas à temps, ce qui entraîne une position désorganisée et une perte d’efficacité au filet.\nAction : Travaillez la synchronisation en effectuant des drills de montée en binôme : 1) Positionnez chaque joueur à 3 mètres du filet, 2) Le serveur lance un ballon de retour, 3) Les deux joueurs exécutent simultanément la montée en se concentrant sur le signal verbal \"Go\" et le comptage de 3 secondes. Répétez 3 séries de 10 répétitions, en augmentant progressivement la vitesse de la montée. Ajoutez un exercice de communication où chaque joueur doit annoncer son intention de monter avant le retour.",
+      "exercice_cite": "pb_tact_002",
+      "attendus": [
+        "pb_tact_002"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Deuxième service toujours slice au centre, retourné de manière agressive.",
+      "gagnant": "rag",
+      "raison": "B reste concentré sur l'amélioration du slice tout en ajoutant de la variation, ce qui est plus cohérent avec l'objectif initial.",
+      "avec_rag": "Titre : Améliorer le second service slice\nConstat : Deuxième service toujours slice au centre, retourné de manière agressive.\nAnalyse : Le second service slice est trop prévisible et placé au centre, ce qui permet à l'adversaire de le retourner agressivement. Le manque de variation de zone et d'effet limite la capacité à imposer l'échange.\nAction : Travail de l'orientation du tamis sur le second service slice (exercice tennis_tech_009). Répéter 3 séries de 10 répétitions, en insistant sur la position du tamis au contact, en alternant les zones de service (centre, côté, haut) pour réduire la prévisibilité.",
+      "sans_rag": "Titre : Améliorer le second service slice\nConstat : Deuxième service toujours slice au centre, retourné de manière agressive.\nAnalyse : Le slice au centre manque de hauteur et de spin, ce qui permet à l'adversaire de le retourner agressivement. De plus, la consistance du lancer et la position du corps ne favorisent pas la puissance.\nAction : Travaillez un second service kick (ou flat) en alternant placement (centre, côté, angle). Entraînez le lancer de balle à 45° pour plus de hauteur, utilisez un grip semi‑western pour plus de spin. Répétez 3 séries de 20 services, en évaluant la hauteur et la vitesse. Intégrez un rituel de respiration pour la stabilité.",
+      "exercice_cite": "tennis_tech_009",
+      "attendus": [
+        "tennis_tact_013",
+        "tennis_tact_004"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Smash manqué depuis la zone de transition, frappe trop forte.",
+      "gagnant": "rag",
+      "raison": "B offre des instructions plus concrètes et spécifiques au pickleball, notamment la position, la prise et la trajectoire du smash.",
+      "avec_rag": "Titre : Smash manqué – contrôle de puissance\nConstat : Smash manqué depuis la zone de transition, frappe trop forte.\nAnalyse : La puissance excessive a réduit la précision, la balle sort de la zone cible et expose l’adversaire à un retour facile.\nAction : Travail du smash avec puissance réduite et priorité à la précision, spécifiquement sur les balles hautes reçues en zone de transition. 1) Position de base : pieds à largeur d’épaules, genoux légèrement fléchis. 2) Réduction de la prise : main plus proche du manche pour limiter la vitesse. 3) Focus sur la trajectoire : viser un point précis dans la zone de transition, en gardant le bras légèrement en dessous de l’axe de la balle. 4) Répétitions : 3 séries de 10 smashs contrôlés, en alternant des balles à haute et basse hauteur, en évaluant la précision à chaque série.",
+      "sans_rag": "Titre : Smash manqué depuis la zone de transition\nConstat : Smash manqué depuis la zone de transition, frappe trop forte.\nAnalyse : La puissance excessive a entraîné un manque de contrôle, la prise de balle était trop haute et le corps n'était pas aligné, ce qui a réduit la précision et la trajectoire du smash.\nAction : 1. Pratique de smashes à faible puissance avec un partenaire qui lance la balle à hauteur de la tête, en se concentrant sur la prise de balle et le timing. 2. Répétitions : 3 séries de 10 smashes, 30 secondes de repos. 3. Point de vigilance : garder le poignet détendu et le corps aligné, éviter de pousser trop fort. 4. Entraînement de la coordination : exercices de coordination main-œil avec un ballon de tennis pour améliorer la prise de balle.",
+      "exercice_cite": "pb_tech_006",
+      "attendus": [
+        "pb_tech_006"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Service trop court, retour agressif de l'adversaire.",
+      "gagnant": "rag",
+      "raison": "B offre un exercice plus spécifique au pickleball avec effet lifté et mesure de profondeur, répondant mieux à la séquence.",
+      "avec_rag": "Titre : Amélioration du service\nConstat : Service trop court, retour agressif de l'adversaire.\nAnalyse : Le service manque de profondeur et d'effet lifté, ce qui permet à l'adversaire de retourner agressivement. L'angle de frappe est trop faible et la trajectoire ne pénètre pas suffisamment dans la zone de service adverse.\nAction : Travail du service lifté profond (exercice pb_tech_004). Répéter 3 séries de 10 services ciblant le fond de la zone de service, en appliquant un effet lifté maximal. Concentrez‑vous sur la position du poignet et la rotation du bras pour générer l'effet. Vérifiez la profondeur en mesurant la distance entre le point de contact et le fond de la zone de service.",
+      "sans_rag": "Titre : Service court\nConstat : Service trop court, retour agressif de l'adversaire.\nAnalyse : Le service court indique une insuffisance de puissance et/ou un manque de rotation du corps, ce qui limite la distance et la vitesse du ballon, rendant le retour plus facile pour l'adversaire.\nAction : Travaillez la puissance du service en suivant ce drill : 3 séries de 10 services, 30 s de repos entre les séries. Concentrez-vous sur une rotation complète du bassin et du bras, en visant un point de contact au-dessus de la tête. Utilisez un chronomètre pour mesurer la distance et ajustez la force en fonction du temps de vol. Répétez avec un partenaire qui vous donne un feedback visuel sur la trajectoire.",
+      "exercice_cite": "pb_tech_004",
+      "attendus": [
+        "pb_tech_004"
+      ]
+    },
+    {
+      "sport": "padel",
+      "query": "Service toujours identique, l'adversaire retourne sans aucune difficulté.",
+      "gagnant": "sans_rag",
+      "raison": "Propose plusieurs variations concrètes et adaptées au padel, offrant une approche plus complète que la seule variation de service kick.",
+      "avec_rag": "Titre : Améliorer la variabilité du service\nConstat : Service toujours identique, l'adversaire retourne sans aucune difficulté.\nAnalyse : Le service manque de variation et d'effet, ce qui permet à l'adversaire de le lire et de le retourner aisément. La répétition d'un même geste réduit l'impact tactique et expose le joueur à des retours puissants.\nAction : Travail du service kické vers le revers : 3 séries de 10 répétitions, 2 minutes de repos entre les séries. Concentrez-vous sur un lancer de balle légèrement plus haut, un mouvement de poignet fluide pour générer l'effet kick, et un suivi de raquette qui dirige la balle vers le revers adverse. Vérifiez la position du corps pour assurer un bon alignement et un bon timing. Entraînez la consistance en alternant les cibles (revers, filet) pour développer la précision et la surprise.",
+      "sans_rag": "Titre : Améliorer la variation de service\nConstat : Service toujours identique, l'adversaire retourne sans aucune difficulté.\nAnalyse : Le manque de variation dans le service limite la capacité à mettre l'adversaire en difficulté, réduisant l'efficacité du point de départ.\nAction : Intégrer trois variations de service : 1) service court à la volée pour surprendre l'adversaire, 2) service long et profond vers le fond de court, 3) service avec effet de slice ou topspin pour déstabiliser la réception. Entraînez chaque variation en 3 séries de 10 répétitions, en alternant les cibles et en évaluant la précision et la vitesse.",
+      "exercice_cite": "padel_tech_009",
+      "attendus": [
+        "padel_tech_009"
+      ]
+    },
+    {
+      "sport": "padel",
+      "query": "Frustration visible après un point perdu, le joueur enchaîne avec une erreur.",
+      "gagnant": "sans_rag",
+      "raison": "B propose un drill ciblé sur la respiration et la visualisation après chaque point, directement lié à la frustration décrite, plus concret et spécifique au padel.",
+      "avec_rag": "Titre : Gestion de la frustration après un point perdu\nConstat : Frustration visible après un point perdu, le joueur enchaîne avec une erreur.\nAnalyse : Le manque de contrôle émotionnel a conduit à une prise de décision précipitée, aggravant l'erreur. Le joueur a perdu son rythme mental, ce qui a affecté la précision et la décision tactique.\nAction : Intégrer l’exercice \"Maintien de l'intensité en fin de match\" (id: padel_ment_011). 1) Simuler une fin de match en jouant 3 séries de 10 points chacune, en introduisant une fatigue préalable (ex. sprint court, respiration rapide). 2) À chaque point, pratiquer une respiration diaphragmatique 4-7-8 pour stabiliser l’état émotionnel. 3) Utiliser un mantra positif (« Je reste concentré, je contrôle chaque point ») après chaque erreur. 4) Après chaque série, faire un retour rapide de 30 s pour analyser l’émotion ressentie et ajuster la stratégie mentale. 5) Répéter l’exercice 2 fois par semaine, augmentant progressivement le nombre de points par série.",
+      "sans_rag": "Titre : Gestion de la frustration après un point perdu\nConstat : Frustration visible après un point perdu, le joueur enchaîne avec une erreur.\nAnalyse : La perte de contrôle émotionnel entraîne une mauvaise prise de décision, une orientation du corps inadéquate et une exécution du geste compromise, ce qui conduit à l’erreur suivante.\nAction : Mettre en place un drill de gestion de la frustration : 3 séries de 5 répétitions de service + retour, en se concentrant sur la respiration diaphragmatique et la visualisation d’un point gagné. Après chaque série, fournir un feedback immédiat sur la posture et la prise de décision. Répéter ce drill 2 fois par séance d’entraînement pour renforcer la régulation émotionnelle avant les points critiques.",
+      "exercice_cite": "padel_ment_011",
+      "attendus": [
+        "padel_ment_007",
+        "padel_ment_008"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Erreur après une longue série de dinks, accélération par impatience.",
+      "gagnant": "rag",
+      "raison": "B propose un drill ciblé qui interdit l'accélération avant un signal, directement adressant l'impatience et incluant une analyse de la durée pour ajuster le rythme, ce qui est plus concret et spécifique au pickleball.",
+      "avec_rag": "Titre : Gestion de l'impatience en dinks\nConstat : Erreur après une longue série de dinks, accélération par impatience.\nAnalyse : L'accélération prématurée a réduit le temps de réaction, provoquant une erreur et laissant l'adversaire gagner le point.\nAction : Exercice pb_ment_002 : Échanges de dinks longs imposés avec interdiction d'accélération avant signal précis. Répéter 3 séries de 10 dinks, en se concentrant sur la patience, le contrôle du rythme et la lecture du jeu. Après chaque série, analyser la durée de l'échange et ajuster la vitesse de frappe pour maintenir la balle en jeu.",
+      "sans_rag": "Titre : Gestion de l'impatience après la série de dinks\nConstat : Erreur après une longue série de dinks, accélération par impatience.\nAnalyse : La fatigue mentale et physique s'est manifestée par une accélération prématurée, entraînant une mauvaise prise de décision et un manque de contrôle du coup de dinks.\nAction : Intégrer un drill de contrôle de tempo : 3 séries de 10 dinks en alternant 5 dinks rapides puis 5 dinks lents, en se concentrant sur la respiration diaphragmatique et le maintien d'un rythme constant. Après chaque série, faire 30 secondes de pause active (marche sur place, étirements dynamiques).",
+      "exercice_cite": "pb_ment_002",
+      "attendus": [
+        "pb_ment_002",
+        "pb_tact_007",
+        "pb_tact_004"
+      ]
+    },
+    {
+      "sport": "padel",
+      "query": "Couple mal placé juste après le service, espace ouvert au milieu du court.",
+      "gagnant": "rag",
+      "raison": "B cible directement le placement du couple et la coordination, répondant mieux à l'espace ouvert au centre.",
+      "avec_rag": "Titre : Améliorer le placement après service\nConstat : Couple mal placé juste après le service, espace ouvert au milieu du court.\nAnalyse : Le couple n’a pas couvert efficacement le centre, laissant un espace exploitable par l’adversaire.\nAction : Travail du placement en formation I immédiatement après le service (exercice padel_tact_010). Réaliser 3 séries de 10 services, en se concentrant sur la position du partenaire et la communication. Le joueur doit se placer à 1,5 m du filet, le partenaire à 2,5 m, tous deux alignés, afin de couvrir le centre dès le retour. Vérifier la synchronisation du déplacement et la prise de décision rapide.",
+      "sans_rag": "Titre : Optimiser le placement après service\nConstat : Couple mal placé juste après le service, espace ouvert au milieu du court.\nAnalyse : Le joueur a laissé un espace central ouvert, probablement dû à une anticipation insuffisante et à un positionnement trop latéral après le service. Cela permet à l’adversaire de jouer une bandeja ou un smash vers le centre, gagnant ainsi un point sans effort.\nAction : Exercice de déplacement rapide : 3 séries de 10 répétitions. Après un service court simulé, le joueur doit se déplacer vers le centre du court en 1,5 s, se placer à 1,2 m du filet, puis exécuter une bandeja ciblée vers le centre. Focus sur la vision périphérique et la prise de décision instantanée. Répéter avec un partenaire qui varie la vitesse et la direction du service.",
+      "exercice_cite": "padel_tact_010",
+      "attendus": [
+        "padel_tact_010",
+        "padel_tact_004"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Début du set suivant très faible juste après avoir perdu le premier set.",
+      "gagnant": "rag",
+      "raison": "B propose une simulation directe de la perte de set suivie d’une routine concrète, ce qui cible plus précisément la situation décrite.",
+      "avec_rag": "Titre : Résilience après la perte d'un set\nConstat : Début du set suivant très faible juste après avoir perdu le premier set.\nAnalyse : Le joueur a perdu le premier set, créant une pression mentale et un manque de confiance qui se traduisent par une baisse de concentration et de performance dès le premier jeu du set suivant.\nAction : Exercice tennis_ment_009 – Simulation de matchs en deux sets perdus artificiellement. 3 séries de 5 jeux : chaque série commence par une simulation de perte de set, puis le joueur doit appliquer une routine de préparation (respiration, visualisation, positionnement) et se fixer un objectif de points à atteindre dès le premier jeu. Points de vigilance : éviter de se focaliser sur le score, maintenir la concentration sur la technique de chaque coup, surtout les coups de fond de court. Adaptation : pour un joueur de fond de court, insister sur la régularité des coups de fond et la gestion de l’endurance mentale sur les longs échanges.",
+      "sans_rag": "Titre : Renforcer la résilience mentale après la perte du premier set\nConstat : Début du set suivant très faible juste après avoir perdu le premier set.\nAnalyse : La baisse de performance est liée à un manque de lucidité mentale et à une prise de décision précipitée. Le joueur a probablement perdu son rythme, son focus et son énergie mentale, ce qui a affecté la qualité de ses coups et son choix tactique.\nAction : Intégrer un rituel de préparation mentale court (respiration diaphragmatique 4‑7‑8, visualisation d’un point gagnant) avant chaque service et chaque échange clé. Entraîner la prise de décision en situation de pression via des jeux de rôle : 5 points de service à haute pression, 3 points de retour, 2 points de jeu de fond de court, en se concentrant sur la sélection de la trajectoire et la gestion du rythme.",
+      "exercice_cite": "tennis_ment_009",
+      "attendus": [
+        "tennis_ment_009"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Le joueur reste au fond alors que l'adversaire vient de jouer une balle courte.",
+      "gagnant": "rag",
+      "raison": "B propose un exercice de montée au filet qui corrige directement le manque de déplacement vers l'avant, plus adapté à la situation.",
+      "avec_rag": "Titre : Réactivité au filet sur balles courtes\nConstat : Le joueur reste au fond alors que l'adversaire vient de jouer une balle courte.\nAnalyse : En restant à la ligne de fond, Julien perd l'opportunité de transformer un point court en un avantage tactique. Le manque de décision rapide et de déplacement vers le filet réduit la pression sur l'adversaire et augmente le risque de retours longs ou de pertes de balle.\nAction : Exercice tennis_tact_003 – Montée au filet sur balle courte :\n1. Entraînement en double, l'un des joueurs sert une balle courte (cible : zone de service courte). \n2. Le receveur doit immédiatement se diriger vers le filet, en gardant une posture basse et en anticipant la trajectoire.\n3. À chaque retour, le joueur effectue une montée au filet, frappe un coup de volée ou un smash léger, puis revient à la ligne de fond.\n4. Répéter 3 séries de 10 répétitions, en augmentant progressivement la vitesse de service.\n5. Points de vigilance : garder le corps stable, garder le regard sur la balle, ne pas se précipiter pour éviter les erreurs de placement.\n6. Intégrer l'exercice dans les séances de jeu de points pour renforcer le réflexe tactique.\n",
+      "sans_rag": "Titre : Réactivité aux balles courtes\nConstat : Le joueur reste au fond alors que l'adversaire vient de jouer une balle courte.\nAnalyse : Le joueur n'a pas anticipé la trajectoire courte, manque de déplacement latéral et de prise de décision rapide, ce qui entraîne une perte de position et de contrôle du point.\nAction : Exercice de déplacement latéral rapide : placez deux cônes à 1,5 m l'un de l'autre, commencez à la ligne de fond. Recevez une balle courte simulée, courez vers le cône le plus proche, effectuez un coup droit ou un smash, puis revenez à la ligne de fond. Répétez 3 séries de 10 répétitions, en variant la direction. Concentrez-vous sur la prise de décision rapide et la réduction du temps de réaction.",
+      "exercice_cite": "tennis_tact_003",
+      "attendus": [
+        "tennis_tact_003"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Perte de confiance après plusieurs fautes au filet, jeu devenu trop défensif.",
+      "gagnant": "sans_rag",
+      "raison": "A propose des exercices concrets et spécifiques au pickleball, tandis que B reste trop générique et manque de détails pratiques.",
+      "avec_rag": "Titre : Renforcer la confiance au filet\nConstat : Perte de confiance après plusieurs fautes au filet, jeu devenu trop défensif.\nAnalyse : Les fautes répétées au filet ont créé un cercle vicieux où la peur de l'erreur entraîne une approche trop prudente, réduisant l'agressivité et la prise d'initiative au net.\nAction : Exécute l’exercice pb_ment_005 : simulate des séries de fautes volontaires au filet, puis répète immédiatement le même coup avec la même intention, en se concentrant sur la fluidité et la confiance. Répète 3 séries de 10 répétitions, en augmentant progressivement la vitesse et la complexité des situations de jeu. Concentre-toi sur la respiration, la visualisation d’un coup réussi et le maintien d’une posture ouverte.",
+      "sans_rag": "Titre : Renforcer la confiance au filet\nConstat : Perte de confiance après plusieurs fautes au filet, jeu devenu trop défensif.\nAnalyse : Les erreurs répétées au filet ont créé un cercle vicieux : la peur de toucher la balle provoque des retards de décision et un positionnement trop en retrait, ce qui limite les opportunités de transition offensive.\nAction : Travail ciblé sur la prise de décision rapide et la confiance : 1) Exercice de volée en situation de pression – 3 séries de 10 répétitions, chaque volée suivie immédiatement d’un retour de balle à 2 mètres, en se concentrant sur la prise de contact rapide et la posture ouverte. 2) Simulation de match à 5 points, où l’objectif est de gagner 3 points consécutifs en filet sans faute, en utilisant un compte à rebours visuel pour renforcer la rapidité de décision.",
+      "exercice_cite": "pb_ment_005",
+      "attendus": [
+        "pb_ment_005"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Faute dans la zone de non-volée lors d'une accélération, corps penché vers l'avant.",
+      "gagnant": "rag",
+      "raison": "B propose un exercice concret et spécifique aux dinks, directement lié à la faute de non-volée en pickleball.",
+      "avec_rag": "Titre : Correction de la posture en accélération\nConstat : Faute dans la zone de non-volée lors d'une accélération, corps penché vers l'avant.\nAnalyse : Le corps penché vers l'avant réduit la stabilité et augmente le risque de faute, car le centre de gravité se déplace hors de la zone de non-volée.\nAction : Travaillez la dinks avec poids centré : 3 séries de 10 répétitions, en gardant le poids du corps centré, sans le transférer vers l'avant avant le contact. Concentrez‑vous sur la respiration et la stabilité du tronc, en vérifiant votre posture à chaque contact.",
+      "sans_rag": "Titre : Correction de la faute de non-volée\nConstat : Faute dans la zone de non-volée lors d'une accélération, corps penché vers l'avant.\nAnalyse : En accélération, le joueur a penché son corps vers l'avant, ce qui a entraîné une violation de la zone de non-volée. La posture inadéquate a limité la capacité à maintenir le contrôle du paddle et à respecter la règle.\nAction : 1. Travail de la posture en accélération : garder le dos légèrement incliné vers l'arrière, les épaules alignées avec le corps, et le regard fixé sur la balle.\n2. Exercice de pivot de pied : 3 séries de 10 répétitions, chaque fois que le joueur accélère vers la zone de non-volée, il doit pivoter sur le pied d'appui avant de frapper.\n3. Simulation de match : 5 minutes de jeu en accélération, avec feedback immédiat sur la posture.\nPoints de vigilance : éviter de pencher le torse, garder le paddle à hauteur de la poitrine.",
+      "exercice_cite": "pb_tech_001",
+      "attendus": [
+        "pb_tech_001",
+        "pb_ment_006"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Lob défensif trop court, smashé par l'adversaire au filet.",
+      "gagnant": "sans_rag",
+      "raison": "B offre un exercice plus détaillé et adapté aux techniques de lob en pickleball, avec des paramètres mesurables et une mise en pratique réaliste.",
+      "avec_rag": "Titre : Améliorer la longueur du lob défensif\nConstat : Lob défensif trop court, smashé par l'adversaire au filet.\nAnalyse : Le lob n'a pas atteint la zone arrière, laissant l'adversaire en position de smash. Probablement un manque de puissance et de hauteur de trajectoire.\nAction : Exercice pb_tech_010 : Répéter des lob défensifs à trajectoire très haute, ciblant le fond de la zone arrière. 4 séries de 10 lobs, en se concentrant sur la prise de la raquette en haut du corps, un léger pivot du pied arrière et un suivi du bras pour générer de la hauteur. Vérifier la distance de placement en mesurant la distance parcourue par la balle après le contact.",
+      "sans_rag": "Titre : Optimiser la longueur du lob défensif\nConstat : Lob défensif trop court, smashé par l'adversaire au filet.\nAnalyse : Le lob manque de puissance et de hauteur, probablement dû à un swing trop court, un suivi insuffisant et un manque de transfert de poids du pied arrière vers le pied avant.\nAction : Exercice de lob technique : 3 séries de 10 répétitions. Position de départ : pieds écartés à la largeur des épaules, balle à hauteur de poitrine. Effectuer un swing complet en poussant le poignet vers le haut, en transférant le poids du pied arrière vers le pied avant, et en suivant la balle jusqu'au point d'impact. Concentrez-vous sur la trajectoire en arc et sur la hauteur de 1,5 m au-dessus du filet. Utilisez un mur pour vérifier la hauteur et la distance.",
+      "exercice_cite": "pb_tech_010",
+      "attendus": [
+        "pb_tech_010"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Volée envoyée hors du court, geste trop ample au filet.",
+      "gagnant": "rag",
+      "raison": "Propose un exercice concret et progressif ciblé sur la réduction de l’amplitude et le contrôle du poignet, plus adapté que la simple description de la technique.",
+      "avec_rag": "Titre : Volée hors du court – amplitude trop large\nConstat : Volée envoyée hors du court, geste trop ample au filet.\nAnalyse : Le geste trop ample au filet a entraîné un manque de contrôle, la balle sortant hors du court.\nAction : Exercice tennis_tech_005 – Volée haute : bloc court et ferme. Répéter 3 séries de 10 volées, en réduisant l’amplitude du swing, en insistant sur la fermeté du poignet au contact. Utiliser un mur ou un partenaire pour viser une zone cible à 1,5 m du filet. Vérifier que le poignet reste ferme et que le contact est rapide. Progression : augmenter la distance de départ de 0,5 m toutes les 2 séries.",
+      "sans_rag": "Titre : Optimisation de la volée au filet\nConstat : Volée envoyée hors du court, geste trop ample au filet.\nAnalyse : Le geste trop ample entraîne un manque de contrôle du tamis et une mauvaise prise de décision sur la trajectoire, surtout sous pression.\nAction : Travail de la volée en 3 étapes : 1) Positionnement du corps : pieds à largeur d’épaules, poids sur la jambe arrière, 2) Mouvement du bras : mouvement fluide, pas de balancement, 3) Contrôle du tamis : garder le tamis légèrement ouvert, toucher la balle au centre. Répéter 3 séries de 10 répétitions, 2 minutes de récupération entre les séries.",
+      "exercice_cite": "tennis_tech_005",
+      "attendus": [
+        "tennis_tech_005"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Niveau de jeu qui s'effondre pendant le tie-break.",
+      "gagnant": "sans_rag",
+      "raison": "B propose des actions plus réalistes et directement applicables, notamment un rituel de service fixe et des jeux de simulation de prise de décision, sans pauses trop longues entre les points.",
+      "avec_rag": "Titre : Gestion mentale en tie‑break\nConstat : Niveau de jeu qui s'effondre pendant le tie‑break.\nAnalyse : Sous pression, la concentration se détériore, la routine entre points est perdue et le changement de côté n’est pas maîtrisé, ce qui entraîne une perte de rythme et de confiance.\nAction : Mettre en place une routine de service et de récupération entre points : 1) 5 min de respiration diaphragmatique avant le match, 2) 3 sets de tie‑break simulés en entraînement en insistant sur la même routine de service, 3) 2 min de pause entre chaque point pour se recentrer, 4) 1 min de visualisation du prochain point après chaque échange. Répéter le changement de côté tous les six points comme repère mental. Concentrez‑vous sur la respiration, la posture et la visualisation de chaque point pour maintenir le rythme.",
+      "sans_rag": "Titre : Gestion du tie‑break\nConstat : Niveau de jeu qui s'effondre pendant le tie‑break.\nAnalyse : Sous pression, le joueur a perdu le contrôle de son rythme, son service a varié, et il a commis des erreurs non forcées. Le manque de routine et la fatigue mentale ont amplifié la tension.\nAction : 1. Instaurer un rituel de service fixe (lancer, respiration, position). 2. Travailler la prise de décision rapide en situation de pression via des jeux de simulation de tie‑break (ex. 5‑0, 0‑5). 3. Renforcer la gestion mentale avec des exercices de visualisation et de respiration diaphragmatique avant chaque point.",
+      "exercice_cite": "tennis_ment_003",
+      "attendus": [
+        "tennis_ment_003",
+        "tennis_ment_011"
+      ]
+    },
+    {
+      "sport": "padel",
+      "query": "Smash qui part hors du court. Frappe trop puissante, peu de contrôle.",
+      "gagnant": "rag",
+      "raison": "La recommandation A est plus concrète, réalisable et spécifique au padel, avec des séries progressives et des cibles précises.",
+      "avec_rag": "Titre : Smash hors du court\nConstat : Smash qui part hors du court. Frappe trop puissante, peu de contrôle.\nAnalyse : La puissance excessive du smash a réduit la précision, entraînant un hors-court. Le manque de contrôle de la trajectoire et de la vitesse a empêché la balle de rester dans le terrain.\nAction : Travail du smash à puissance progressive (50 %, 75 %, 100 %) en ciblant des zones précises plutôt que la puissance maximale systématique. 3 séries de 10 frappes à 50 % de puissance, 3 séries de 10 à 75 % et 3 séries de 10 à 100 % en visant des cibles fixes (coin du fond, centre du filet). Concentrez‑vous sur la stabilité du poignet, l’alignement du corps et le suivi du mouvement. Utilisez un partenaire ou une machine à balles pour maintenir la répétition et la constance.",
+      "sans_rag": "Titre : Smash hors du court\nConstat : Smash qui part hors du court. Frappe trop puissante, peu de contrôle.\nAnalyse : La puissance excessive a réduit le contrôle, l’orientation de la raquette et le timing étaient inadéquats, ce qui a entraîné une trajectoire hors du cadre.\nAction : Travaille la précision du smash en réduisant la puissance, en améliorant le timing et la trajectoire. Entraîne-toi à viser des cibles fixes sur le terrain, en gardant la raquette à un angle de 45° et en synchronisant le mouvement du corps avec le coup. Répète 3 séries de 10 répétitions, en augmentant progressivement la vitesse tout en conservant la précision.",
+      "exercice_cite": "padel_tech_003",
+      "attendus": [
+        "padel_tech_003",
+        "padel_tech_013"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Retard de réaction face à un smash adverse tiré de près.",
+      "gagnant": "sans_rag",
+      "raison": "B offre un entraînement plus ciblé sur la lecture du smash et le déplacement latéral, adapté au pickleball.",
+      "avec_rag": "Titre : Réduction du retard de réaction face au smash\nConstat : Retard de réaction face à un smash adverse tiré de près.\nAnalyse : La vitesse de réaction défensive a été insuffisante, entraînant une position trop tardive pour amortir le smash.\nAction : Exercice pb_phys_006 : Blocage réflexe. 3 séries de 10 répétitions. Positionnez un partenaire à 1,5 m, lancez des balles à vitesse croissante. Concentrez‑vous sur la réduction du temps de réaction en gardant les yeux sur la balle et en anticipant le smash. Travaillez la mobilité latérale et la flexibilité du tronc pour réagir rapidement.",
+      "sans_rag": "Titre : Réaction au smash proche\nConstat : Retard de réaction face à un smash adverse tiré de près.\nAnalyse : La prise de décision a été retardée par une mauvaise anticipation du point de sortie du smash et un positionnement trop centré, limitant la marge de déplacement.\nAction : Travail de la lecture du smash en 3 phases : 1) scanner le corps de l’adversaire dès le départ du coup, 2) anticiper la trajectoire en visualisant le point d’impact, 3) exécuter un déplacement latéral rapide en 2-3 pas. Entraînement : 4 séries de 10 répétitions de smash simulés à 1,5 m de la ligne de fond, avec un partenaire qui lance le smash à haute vitesse. Concentrez‑vous sur la réduction du temps de réaction à moins de 0,6 s.",
+      "exercice_cite": "pb_phys_006",
+      "attendus": [
+        "pb_phys_006"
+      ]
+    },
+    {
+      "sport": "pickleball",
+      "query": "Collision au centre, les deux partenaires hésitent sur la balle.",
+      "gagnant": "rag",
+      "raison": "L'exercice A est plus concret, précis et directement adapté à la situation de collision au centre en double.",
+      "avec_rag": "Titre : Collision au centre – amélioration de la couverture du milieu\nConstat : Collision au centre, les deux partenaires hésitent sur la balle.\nAnalyse : La coordination de la couverture du milieu est insuffisante, entraînant des hésitations et des collisions.\nAction : Exercice de clarification systématique de la couverture du milieu : 1) Positionnez les deux joueurs à 3 m du centre, 2) Un joueur joue une balle de fond vers le centre, l’autre doit immédiatement se déplacer vers le centre pour couvrir, 3) Alternez les rôles toutes les 5 répétitions, 4) Répétez 4 séries de 10 coups, en insistant sur la communication verbale et la prise de décision rapide. Vérifiez que chaque joueur couvre le centre sans chevauchement.",
+      "sans_rag": "Titre : Gestion de la collision au centre\nConstat : Collision au centre, les deux partenaires hésitent sur la balle.\nAnalyse : La hésitation provient d’un manque de communication verbale et d’une position trop centrée qui empêche chaque joueur de savoir qui doit prendre la balle.\nAction : 1. Exercice de communication : en double, chaque joueur doit appeler la balle (« moi », « toi ») avant de frapper. 2. Positionnement : pratiquez l’exercice « shadow rally » où un joueur joue la balle pendant que l’autre se déplace en suivant la trajectoire, afin d’apprendre à se placer rapidement. Répétez 3 séries de 10 rallyes, en variant la direction de la balle.",
+      "exercice_cite": "pb_tact_005",
+      "attendus": [
+        "pb_tact_005",
+        "pb_tact_010",
+        "pb_tact_012"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Amortie adverse non rattrapée, premiers mètres trop lents.",
+      "gagnant": "rag",
+      "raison": "La recommandation A cible directement l’explosivité et le transfert de poids sur l’amortie, ce qui correspond mieux à la lenteur des premiers mètres décrits.",
+      "avec_rag": "Titre : Amortie lente\nConstat : Amortie adverse non rattrapée, premiers mètres trop lents.\nAnalyse : Le manque d’explosivité au départ de l’amortie réduit la capacité à atteindre le filet rapidement, ce qui laisse l’adversaire le temps de préparer son coup. Un transfert de poids insuffisant et une mauvaise réactivité sur les premiers appuis sont les principaux facteurs.\nAction : Travaillez l’explosivité sur la course à l’amortie : 4 séries de 5 sprints courts (3 à 5 m) départ arrêté, déclenchés sur un signal visuel. Concentrez‑vous sur un départ explosif, un transfert de poids rapide et un contact ferme du poignet. Reprenez l’exercice 3 fois par semaine, en augmentant progressivement le nombre de répétitions si la technique reste correcte.",
+      "sans_rag": "Titre : Amortie adverse non rattrapée\nConstat : L'amortie adverse n'a pas été rattrapée, les premiers mètres ont été trop lents.\nAnalyse : Le manque de vitesse de déplacement et de réactivité a permis à l'adversaire de gagner un point. Le transfert de poids et la position initiale étaient trop éloignés du centre de la balle.\nAction : Travail de footwork en réaction : 1) Exercice de déplacement latéral en réaction à un signal lumineux (3 séries de 10 répétitions). 2) Drills de sprint court (5 x 10 m) avec arrêt brusque à la réception d'un signal. 3) Travail de positionnement préventif : se placer à 1,5 m du centre de la balle après chaque service pour anticiper les drop shots.",
+      "exercice_cite": "tennis_phys_002",
+      "attendus": [
+        "tennis_phys_002",
+        "tennis_phys_011"
+      ]
+    },
+    {
+      "sport": "padel",
+      "query": "Les deux joueurs se gênent au centre sur une balle, personne ne la prend.",
+      "gagnant": "sans_rag",
+      "raison": "A propose un exercice concret de prise de décision au centre avec des strokes spécifiques au padel, directement lié à la situation décrite.",
+      "avec_rag": "Titre : Améliorer la couverture croisée en défense\nConstat : Les deux joueurs se gênent au centre sur une balle, personne ne la prend.\nAnalyse : Le manque de prise de décision et de positionnement optimal conduit à un blocage au centre. Le joueur manque d'anticipation et de communication, ce qui empêche l'un ou l'autre de se placer correctement pour récupérer la balle.\nAction : Travaillez la couverture croisée en défense de fond de court : 1) Entraînement en binôme, chaque joueur commence à la ligne de fond, l'un se déplace vers le centre dès que l'autre est excentré. 2) Répétez 4 séries de 10 répétitions, en alternant la direction de la couverture. 3) Concentrez-vous sur la synchronisation des pas, le maintien d'un centre de gravité bas et la communication verbale (« je prends »). 4) Intégrez des scénarios de jeu réel (ex. balles de fond de court) pour renforcer la prise de décision rapide.",
+      "sans_rag": "Titre : Gestion du centre de court\nConstat : Les deux joueurs se gênent au centre sur une balle, personne ne la prend.\nAnalyse : Le manque de prise de décision rapide et la position trop centrée empêchent la mise en place d’une stratégie claire. Le joueur a tendance à rester trop proche du filet, ce qui limite la capacité à anticiper la trajectoire et à choisir entre bandeja, vibora ou smash.\nAction : 1. Exercice de réaction au centre : placez deux balles à 1,5 m du centre, un partenaire lance aléatoirement une balle haute ou basse. Le joueur doit décider en 1 s s’il joue bandeja, vibora ou smash, puis exécuter le geste. Répéter 3 séries de 10 répétitions, 2 min de repos. 2. Travail de positionnement : en situation de double, alterner entre position de défense (à 1,5 m du centre) et position d’attaque (à 1 m du filet) pour développer la flexibilité de déplacement. 3. Simulation de match : 5 min de jeu continu où le joueur doit gagner le point en choisissant la meilleure option de placement. Focus sur la prise de décision rapide et la communication avec le partenaire.",
+      "exercice_cite": "padel_tact_004",
+      "attendus": [
+        "padel_ment_012",
+        "padel_tact_002",
+        "padel_tact_004"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Coup droit sans puissance, frappe réalisée à l'arrêt.",
+      "gagnant": "rag",
+      "raison": "A propose un exercice d'ombre ciblé sur le transfert de poids et la rotation du tronc, plus concret et directement applicable à un coup droit à l'arrêt, tandis que B introduit un saut qui est moins pertinent pour cette situation.",
+      "avec_rag": "Titre : Améliorer la puissance du coup droit à l'arrêt\nConstat : Coup droit sans puissance, frappe réalisée à l'arrêt.\nAnalyse : Le manque de puissance provient d'un transfert de poids insuffisant de la jambe arrière vers la jambe avant au moment du contact, ainsi qu'une vivacité d'appui limitée.\nAction : Exercice d'ombre (shadow) : 1) Position de départ neutre, 2) Réaliser un split‑step léger, 3) Transférer le poids de la jambe arrière vers la jambe avant juste avant le contact, 4) Répéter 3 séries de 10 répétitions, 5) Ajouter une balle après chaque shadow pour travailler le contact réel. Surveiller la rotation du tronc et la prise du tamis.",
+      "sans_rag": "Titre : Renforcer la puissance du coup droit à l'arrêt\nConstat : Coup droit sans puissance, frappe réalisée à l'arrêt.\nAnalyse : Le manque de puissance provient d'un transfert de poids insuffisant et d'un manque de préparation du mouvement. Le joueur ne mobilise pas suffisamment le bas du corps et ne prépare pas le swing avant le contact, ce qui limite la génération de vitesse.\nAction : Exercice de puissance du coup droit à l'arrêt : 1) Position de départ en arrière, 2) Réaliser un transfert de poids complet vers l'avant tout en gardant le bras de service en position de préparation, 3) Frapper la balle en visant le point de contact au niveau du centre du corps, 4) Répéter 3 séries de 10 répétitions, 5) Intégrer un léger saut de préparation pour renforcer l'explosivité. Point de vigilance : garder le regard sur la balle et maintenir la prise de raquette neutre.",
+      "exercice_cite": "tennis_tech_003",
+      "attendus": [
+        "tennis_tech_003"
+      ]
+    },
+    {
+      "sport": "padel",
+      "query": "Déplacements de plus en plus lents en fin de match, retard sur les balles latérales.",
+      "gagnant": "rag",
+      "raison": "L'exercice A est directement adapté aux déplacements latéraux sur le court de padel, tandis que B propose des exercices généraux de plyométrie moins spécifiques.",
+      "avec_rag": "Titre : Amélioration de la vivacité latérale\nConstat : Déplacements de plus en plus lents en fin de match, retard sur les balles latérales.\nAnalyse : La fatigue musculaire et la perte de coordination latérale réduisent votre capacité à atteindre les balles latérales rapidement, ce qui vous fait perdre des points.\nAction : Travaillez la vivacité latérale avec l’exercice padel_phys_001 : 4 séries de 10 déplacements latéraux d’un côté à l’autre du court, en diminuant le temps de récupération de 5 à 2 secondes entre chaque série. Concentrez‑vous sur la prise de décision rapide et la posture stable. Répétez 3 fois par semaine.",
+      "sans_rag": "Titre : Amélioration de la mobilité latérale en fin de match\nConstat : Déplacements de plus en plus lents en fin de match, retard sur les balles latérales.\nAnalyse : La fatigue musculaire et la diminution de la fréquence cardiaque réduisent l'explosivité des déplacements latéraux, ce qui entraîne un retard de réaction aux balles de côté.\nAction : Intégrer un circuit de plyométrie ciblée : 3 séries de 10 sauts latéraux (5 de chaque côté) avec 30 s de récupération, suivi de 3 séries de 8 fentes latérales rapides. Concentrez-vous sur la prise de décision rapide et la stabilisation du tronc.",
+      "exercice_cite": "padel_phys_001",
+      "attendus": [
+        "padel_phys_001",
+        "padel_phys_011",
+        "padel_phys_012"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Balle de break perdue sur une faute, tension visible du joueur.",
+      "gagnant": "rag",
+      "raison": "Recommendation A offre un rituel de service plus détaillé, concret et réalisable, avec des séries, un feedback immédiat et des éléments spécifiques au tennis, ce qui le rend plus efficace que la version simplifiée de B.",
+      "avec_rag": "Titre : Gestion du service en point de break\nConstat : Balle de break perdue sur une faute, tension visible du joueur.\nAnalyse : La faute a été provoquée par une tension qui a perturbé le timing du service, réduisant la précision du lancer et la coordination du mouvement. Le joueur a eu du mal à maintenir son rythme et son positionnement, ce qui a entraîné une erreur non forcée au moment critique.\nAction : Instaurer un rituel de service structuré : 1) lancer de balle toujours à la même hauteur et angle, 2) respiration profonde (inspiration 3 secondes, expiration 3 secondes) avant le lancer, 3) position de départ fixe (pieds à largeur d’épaules, poids réparti 60/40), 4) visualisation du point (service ciblé vers la zone de service souhaitée). Répéter 3 séries de 10 services ciblés, en se concentrant sur la fluidité et la relaxation. Utiliser un partenaire ou un coach pour fournir un feedback immédiat sur la tension et la précision.",
+      "sans_rag": "Titre : Balle de break perdue sur faute\nConstat : Balle de break perdue sur une faute, tension visible du joueur.\nAnalyse : La tension a perturbé le timing du service et la prise de raquette, réduisant la marge de sécurité et provoquant la faute.\nAction : Intégrer un rituel de service de 5 répétitions avec respiration diaphragmatique et pause de 5 secondes entre chaque, en se concentrant sur la relaxation et la visualisation d’un service réussi.",
+      "exercice_cite": null,
+      "attendus": [
+        "tennis_ment_001"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Retour de service en retard face à un service puissant, raquette armée trop longtemps.",
+      "gagnant": "egalite",
+      "raison": "Les deux recommandations sont cohérentes, concrètes et spécifiques au tennis, sans différence notable.",
+      "avec_rag": "Titre : Amélioration du retour de service\nConstat : Retour de service en retard face à un service puissant, raquette armée trop longtemps.\nAnalyse : Le temps de réaction a été compromis par une préparation trop longue, laissant l'adversaire gagner du temps pour ajuster son service. Le maintien de la raquette armée augmente la distance de déplacement et réduit la capacité à anticiper la trajectoire.\nAction : Exercice tennis_tech_010 – Retour de service : préparation raccourcie. 1) Position de départ : pieds à largeur d’épaules, bras légèrement fléchis. 2) À la réception du service, contracter immédiatement le bras, réduire le mouvement de prise de raquette à un geste court et compact. 3) Répéter 3 séries de 10 retours rapides contre un partenaire ou une machine, en se concentrant sur la réduction de l’armé. 4) Intégrer un compte à rebours visuel (ex. 3‑2‑1) pour renforcer la rapidité de décision. 5) Évaluer la précision en visant une zone cible large avant de tenter un coup plus agressif.",
+      "sans_rag": "Titre : Optimiser le retour de service\nConstat : Retour de service en retard face à un service puissant, raquette armée trop longtemps.\nAnalyse : Le joueur a tardé à se positionner, la prise de décision a été retardée, le transfert de poids a été lent, et la raquette a été armée trop longtemps, réduisant la capacité de réaction et la marge de sécurité pour un retour efficace.\nAction : Exercice de réaction et de positionnement : placez un cône à 2 m du filet. Un partenaire lance la balle de service à votre hauteur. Vous devez vous positionner en 1,5 s, frapper la balle en 2 s, puis revenir à la position de départ. Répétez 10 fois, 3 séries, en augmentant progressivement la vitesse de service. Concentrez-vous sur un transfert de poids rapide, un regard fixe sur la trajectoire de la balle et un armement de raquette minimal pour gagner du temps.",
+      "exercice_cite": "tennis_tech_010",
+      "attendus": [
+        "tennis_tech_010"
+      ]
+    },
+    {
+      "sport": "tennis",
+      "query": "Fin de match : le service perd de la vitesse, le bras semble fatigué.",
+      "gagnant": "sans_rag",
+      "raison": "A fournit un plan concret et spécifique au tennis ciblant l’endurance et la technique du service, ce qui répond directement à la perte de vitesse observée.",
+      "avec_rag": "Titre : Service fatigue: améliorer la mobilité de l'épaule\nConstat : Fin de match : le service perd de la vitesse, le bras semble fatigué.\nAnalyse : La diminution de la vitesse du service indique une fatigue musculaire et une restriction de l'amplitude de mouvement de l'épaule, ce qui limite la puissance et la régularité du geste.\nAction : Intégrer la routine de mobilité et de renforcement de la coiffe des rotateurs (exercice tennis_phys_006) avant chaque séance d'entraînement et après chaque match. Étapes : 1) Échauffement articulaire (cercles de bras, rotations externes et internes) 2) Étirements dynamiques des rotateurs (tirage à la poulie basse, élévations latérales) 3) Renforcement léger (bandes de résistance, exercices de rotation externe et interne) 4) Retour au calme avec étirements statiques. Répéter 2 séries de 10 répétitions pour chaque mouvement, en veillant à la bonne exécution et à la sensation de mobilité.",
+      "sans_rag": "Titre : Service fatigued at match end\nConstat : Fin de match : le service perd de la vitesse, le bras semble fatigué.\nAnalyse : La perte de vitesse du service indique une fatigue musculaire du bras droit, probablement due à un manque d'endurance spécifique et à une technique de service qui sollicite excessivement les muscles du triceps et du deltoïde. Le transfert de poids et la rotation du torse peuvent également être inefficaces, augmentant la charge sur le bras.\nAction : 1. Renforcement ciblé : 3 séries de 12 répétitions de curls triceps à la poulie basse, 3 séries de 10 répétitions de développé militaire avec haltères légers, 2 séries de 15 répétitions de rotations externes du deltoïde. 2. Travail technique : 10 minutes de service en slow motion, se concentrer sur un transfert de poids fluide et un point de contact stable. 3. Endurance : 4 séries de 30 secondes de service continu à intensité modérée, avec 30 secondes de repos, pour améliorer la capacité de maintien de la vitesse.",
+      "exercice_cite": "tennis_phys_006",
+      "attendus": [
+        "tennis_phys_006",
+        "tennis_phys_009"
+      ]
+    },
+    {
+      "sport": "padel",
+      "query": "Sortie de vitre ratée. Mauvaise lecture du rebond après la vitre de fond.",
+      "gagnant": "sans_rag",
+      "raison": "A propose un exercice concret et réalisable avec un ballon de padel, ciblant directement la lecture du rebond, sans étapes superflues.",
+      "avec_rag": "Titre : Améliorer la lecture des sorties de vitre\nConstat : Sortie de vitre ratée. Mauvaise lecture du rebond après la vitre de fond.\nAnalyse : La prise de décision a été compromise par une lecture insuffisante du rebond, entraînant une mauvaise trajectoire de la balle et un manque de contrôle sur la sortie de vitre.\nAction : Exercice de shadow \"Sortie de mur en shadow\" : \n1. Position de base en avant, pieds écartés à la largeur des épaules.\n2. Simulez le rebond de la vitre en visualisant la trajectoire de la balle.\n3. Répétez le geste de sortie de mur sans balle, en variant la hauteur et la vitesse simulées du rebond.\n4. Après chaque répétition, rejouez la balle vers le fond de court pour valider la prise de décision.\n5. Effectuez 3 séries de 10 répétitions, en augmentant progressivement la vitesse de simulation.\nPoints de vigilance : garder le regard sur la trajectoire, maintenir le corps aligné, ajuster la puissance de la frappe en fonction de la hauteur simulée.",
+      "sans_rag": "Titre : Sortie de vitre ratée\nConstat : Sortie de vitre ratée. Mauvaise lecture du rebond après la vitre de fond.\nAnalyse : Le joueur a eu du mal à anticiper la trajectoire du rebond, ce qui a entraîné une mauvaise prise de décision et un placement inadéquat de la raquette. L'orientation du corps était trop fermée, limitant la vision du rebond et la capacité à ajuster rapidement le geste.\nAction : Travaillez la lecture du rebond en situation de sortie de vitre : 3 séries de 10 répétitions, en se concentrant sur la prise de décision rapide. Utilisez un ballon de tennis pour simuler le rebond, en vous concentrant sur la visualisation de la trajectoire avant de toucher la balle. Après chaque répétition, faites un retour rapide sur la position du corps et l'angle de raquette pour corriger les erreurs.",
+      "exercice_cite": "padel_tech_001",
+      "attendus": [
+        "padel_tech_001",
+        "padel_tech_008"
+      ]
+    },
+    {
+      "sport": "padel",
+      "query": "Série de fautes directes puis jeu très prudent, le joueur n'ose plus attaquer.",
+      "gagnant": "sans_rag",
+      "raison": "A est plus concret, détaillé et spécifiquement adapté au padel avec des zones et des coups précis, ce qui le rend plus réalisable et cohérent.",
+      "avec_rag": "Titre : Reprise de l'attaque après fautes directes\nConstat : Série de fautes directes puis jeu très prudent, le joueur n'ose plus attaquer.\nAnalyse : Après plusieurs fautes directes, la confiance mentale diminue, ce qui entraîne une hésitation à attaquer. Le manque de prise de décision offensive est lié à une peur de répéter l'erreur.\nAction : Exercice padel_ment_004 : Situations où plusieurs fautes sont provoquées volontairement, avec obligation de retenter le même coup avec la même intention offensive. Répétez 3 séries de 5 répétitions en vous concentrant sur la même intensité et la même intention offensive après chaque faute. Point de vigilance : garder la même posture et la même trajectoire de balle pour éviter la récurrence de l'erreur.",
+      "sans_rag": "Titre : Reprise d'attaque après série de fautes\nConstat : Série de fautes directes puis jeu très prudent, le joueur n'ose plus attaquer.\nAnalyse : Les fautes répétées ont créé une peur de perdre le point, ce qui a conduit à une prise de décision trop conservatrice et à un manque d'initiative offensive.\nAction : Mettre en place un drill de prise de décision rapide : 3‑4 points de service, chaque point doit être joué en visant un carré précis du terrain (ex. zone 3). Après chaque point, le joueur doit décider immédiatement de la trajectoire (bandeja, smash ou drop) sans hésitation. Répéter 3 séries de 10 points, en augmentant progressivement la pression (ex. ajouter un minuteur de 30s pour chaque point).",
+      "exercice_cite": "padel_ment_004",
+      "attendus": [
+        "padel_ment_004"
+      ]
+    }
+  ]
+}

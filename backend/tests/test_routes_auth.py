@@ -3,6 +3,7 @@ Tests d'intégration des routes /auth/* via TestClient — la base de données
 et la logique métier (register_user/authenticate_user) sont mockées : aucun
 de ces tests ne touche au vrai Supabase.
 """
+
 from unittest.mock import MagicMock, patch
 
 from backend.auth.service import EmailAlreadyExistsError, InvalidCredentialsError
