@@ -172,7 +172,7 @@ def delete_training_plan(
     db: Session = Depends(get_db),
 ):
     """Supprime définitivement un programme d'entraînement généré."""
-    from db.models import TrainingPlan
+    from backend.db.models import TrainingPlan
 
     plan = (
         db.query(TrainingPlan)
