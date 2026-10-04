@@ -4,7 +4,7 @@
 //
 //  Computes performance stats scoped to ONE selected player (the figure the
 //  user tapped), from that player's own detections. This is what powers the
-//  PB-Vision-style per-player view (`/player/N`): the same clip, but every
+//  per-player view: the same clip, but every
 //  number is about the chosen person rather than the court as a whole.
 //
 //  HONEST SCOPE:

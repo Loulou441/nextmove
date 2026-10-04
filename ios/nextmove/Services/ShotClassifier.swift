@@ -4,7 +4,7 @@
 //
 //  Tier-2b interface for SHOT-TYPE classification (serve / volley / dink /
 //  overhead / groundstroke). This is the biggest honest gap between NextMove
-//  and products like PB Vision, and this file is written to make the gap — and
+//  and commercial reference products, and this file is written to make the gap — and
 //  the path to closing it — explicit.
 //
 //  WHY A SEPARATE, EXPLICIT INTERFACE?

@@ -117,7 +117,7 @@ struct GameAnalysis: Codable {
     var heatMap: CourtHeatMap?
 
     /// Players detected in the clip, for the "tap the figure that's you" view
-    /// (PB-Vision-style per-player stats). Optional + defaulted so existing
+    /// (per-player stats). Optional + defaulted so existing
     /// construction sites and older persisted recordings keep working.
     var playerCandidates: [PlayerCandidate]? = nil
     

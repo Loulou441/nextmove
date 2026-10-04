@@ -2,7 +2,7 @@
 //  PlayerSelectionView.swift
 //  nextmove
 //
-//  PB-Vision-style "tap the player that's you" screen. Shows a thumbnail crop
+//  "tap the player that's you" screen. Shows a thumbnail crop
 //  of each detected player; tapping one scopes the stats to that person.
 //
 //  This is tier-2a: player identification BY SELECTION (not biometric). See
@@ -126,7 +126,7 @@ final class PlayerSelectionViewModel: ObservableObject {
 // MARK: - View
 
 /// Shows the detected players as tappable thumbnails and a stats panel for the
-/// selected one — the NextMove equivalent of PB Vision's `/player/N` view.
+/// selected one — NextMove's per-player analysis view.
 struct PlayerSelectionView: View {
     @StateObject var viewModel: PlayerSelectionViewModel
 

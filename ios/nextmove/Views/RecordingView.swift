@@ -10,12 +10,14 @@ struct RecordingView: View {
     @ObservedObject var viewModel: RecordingViewModel
     let sportType: SportType
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var camera = CameraRecorder()
     @State private var isRecording = false
     @State private var recordingTime: TimeInterval = 0
     @State private var timer: Timer?
     @State private var showingSaveSheet = false
     @State private var gameTitle = ""
-    @State private var isPaused = false
+    /// The actual recorded file, set when recording stops. saveRecording() uses it.
+    @State private var recordedURL: URL?
     
     var body: some View {
         NavigationStack {
@@ -23,7 +25,7 @@ struct RecordingView: View {
                 Color.black.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    cameraPreviewPlaceholder
+                    cameraPreview
                     
                     controlsSection
                 }
@@ -33,9 +35,9 @@ struct RecordingView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
-                        if isRecording {
-                            stopRecording()
-                        }
+                        if isRecording { camera.stopRecording { _ in } }
+                        stopTimer()
+                        camera.stop()
                         dismiss()
                     }
                     .foregroundStyle(.white)
@@ -60,40 +62,48 @@ struct RecordingView: View {
                     saveRecording()
                 }
             }
+            .task { camera.prepare() }
+            .onDisappear { camera.stop() }
         }
     }
     
-    private var cameraPreviewPlaceholder: some View {
+    private var cameraPreview: some View {
         GeometryReader { geometry in
             ZStack {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                
-                VStack(spacing: 16) {
-                    Image(systemName: "video.fill")
-                        .font(.system(size: 70))
-                        .foregroundStyle(.white.opacity(0.7))
-                    
-                    Text("Camera Preview")
-                        .font(.headline)
-                        .foregroundStyle(.white.opacity(0.7))
-                    
-                    if isRecording {
-                        Text(formatTime(recordingTime))
-                            .font(.system(size: 48, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                            .padding(.top, 8)
-                            .monospacedDigit()
+                if camera.isReady {
+                    CameraPreview(session: camera.session)
+                        .ignoresSafeArea(edges: .horizontal)
+                } else {
+                    // While the session spins up (or if it failed), show status
+                    // instead of a silent black screen.
+                    Rectangle().fill(Color.gray.opacity(0.3))
+                    VStack(spacing: 16) {
+                        if let err = camera.errorMessage {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 60)).foregroundStyle(.yellow.opacity(0.9))
+                            Text(err)
+                                .font(.subheadline).multilineTextAlignment(.center)
+                                .foregroundStyle(.white.opacity(0.85)).padding(.horizontal, 32)
+                        } else {
+                            ProgressView().tint(.white)
+                            Text("Démarrage de la caméra…")
+                                .font(.headline).foregroundStyle(.white.opacity(0.7))
+                        }
                     }
-                    
-                    Text("Position camera to capture full court")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
-                        .padding(.top, 4)
                 }
                 
-                // Grid overlay for alignment
-                if !isRecording {
+                if isRecording {
+                    VStack {
+                        Spacer()
+                        Text(formatTime(recordingTime))
+                            .font(.system(size: 40, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .monospacedDigit()
+                            .padding(8)
+                            .background(.black.opacity(0.4), in: Capsule())
+                            .padding(.bottom, 16)
+                    }
+                } else if camera.isReady {
                     GridOverlay()
                         .stroke(Color.white.opacity(0.3), lineWidth: 1)
                 }
@@ -183,6 +193,8 @@ struct RecordingView: View {
     }
     
     private func startRecording() {
+        guard camera.isReady else { return }
+        camera.startRecording()
         isRecording = true
         recordingTime = 0
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
@@ -191,19 +203,31 @@ struct RecordingView: View {
     }
     
     private func stopRecording() {
+        stopTimer()
         isRecording = false
+        camera.stopRecording { url in
+            // Keep the real file URL; only offer to save if we actually got one.
+            self.recordedURL = url
+            if url != nil && self.recordingTime > 0 {
+                self.showingSaveSheet = true
+            }
+        }
+    }
+
+    private func stopTimer() {
         timer?.invalidate()
         timer = nil
-        if recordingTime > 0 {
-            showingSaveSheet = true
-        }
     }
     
     private func saveRecording() {
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let videoURL = documentsPath.appendingPathComponent("\(UUID().uuidString).mov")
-        
-        viewModel.addRecording(videoURL: videoURL, title: gameTitle.isEmpty ? "Game Recording" : gameTitle, sportType: sportType)
+        // Save the REAL recorded file (not a non-existent placeholder path).
+        guard let videoURL = recordedURL else { dismiss(); return }
+        viewModel.addRecording(
+            videoURL: videoURL,
+            title: gameTitle.isEmpty ? "Game Recording" : gameTitle,
+            sportType: sportType
+        )
+        camera.stop()
         dismiss()
     }
     

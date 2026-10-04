@@ -280,7 +280,7 @@ class FeatureExtractor: FeatureExtractorProtocol {
         let netY = (lo + hi) / 2.0
         // Hysteresis band: the ball must be clearly past the net to count as a
         // side, so jitter at the net doesn't create phantom crossings. Widened
-        // to 0.10 after calibration against PB Vision ground truth (long dinking
+        // to 0.10 after calibration against a reference clip (long dinking
         // exchanges near the net were producing phantom crossings → over-split).
         let netBand = 0.10
 
@@ -335,7 +335,7 @@ class FeatureExtractor: FeatureExtractorProtocol {
         // the ball DWELLS on one side for longer than `deadBallSeconds` (dead
         // ball / pickup / server holding before the next serve). netY/netBand
         // are computed above (before `flush`).
-        // 3.5s: calibrated against PB Vision ground truth for this clip (13 real
+        // 3.5s: calibrated against a reference clip (13 real
         // rallies). Shorter values (2.0–3.0s) split single points that had a
         // mid-rally lull, over-counting (20 then 17 rallies). 3.5s only breaks
         // on genuine dead-ball pauses between points, landing near the true

@@ -3,7 +3,7 @@
 //  nextmove
 //
 //  Groups raw player detections into a small set of persistent "player
-//  candidates" so the user can tap the figure that is them (PB-Vision-style
+//  candidates" so the user can tap the figure that is them (per-player
 //  per-player view), and so metrics can be scoped to that one player.
 //
 //  HONEST SCOPE (read before defending this):
@@ -33,7 +33,7 @@ struct PlayerCandidate: Identifiable, Codable {
 
     /// 1-based label shown in the UI ("Player 1", "Player 2", ...). Ordered so
     /// that index 1 is the near-side player (closest to the camera = most
-    /// likely the user), matching the PB Vision `/player/1` convention.
+    /// likely the user); index 1 is the nearest player.
     let index: Int
 
     /// This candidate's box-centre positions over time (normalised 0–1,
@@ -191,7 +191,7 @@ final class PlayerIdentification {
         minDetectionsPerCandidate: Int = 3,
         maxCandidates: Int = 4,
         mergeDistance: CGFloat = 0.22,
-        minRelativeSupport: Double = 0.35,
+        minRelativeSupport: Double = 0.20,
         backgroundAreaFraction: CGFloat = 0.30
     ) {
         self.clusterDistanceThreshold = clusterDistanceThreshold
@@ -209,7 +209,36 @@ final class PlayerIdentification {
         var players = detections.filter { $0.objectClass == .player }
         guard !players.isEmpty else { return [] }
 
-        // --- 0. Reject players on OTHER courts (background) ------------------
+        // --- 0a. Keep only players ON THE COURT, using the BALL as the court --
+        // The most reliable "is this person actually playing?" signal is the
+        // ball: it only travels within the court, never out to a spectator
+        // behind the fence. So we bound the vertical play region by where the
+        // ball goes and reject player detections sitting clearly OUTSIDE it.
+        // This removes bystanders (e.g. someone watching behind the fence, high
+        // in the frame) that the box-size filter alone misses.
+        let ballYs = detections
+            .filter { $0.objectClass == .ball }
+            .map { $0.boundingBox.midY }
+            .sorted()
+        if ballYs.count >= 10 {
+            let bLo = ballYs[Int(Double(ballYs.count) * 0.05)]            // highest point of play
+            let bHi = ballYs[min(ballYs.count - 1, Int(Double(ballYs.count) * 0.95))]  // lowest
+            // Players stand a bit beyond the ball band (feet below bounce,
+            // reach above). Allow a margin; reject anything clearly outside.
+            let margin: CGFloat = 0.15
+            let courtTop = bLo - margin
+            let courtBottom = bHi + margin
+            let onCourt = players.filter {
+                $0.boundingBox.midY >= courtTop && $0.boundingBox.midY <= courtBottom
+            }
+            // Apply only if it keeps enough data (guard against a degenerate
+            // ball band wiping out everyone).
+            if onCourt.count >= max(minDetectionsPerCandidate, players.count / 4) {
+                players = onCourt
+            }
+        }
+
+        // --- 0b. Reject players on OTHER courts (background) ----------------
         // A person playing on an adjacent/background court appears far away:
         // their bounding box is much SMALLER than the real players' (perspective)
         // and sits high in the frame. We drop boxes whose area is well below the
@@ -253,9 +282,18 @@ final class PlayerIdentification {
         var kept = clusters.filter { $0.count >= minDetectionsPerCandidate }
         if kept.isEmpty { kept = clusters }
         kept.sort { $0.count > $1.count }
-        if let strongest = kept.first?.count {
+        // Relative-support filter removes stray false-positive clusters, but it
+        // must NOT drop a legitimately quieter player (common in doubles, where
+        // one partner is far less active). Only apply it to prune a 3rd/4th
+        // EXTRA cluster beyond the expected court size; never prune down to
+        // fewer than 2 (singles) or the real doubles players. Also use a gentle
+        // fraction so a genuine low-activity player survives.
+        if kept.count > 2, let strongest = kept.first?.count {
             let relativeFloor = max(minDetectionsPerCandidate, Int(Double(strongest) * minRelativeSupport))
-            kept = kept.filter { $0.count >= relativeFloor }
+            let pruned = kept.filter { $0.count >= relativeFloor }
+            // Keep the pruned set only if it still has at least 2 players;
+            // otherwise the filter was too aggressive — fall back.
+            if pruned.count >= 2 { kept = pruned }
         }
         kept = Array(kept.prefix(maxCandidates))
 
@@ -287,37 +325,46 @@ final class PlayerIdentification {
         // MEDIAN y of the candidates so it adapts to how the clip is framed.
         guard !provisional.isEmpty else { return [] }
 
-        let ys = provisional.map { $0.avg.y }.sorted()
-        let medianY = ys[ys.count / 2]
-
-        // near = y strictly greater than (or equal to) the median → closer to camera.
-        func isNear(_ p: CGFloat) -> Bool { p >= medianY }
-
-        // Order: near row first (left→right), then far row (left→right). This is
-        // the natural reading order of a doubles court from the camera.
-        let ordered = provisional.sorted { a, b in
-            let aNear = isNear(a.avg.y), bNear = isNear(b.avg.y)
-            if aNear != bNear { return aNear && !bNear }   // near row before far row
-            return a.avg.x < b.avg.x                         // then left → right
+        // --- 4b. Keep only REAL players by tracking persistence -------------
+        // A genuine player is tracked across much of the clip; a passerby or
+        // distant bystander appears in far fewer frames. Rank candidates by
+        // their detection count and drop any that is a small fraction of the
+        // strongest. This is the decisive signal that removes the phantom third
+        // "player" without affecting the two real ones.
+        var finalists = provisional
+        if finalists.count > 2 {
+            let maxFrames = finalists.map { $0.dets.count }.max() ?? 1
+            // A real player should have at least this fraction of the busiest
+            // player's frames. 0.40 cleanly separates two active players from a
+            // brief bystander; never prune below 2 candidates.
+            let floor = Int(Double(maxFrames) * 0.40)
+            let strong = finalists.filter { $0.dets.count >= floor }
+            if strong.count >= 2 { finalists = strong }
         }
 
-        // Count how many candidates ended up on each side so we only add a
-        // left/right lane when it actually disambiguates two players on that
-        // side. For "one in front of the other" (singles) each side has one
-        // player and we label them simply "Near" / "Far".
-        let nearCount = provisional.filter { isNear($0.avg.y) }.count
-        let farCount = provisional.count - nearCount
+        // Order strictly by DEPTH: closest to the camera first. y grows downward
+        // in the frame, so the LARGEST average y is the nearest player. This is
+        // the rule we want: Player 1 = closest to camera, then the one further,
+        // etc. (No median/near-far split — that mislabeled players when both
+        // happened to sit in the same half of the frame.)
+        let byDepth = finalists.sorted { $0.avg.y > $1.avg.y }
 
-        return ordered.enumerated().map { (i, p) in
-            let near = isNear(p.avg.y)
-            let side = near ? "Near" : "Far"
-            let countOnSide = near ? nearCount : farCount
-            let label: String
-            if countOnSide >= 2 {
-                label = "\(side) \(p.avg.x < 0.5 ? "Left" : "Right")"
-            } else {
-                label = side   // lone player on this side → no lane needed
+        // Label by relative depth. With 2 players it's simply the nearest
+        // ("Avant") and the farthest ("Fond"). With 3–4 (doubles) we split the
+        // list in half by depth into a near row and a far row, and add a
+        // left/right lane within each row to disambiguate.
+        let n = byDepth.count
+        func label(forIndex i: Int, x: CGFloat) -> String {
+            if n <= 2 {
+                return i == 0 ? "Near" : "Far"
             }
+            // Doubles: first half (by depth) = near row, second half = far row.
+            let isNearRow = i < (n + 1) / 2
+            let side = isNearRow ? "Near" : "Far"
+            return "\(side) \(x < 0.5 ? "Left" : "Right")"
+        }
+
+        return byDepth.enumerated().map { (i, p) in
             return PlayerCandidate(
                 index: i + 1,
                 positions: p.dets,
@@ -326,9 +373,9 @@ final class PlayerIdentification {
                 thumbnailTime: p.best.timestamp,
                 thumbnailBoundingBox: p.best.boundingBox,
                 averageConfidence: p.conf,
-                // Default to the first near-side player as the likely user.
+                // Player 1 (closest to camera) is the default "you".
                 isLikelyUser: i == 0,
-                courtLabel: label
+                courtLabel: label(forIndex: i, x: p.avg.x)
             )
         }
     }
@@ -341,57 +388,80 @@ final class PlayerIdentification {
     /// lateral positions form two groups with a clear EMPTY GAP between them AND
     /// both groups have enough support. Otherwise it's one player.
     private func splitHalfIntoPlayers(_ half: [Detection]) -> [[Detection]] {
-        guard half.count >= minDetectionsPerCandidate else {
+        // Need enough points for two real players (≥2 × the per-player floor).
+        guard half.count >= 2 * minDetectionsPerCandidate else {
             return half.isEmpty ? [] : [half]
         }
 
-        // Build a histogram of x positions (10 bins across the frame width).
-        let bins = 10
-        var counts = [Int](repeating: 0, count: bins)
-        for d in half {
-            let b = min(bins - 1, max(0, Int(d.boundingBox.midX * CGFloat(bins))))
-            counts[b] += 1
-        }
+        let xs = half.map { Double($0.boundingBox.midX) }
 
-        // Find the largest EMPTY (or near-empty) gap between two populated
-        // regions. Two players on the same side sit apart with a sparse middle;
-        // one roaming player fills the middle too.
-        let noiseFloor = max(1, half.count / (bins * 2))   // a bin is "empty" below this
-        // Locate the first and last populated bins.
-        guard let firstPop = counts.firstIndex(where: { $0 > noiseFloor }),
-              let lastPop = counts.lastIndex(where: { $0 > noiseFloor }),
-              lastPop > firstPop else {
-            return [half]   // all mass in one place → one player
-        }
+        // 1-D k-means (k = 2) on the x positions. Two doubles partners form two
+        // tight clusters even when they stand close; one roaming player forms a
+        // single wide blob. We then decide 1 vs 2 by comparing the gap BETWEEN
+        // the two cluster centres to the spread WITHIN them (a separation test),
+        // which is robust to a single player covering the whole width.
+        var c1 = xs.min()!   // seed low
+        var c2 = xs.max()!   // seed high
+        guard c2 - c1 > 1e-6 else { return [half] }  // all identical → one player
 
-        // Scan the interior for the longest run of empty bins.
-        var bestGapStart = -1, bestGapLen = 0
-        var runStart = -1, runLen = 0
-        for b in (firstPop + 1)..<lastPop {
-            if counts[b] <= noiseFloor {
-                if runStart < 0 { runStart = b; runLen = 0 }
-                runLen += 1
-                if runLen > bestGapLen { bestGapLen = runLen; bestGapStart = runStart }
-            } else {
-                runStart = -1; runLen = 0
+        var assign = [Int](repeating: 0, count: xs.count)
+        for _ in 0..<12 {
+            // Assign each point to the nearer centre.
+            for (i, x) in xs.enumerated() {
+                assign[i] = abs(x - c1) <= abs(x - c2) ? 0 : 1
             }
+            let g0 = xs.enumerated().filter { assign[$0.0] == 0 }.map { $0.1 }
+            let g1 = xs.enumerated().filter { assign[$0.0] == 1 }.map { $0.1 }
+            if g0.isEmpty || g1.isEmpty { break }
+            let n1 = g0.reduce(0, +) / Double(g0.count)
+            let n2 = g1.reduce(0, +) / Double(g1.count)
+            if abs(n1 - c1) < 1e-4 && abs(n2 - c2) < 1e-4 { c1 = n1; c2 = n2; break }
+            c1 = n1; c2 = n2
         }
 
-        // Require a clear gap (≥ 2 empty bins = 20% of width) to call it two
-        // players; otherwise it's one roaming player.
-        guard bestGapLen >= 2, bestGapStart > 0 else { return [half] }
+        let leftIdx = xs.indices.filter { assign[$0] == 0 }
+        let rightIdx = xs.indices.filter { assign[$0] == 1 }
 
-        let splitBinCenter = CGFloat(bestGapStart) + CGFloat(bestGapLen) / 2.0
-        let splitX = splitBinCenter / CGFloat(bins)
-
-        let left = half.filter { $0.boundingBox.midX < splitX }
-        let right = half.filter { $0.boundingBox.midX >= splitX }
-
-        // Both sub-groups must have real support to count as two players.
-        guard left.count >= minDetectionsPerCandidate,
-              right.count >= minDetectionsPerCandidate else {
+        // Both sides must have real support, or it's one player.
+        guard leftIdx.count >= minDetectionsPerCandidate,
+              rightIdx.count >= minDetectionsPerCandidate else {
             return [half]
         }
+
+        // Decide 1 vs 2 players with the KEY discriminator: is there a genuine
+        // EMPTY CORRIDOR between the two clusters?
+        //   • Two players (even standing close) → almost no detections in the
+        //     band between their inner edges: a real gap.
+        //   • One player roaming the whole width → the middle is continuously
+        //     populated as they move across, so there is NO empty corridor.
+        // k-means proposed the split; we only accept it if the strip between the
+        // clusters' inner edges holds very few points relative to the clusters.
+        let loXs = leftIdx.map { xs[$0] }
+        let hiXs = rightIdx.map { xs[$0] }
+        let (lo, hi) = c1 <= c2 ? (loXs, hiXs) : (hiXs, loXs)
+        let innerLeftEdge = lo.max()!      // right edge of the left cluster
+        let innerRightEdge = hi.min()!     // left edge of the right cluster
+        let corridor = innerRightEdge - innerLeftEdge
+
+        // Count points sitting inside a small band around the midpoint between
+        // the clusters — for two real players this should be near zero.
+        let mid = (c1 + c2) / 2.0
+        let bandHalf = 0.05
+        let midPoints = xs.filter { abs($0 - mid) <= bandHalf }.count
+        let midDensity = Double(midPoints) / Double(xs.count)
+
+        // Accept two players only if there is a real corridor (clusters don't
+        // overlap and the middle is sparse) AND the centres are far enough apart.
+        let centreGap = abs(c2 - c1)
+        guard centreGap >= 0.14,       // centres clearly apart
+              corridor >= 0.04,        // an actual empty strip between them
+              midDensity < 0.08        // middle is sparse (not a roaming blob)
+        else {
+            return [half]              // one roaming player
+        }
+
+        let left = leftIdx.map { half[$0] }
+        let right = rightIdx.map { half[$0] }
         return [left, right]
     }
 }

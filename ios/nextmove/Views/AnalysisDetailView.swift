@@ -85,7 +85,7 @@ struct AnalysisDetailView: View {
         .navigationTitle(recording.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // Per-player analysis entry point (PB-Vision-style). Shown only when
+            // Per-player analysis entry point. Shown only when
             // the analysis identified players to choose from.
             if let candidates = liveRecording.analysis?.playerCandidates, !candidates.isEmpty {
                 ToolbarItem(placement: .primaryAction) {

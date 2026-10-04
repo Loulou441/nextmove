@@ -39,5 +39,11 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+
+	<!-- Required to film a game inside the app (AVCaptureSession). -->
+	<key>NSCameraUsageDescription</key>
+	<string>NextMove utilise la caméra pour filmer vos matchs et les analyser.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>NextMove enregistre le son avec la vidéo de votre match.</string>
 </dict>
 </plist>
