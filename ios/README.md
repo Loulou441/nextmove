@@ -101,13 +101,14 @@ Pour rendre l’API locale accessible au réseau, depuis la racine :
 python -m uvicorn backend.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-**Production (Railway).** Le backend est déployé sur Railway. Pour pointer l’app
+**Production (AWS EC2).** Le backend est déployé dans un conteneur Docker sur AWS EC2,
+derrière HTTPS (voir [../backend/DEPLOY.md](../backend/DEPLOY.md)). Pour pointer l’app
 vers lui, renseigner la clé `NEXTMOVE_API_URL` dans
-`ios/nextmove/Info.plist` avec l’URL HTTPS du service, par exemple :
+`ios/nextmove/Info.plist` avec l’URL HTTPS de l’API, par exemple :
 
 ```xml
 <key>NEXTMOVE_API_URL</key>
-<string>https://nextmove-production-9996.up.railway.app</string>
+<string>https://api.nextmoveapp.lol</string>
 ```
 
 En HTTPS, aucune exception ATS n’est nécessaire. Vérifier

@@ -35,6 +35,7 @@ class UserResponse(BaseModel):
     id: str
     email: EmailStr
     preferred_sport: str
+    email_verified: bool = False
     created_at: datetime
 
     class Config:

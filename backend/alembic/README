@@ -9,6 +9,8 @@ Depuis la racine du dépôt, avec l'environnement backend activé :
 La configuration charge les anciennes révisions de streamlit/alembic/versions
 (sans les dupliquer) et les nouvelles révisions de backend/alembic/versions.
 La révision 7b9e20260927 ajoute chat_messages après 56822ee323a9.
+La révision 4b5d2fafb134 (vérification d'email : colonne users.email_verified et
+table verification_codes) suit 7b9e20260927 et est la tête actuelle.
 La suppression d'un match cascade en base vers ses messages, y compris si
 elle est effectuée depuis le modèle Streamlit existant.
 
@@ -26,7 +28,9 @@ Cas possibles :
   aux migrations. Si et seulement s'il correspond à 56822ee323a9 (sans
   chat_messages), effectuer stamp 56822ee323a9, puis upgrade head.
 - Base issue de nextmove_web marquée 6c2d5b477eae : cet historique indépendant
-  n'est pas repris. Vérifier d'abord toutes les tables, colonnes, index et
+  n'est pas repris (seule la révision 4b5d2fafb134 a été reprise, rattachée à
+  7b9e20260927). Si cette base contient déjà verification_codes et
+  users.email_verified, ne pas relancer ces ajouts. Vérifier d'abord toutes les tables, colonnes, index et
   contraintes (notamment ON DELETE CASCADE de chat_messages). Préparer une
   réconciliation spécifique avant tout changement de révision. Ne pas
   faire de stamp head pour masquer un écart de schéma.

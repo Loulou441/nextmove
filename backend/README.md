@@ -16,24 +16,17 @@ les comptes et accepter les tokens existants. Ne pas écraser un `.env` existant
 
 ## Installation et configuration
 
-Il existe deux jeux de dépendances Python :
+Les dépendances Python de l’API sont dans `backend/requirements.txt`. Elles incluent
+`torch`, `ultralytics` et `opencv-python-headless`, nécessaires pour que
+`POST /matches/{id}/analyze` fasse une vraie analyse vidéo côté serveur, ainsi que
+`playwright` (export PDF) et `resend` (emails). L’export PDF nécessite aussi Chromium
+(`python -m playwright install chromium`). Les versions de Python et des paquets
+sont celles installées dans l’image Docker (voir `Dockerfile` à la racine).
 
-- `backend/requirements.txt` — installation locale complète (inclut
-  `torch`, `ultralytics`, `opencv-python-headless` : nécessaire pour que
-  `POST /matches/{id}/analyze` fasse une vraie analyse vidéo côté serveur) ;
-- `requirements.txt` à la racine du dépôt (identique à
-  `backend/requirements.railway.txt`) — version allégée utilisée par le
-  déploiement Railway (Nixpacks la détecte automatiquement à la racine),
-  **sans** `torch` / `ultralytics` / `opencv`. Avec ce jeu de dépendances,
-  l’app mobile fonctionne normalement (elle fait sa CV en local et n’envoie
-  que ses résultats via `/matches/sync`), mais `POST /matches/{id}/analyze`
-  échoue avec une `ImportError` : cette route n’est donc pas opérationnelle
-  sur le déploiement Railway actuel tel quel.
-
-La version Python du déploiement Railway est fixée dans le fichier
-`.python-version` à la racine. L’export PDF nécessite aussi Chromium,
-installé après les paquets Python (automatiquement sur Railway via
-`nixpacks.toml`).
+Le déploiement en production (Docker sur AWS EC2, interface sur Vercel) est décrit
+dans [DEPLOY.md](DEPLOY.md). Les fichiers `requirements.txt` à la racine,
+`requirements.railway.txt`, `railway.json`, `nixpacks.toml` et `Procfile` sont les
+restes de l’ancien déploiement Railway et ne sont plus utilisés par l’API.
 
 Pour une installation locale complète, depuis la racine du dépôt :
 
@@ -45,7 +38,9 @@ python -m playwright install chromium
 ```
 
 Créer `backend/.env` à partir de `backend/.env.example`. Il contient la connexion
-PostgreSQL, `SECRET_KEY`, les accès Supabase et `GROQ_API_KEY`.
+PostgreSQL, `SECRET_KEY`, les accès Supabase, `GROQ_API_KEY` et `RESEND_API_KEY`
+(envoi des emails de vérification et de réinitialisation ; sans elle, l’inscription
+renvoie une erreur 502).
 Le bucket Supabase privé attendu est `videos`.
 Ne jamais versionner ces valeurs ou les exposer dans le frontend.
 
@@ -85,7 +80,11 @@ Le pipeline Core ML reste local. L’app peut envoyer ses résultats à
 | Méthode | Route | Rôle |
 |---|---|---|
 | GET | `/health` | Disponibilité HTTP |
-| POST | `/auth/register` | Inscription |
+| POST | `/auth/register` | Inscription (envoie un code de vérification par email) |
+| POST | `/auth/verify-email` | Confirme l’adresse email avec le code reçu |
+| POST | `/auth/resend-verification` | Renvoie le code de vérification |
+| POST | `/auth/forgot-password` | Envoie un code de réinitialisation |
+| POST | `/auth/reset-password` | Change le mot de passe avec le code reçu |
 | POST | `/auth/login` | Connexion |
 | POST | `/auth/logout` | Suppression du cookie web |
 | GET / PATCH | `/auth/me` | Profil et sport préféré |
@@ -105,12 +104,16 @@ Le JWT reste présent dans les réponses de connexion pour les clients natifs.
 Le frontend envoie les requêtes avec `credentials: "include"`.
 
 Configurer `CORS_ORIGINS` (origines séparées par des virgules, sans `*`),
-`AUTH_COOKIE_SECURE=true` en HTTPS, et `AUTH_COOKIE_SAMESITE` selon le déploiement.
-En local, utiliser le même nom d’hôte pour le frontend et l’API (par exemple
-`localhost` pour les deux). Si les sites frontend/API sont différents,
-`SameSite=None` exige HTTPS ; certains navigateurs bloquent néanmoins les
-cookies tiers. Préférer des sous-domaines du même site ou un proxy de même origine.
-Les écritures par cookie contrôlent l’origine ; les appels natifs Bearer restent acceptés.
+`AUTH_COOKIE_SECURE=true` en HTTPS, et `AUTH_COOKIE_SAMESITE` selon le déploiement :
+`lax` si le frontend et l’API sont sur le même site, `none` (qui exige HTTPS) s’ils
+sont sur des sites différents. En local, utiliser le même nom d’hôte pour le frontend
+et l’API (par exemple `localhost` pour les deux).
+
+En production, le frontend est sur Vercel et l’API sur AWS EC2. Certains navigateurs
+bloquent les cookies tiers même avec `SameSite=None` : préférer des sous-domaines du
+même site (par exemple `app.` pour Vercel et `api.` pour EC2 sous le même domaine) avec
+`AUTH_COOKIE_SAMESITE=lax`. Les écritures par cookie contrôlent l’origine ; les appels
+natifs Bearer restent acceptés.
 
 ## Base de données
 
@@ -121,7 +124,9 @@ python -m alembic -c backend/alembic.ini current
 python -m alembic -c backend/alembic.ini upgrade head
 ```
 
-Cette configuration reprend les anciennes révisions et ajoute `chat_messages`.
+Cette configuration reprend les anciennes révisions et ajoute `chat_messages`
+(`7b9e20260927`) puis la vérification d’email (`4b5d2fafb134` : colonne
+`users.email_verified` et table `verification_codes`).
 Elle fonctionne sur une base vide ou déjà suivie par cet historique. Pour
 les autres cas, suivre [le guide des migrations](alembic/README) avant toute
 commande. L’application ne déclenche aucune migration automatiquement.
@@ -145,4 +150,4 @@ contactent ni Supabase ni Groq et ne téléchargent pas les modèles RAG.
 Ils couvrent notamment la connexion cookie/Bearer, la synchronisation iOS,
 la persistance du chat, les droits d’accès, les migrations et la préparation
 du PDF. Le rendu Chromium et l’analyse vidéo réelle restent à vérifier sur
-l’environnement déployé.
+l’environnement déployé (voir [DEPLOY.md](DEPLOY.md), section « Vérifier le déploiement »).

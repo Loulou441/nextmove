@@ -161,14 +161,16 @@ def test_export_returns_pdf_and_encoded_filename(client, database):
     _, user, _, match = database
     match.title = 'Match été "finale"'
     client.headers["Authorization"] = f"Bearer {create_session_token(user.id)}"
-    with patch("backend.api.routes_export.sync_playwright") as playwright:
-        browser = playwright.return_value.__enter__.return_value.chromium.launch.return_value
-        browser.new_page.return_value.pdf.return_value = b"%PDF-1.4\nfixture"
+    with patch("backend.api.routes_export._get_browser") as get_browser:
+        browser = get_browser.return_value
+        page = browser.new_page.return_value
+        page.pdf.return_value = b"%PDF-1.4\nfixture"
         response = client.get(f"/matches/{match.id}/export-pdf")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/pdf"
     assert "filename*=UTF-8''Match%20%C3%A9t%C3%A9" in response.headers["content-disposition"]
-    browser.close.assert_called_once()
+    browser.new_page.assert_called_once_with(java_script_enabled=False)
+    page.close.assert_called_once()
 
 
 def test_migrations_upgrade_existing_schema_without_losing_matches(tmp_path, monkeypatch):
@@ -179,7 +181,13 @@ def test_migrations_upgrade_existing_schema_without_losing_matches(tmp_path, mon
     engine = create_engine(database_url)
     uid, mid = str(uuid.uuid4()), str(uuid.uuid4())
     with engine.begin() as conn:
-        conn.execute(User.__table__.insert().values(id=uid, email="migration@example.com", password_hash="unused"))
+        conn.execute(
+            text(
+                "INSERT INTO users (id, email, password_hash, preferred_sport, created_at) "
+                "VALUES (:id, :email, 'unused', 'pickleball', CURRENT_TIMESTAMP)"
+            ),
+            {"id": uid, "email": "migration@example.com"},
+        )
         conn.execute(Match.__table__.insert().values(id=mid, user_id=uid, title="Keep me", sport="padel"))
     command.upgrade(config, "head")
     assert "chat_messages" in inspect(engine).get_table_names()
