@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import Optional, Type
 
-from groq import Groq, APIConnectionError, APITimeoutError, RateLimitError, InternalServerError
+from groq import Groq, APIConnectionError, APITimeoutError, BadRequestError, RateLimitError, InternalServerError
 from pydantic import BaseModel, ValidationError
 from rich.console import Console
 from rich.table import Table
@@ -26,7 +26,7 @@ GROQ_RETRY_MAX_WAIT = 8
 
 # Nombre maximal de tentatives face à une réponse mal formée (JSON invalide
 # ou hors-schéma) — indépendant des erreurs réseau ci-dessus
-MAX_VALIDATION_ATTEMPTS = 2
+MAX_VALIDATION_ATTEMPTS = 3
 
 # Erreurs réseau/serveur transitoires pour lesquelles retenter l'appel a du sens.
 # Volontairement exclu : les erreurs 4xx hors rate-limit (ex: BadRequestError) —
@@ -100,12 +100,23 @@ class Agent:
         last_error: Optional[Exception] = None
 
         for attempt in range(1, MAX_VALIDATION_ATTEMPTS + 1):
-            response = self._call_groq(
-                messages=messages,
-                model=model,
-                temperature=temperature,
-                response_format={"type": "json_object"},
-            )
+            try:
+                response = self._call_groq(
+                    messages=messages,
+                    model=model,
+                    temperature=temperature,
+                    response_format={"type": "json_object"},
+                )
+            except BadRequestError as exc:
+                # Groq refuse parfois une génération dont le JSON est mal formé
+                # (code json_validate_failed) : c'est un échec passager du modèle,
+                # pas un bug de prompt, donc on retente. Toute autre erreur 400
+                # reste remontée telle quelle.
+                if "json_validate_failed" not in str(exc):
+                    raise
+                last_error = InvalidResponseError(f"JSON rejeté par Groq : {exc}")
+                logger.warning("JSON rejeté par Groq (tentative %s/%s).", attempt, MAX_VALIDATION_ATTEMPTS)
+                continue
 
             raw_content = response.choices[0].message.content
             if raw_content is None:

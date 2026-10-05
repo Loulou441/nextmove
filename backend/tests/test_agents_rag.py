@@ -121,6 +121,15 @@ def _rate_limit_error():
     return RateLimitError("rate limited", response=response, body=None)
 
 
+def _bad_request_error(message):
+    import httpx
+    from groq import BadRequestError
+
+    request = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+    response = httpx.Response(400, request=request)
+    return BadRequestError(message, response=response, body=None)
+
+
 @pytest.fixture
 def fake_embeddings(monkeypatch, tmp_path):
     """Isole ChromaDB (dossier temporaire) et remplace le modèle d'embedding."""
@@ -299,11 +308,40 @@ def test_call_and_validate_retries_once_on_invalid_json(fake_groq):
     assert result.recommandations_coach
 
 
+def test_call_and_validate_retries_when_groq_rejects_malformed_json(fake_groq):
+    from backend.agents.agentmanager.schemas import RecommandationsCoach
+
+    client = fake_groq([_bad_request_error("json_validate_failed: Failed to generate JSON"), VALID_REPLY])
+    result = agent_module.Agent().call_and_validate(messages=[], model="m", temperature=0, schema=RecommandationsCoach)
+
+    assert len(client.calls) == 2
+    assert result.recommandations_coach
+
+
+def test_call_and_validate_gives_up_when_groq_keeps_rejecting_json(fake_groq):
+    from backend.agents.agentmanager.schemas import RecommandationsCoach
+
+    client = fake_groq([_bad_request_error("json_validate_failed")] * agent_module.MAX_VALIDATION_ATTEMPTS)
+    with pytest.raises(InvalidResponseError):
+        agent_module.Agent().call_and_validate(messages=[], model="m", temperature=0, schema=RecommandationsCoach)
+    assert len(client.calls) == agent_module.MAX_VALIDATION_ATTEMPTS
+
+
+def test_call_and_validate_does_not_retry_other_bad_requests(fake_groq):
+    from groq import BadRequestError
+    from backend.agents.agentmanager.schemas import RecommandationsCoach
+
+    client = fake_groq([_bad_request_error("model_not_found"), VALID_REPLY])
+    with pytest.raises(BadRequestError):
+        agent_module.Agent().call_and_validate(messages=[], model="m", temperature=0, schema=RecommandationsCoach)
+    assert len(client.calls) == 1
+
+
 def test_call_and_validate_rejects_out_of_schema_reply(fake_groq):
     from backend.agents.agentmanager.schemas import RecommandationsCoach
 
     bad = {"recommandations_coach": [{"timestamp": "1:00", "titre": "t", "contenu": {"constat": "c"}}]}
-    fake_groq([bad, bad])
+    fake_groq([bad] * agent_module.MAX_VALIDATION_ATTEMPTS)
     with pytest.raises(InvalidResponseError):
         agent_module.Agent().call_and_validate(messages=[], model="m", temperature=0, schema=RecommandationsCoach)
 
@@ -311,7 +349,7 @@ def test_call_and_validate_rejects_out_of_schema_reply(fake_groq):
 def test_call_and_validate_rejects_empty_recommendation_list(fake_groq):
     from backend.agents.agentmanager.schemas import RecommandationsCoach
 
-    fake_groq([{"recommandations_coach": []}] * 2)
+    fake_groq([{"recommandations_coach": []}] * agent_module.MAX_VALIDATION_ATTEMPTS)
     with pytest.raises(InvalidResponseError):
         agent_module.Agent().call_and_validate(messages=[], model="m", temperature=0, schema=RecommandationsCoach)
 
@@ -319,7 +357,7 @@ def test_call_and_validate_rejects_empty_recommendation_list(fake_groq):
 def test_call_and_validate_raises_on_empty_content(fake_groq):
     from backend.agents.agentmanager.schemas import RecommandationsCoach
 
-    fake_groq([None, None])
+    fake_groq([None] * agent_module.MAX_VALIDATION_ATTEMPTS)
     with pytest.raises(EmptyResponseError):
         agent_module.Agent().call_and_validate(messages=[], model="m", temperature=0, schema=RecommandationsCoach)
 
@@ -352,7 +390,7 @@ def test_coach_agent_end_to_end_with_rag(fake_embeddings, fake_groq, sport, fold
 def test_coach_agent_propagates_invalid_response(fake_embeddings, fake_groq):
     from backend.agents.agentpadel.agent_recommendation_padel import PadelCoachAI
 
-    fake_groq(["{}", "{}"])
+    fake_groq(["{}"] * agent_module.MAX_VALIDATION_ATTEMPTS)
     match_data = json.loads((AGENTS_DIR / "agentpadel" / "example_entry.json").read_text(encoding="utf-8"))
     with pytest.raises(InvalidResponseError):
         PadelCoachAI("ctx", "prompt").generate_recommendations(match_data)
@@ -372,7 +410,7 @@ def test_moderator_returns_model_verdict(fake_groq):
 def test_moderator_fails_closed_when_model_is_unusable(fake_groq):
     from backend.agents.agentmoderator.agent_moderator import Moderator
 
-    fake_groq(["pas du json", "toujours pas du json"])
+    fake_groq(["pas du json"] * agent_module.MAX_VALIDATION_ATTEMPTS)
     assert Moderator().moderate("Pourquoi je perds mes balles ?").is_prompt_injection is True
 
 

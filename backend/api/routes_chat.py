@@ -8,6 +8,7 @@ Chaque message (utilisateur et coach) est persisté en base (table
 chat_messages), pour que la conversation survive à la fermeture de la page —
 contrairement à la version précédente où tout se perdait au rechargement.
 """
+import logging
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -209,10 +210,11 @@ def chat_with_coach(
             temperature=GROQ_TEMPERATURE,
             schema=ChatReply,
         )
-    except Exception as exc:
+    except Exception:
+        logging.getLogger("nextmove.chat").exception("Réponse du coach échouée")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Le coach IA n'a pas pu répondre : {exc}",
+            detail="Le coach IA est momentanément indisponible. Réessaie dans un instant.",
         )
 
     # Persistance : on sauvegarde le message utilisateur ET la réponse du
