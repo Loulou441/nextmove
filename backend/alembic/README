@@ -10,7 +10,9 @@ La configuration charge les anciennes révisions de streamlit/alembic/versions
 (sans les dupliquer) et les nouvelles révisions de backend/alembic/versions.
 La révision 7b9e20260927 ajoute chat_messages après 56822ee323a9.
 La révision 4b5d2fafb134 (vérification d'email : colonne users.email_verified et
-table verification_codes) suit 7b9e20260927 et est la tête actuelle.
+table verification_codes) suit 7b9e20260927.
+La révision a7c1e9d2b3f4 (joueurs détectés : colonnes matches.players et
+matches.selected_player_index) suit 4b5d2fafb134 et est la tête actuelle.
 La suppression d'un match cascade en base vers ses messages, y compris si
 elle est effectuée depuis le modèle Streamlit existant.
 

@@ -78,7 +78,8 @@ L’export PDF nécessite Chromium sur le serveur, pas sur le poste utilisateur.
 1. S’inscrire, saisir le code de vérification reçu par email, puis se connecter et choisir un sport (tester aussi « mot de passe oublié »).
 2. Importer une vidéo où la balle est visible.
 3. Lancer l’analyse et suivre l’état jusqu’à `ready` ou `failed`.
-4. Vérifier le détail, les événements et les métriques du match.
+4. Vérifier le détail, les événements et les métriques du match, puis choisir le joueur
+   analysé (page « joueur » du match) et contrôler que les notes changent.
 5. Tester le chat, recharger la page et vérifier que la conversation est conservée.
 6. Exporter un rapport PDF et vérifier son contenu.
 7. Tester les plans d’entraînement et la déconnexion.
@@ -101,6 +102,9 @@ La dernière commande sert la version compilée. Le backend reste un processus
 distinct. `NEXT_PUBLIC_API_URL` doit être définie lors de la compilation.
 
 ## Déploiement (Vercel)
+
+L’application est accessible en ligne :
+**[Ouvrir NextMove Web](https://nextmove-gold.vercel.app)**.
 
 Le frontend est déployé sur Vercel ; l’API tourne séparément sur AWS EC2 (voir
 [../backend/DEPLOY.md](../backend/DEPLOY.md)).

@@ -24,9 +24,9 @@ Les dépendances Python de l’API sont dans `backend/requirements.txt`. Elles i
 sont celles installées dans l’image Docker (voir `Dockerfile` à la racine).
 
 Le déploiement en production (Docker sur AWS EC2, interface sur Vercel) est décrit
-dans [DEPLOY.md](DEPLOY.md). Les fichiers `requirements.txt` à la racine,
-`requirements.railway.txt`, `railway.json`, `nixpacks.toml` et `Procfile` sont les
-restes de l’ancien déploiement Railway et ne sont plus utilisés par l’API.
+dans [DEPLOY.md](DEPLOY.md). Les fichiers `requirements.txt` et `requirements-dev.txt`
+à la racine sont des restes de l’ancien déploiement Railway : l’API installe
+`backend/requirements.txt`.
 
 Pour une installation locale complète, depuis la racine du dépôt :
 
@@ -89,8 +89,11 @@ Le pipeline Core ML reste local. L’app peut envoyer ses résultats à
 | POST | `/auth/logout` | Suppression du cookie web |
 | GET / PATCH | `/auth/me` | Profil et sport préféré |
 | GET / POST | `/matches` | Bibliothèque et import vidéo |
+| GET | `/matches/stats/aggregate` | Évolution et compétences agrégées sur les matchs prêts (filtre `sport` facultatif) |
 | POST | `/matches/sync` | Enregistrement des analyses iOS |
 | GET / DELETE | `/matches/{id}` | Détail et suppression |
+| PUT | `/matches/{id}/player` | Choix du joueur analysé (index d’un joueur détecté, ou `null` pour le match entier) |
+| GET | `/matches/{id}/video-url` | URL signée temporaire de la vidéo (absente pour les matchs synchronisés depuis iOS) |
 | POST | `/matches/{id}/analyze` | Analyse vidéo |
 | GET | `/matches/{id}/events` | Événements |
 | POST | `/matches/{id}/coach-report` | Rapport de coaching |
@@ -125,8 +128,9 @@ python -m alembic -c backend/alembic.ini upgrade head
 ```
 
 Cette configuration reprend les anciennes révisions et ajoute `chat_messages`
-(`7b9e20260927`) puis la vérification d’email (`4b5d2fafb134` : colonne
-`users.email_verified` et table `verification_codes`).
+(`7b9e20260927`), la vérification d’email (`4b5d2fafb134` : colonne
+`users.email_verified` et table `verification_codes`) puis les joueurs détectés
+(`a7c1e9d2b3f4` : colonnes `matches.players` et `matches.selected_player_index`).
 Elle fonctionne sur une base vide ou déjà suivie par cet historique. Pour
 les autres cas, suivre [le guide des migrations](alembic/README) avant toute
 commande. L’application ne déclenche aucune migration automatiquement.

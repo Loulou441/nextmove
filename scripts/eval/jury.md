@@ -8,7 +8,7 @@
 | Le RAG améliore les recommandations | Comparaison en aveugle avec/sans RAG (juge LLM + notation humaine d'un échantillon) | `python scripts/eval/run_eval.py ab --n 36` |
 | Le coach ne s'appuie que sur des exercices réels | Taux d'exercices attendus cités, aucun id inventé | `ab` et `scripts/eval_rag_live.py --llm` |
 | Le modérateur protège sans gêner | Détection des injections / hors-sujet, taux de faux positifs | `python scripts/eval/run_eval.py moderator` |
-| Le code est robuste | 98 tests automatisés (retries, validation, repli du modérateur) | `pytest backend/tests` |
+| Le code est robuste | 186 tests automatisés (retries, validation, repli du modérateur) | `pytest backend/tests` |
 
 ## Ce qu'on ne peut PAS affirmer avec ce kit
 

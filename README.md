@@ -9,6 +9,17 @@ application web React / Next.js.
 
 ![Démonstration de détection sur une vidéo de padel](docs/media/demo_padel_nofield.gif)
 
+## Essayer l’application
+
+| Application | Adresse |
+|---|---|
+| Web (React / Next.js) | **[nextmove-gold.vercel.app](https://nextmove-gold.vercel.app)** |
+| Streamlit | **[nextmove-app.streamlit.app](https://nextmove-app.streamlit.app/)** |
+
+Pour se connecter à l’application web, créer un compte : un code à six chiffres est
+envoyé par email pour confirmer l’adresse. L’application mobile (SwiftUI) se compile
+depuis Xcode, voir [ios/README.md](ios/README.md).
+
 ## Les applications
 
 | Application | Technologies | Analyse vidéo |
@@ -48,16 +59,19 @@ Fichiers de configuration à la racine :
 - `backend/.env.example` : exemple pour `backend/.env`, utilisé par l’API ;
 - `web/frontend/.env.local.example` : adresse publique de l’API pour le web ;
 - `.gitignore` : exclusions Git ;
-- `packages.txt` : dépendances système utilisées pour le déploiement Python ;
-- `railway.json`, `nixpacks.toml`, `Procfile`, `requirements.txt` : anciennes
-  configurations de déploiement sur Railway, conservées pour mémoire et non utilisées
-  par le déploiement actuel (Vercel et AWS EC2).
+- `packages.txt` : dépendances système (`libgl1`, `libglib2.0`) lues par l’hébergement
+  Streamlit ;
+- `requirements.txt` et `requirements-dev.txt` : restes du déploiement Railway,
+  non utilisés par l’API (le `Dockerfile` installe `backend/requirements.txt`).
 
 ## Démarrage rapide
 
 ### Web React / Next.js
 
-Lancer le backend Python et le frontend dans deux terminaux.
+L’application est accessible en ligne :
+**[Ouvrir NextMove Web](https://nextmove-gold.vercel.app)**.
+
+Pour la lancer en local, démarrer le backend Python et le frontend dans deux terminaux.
 
 Les commandes, variables d’environnement et vérifications sont détaillées
 dans [web/README.md](web/README.md).
@@ -114,7 +128,8 @@ synchronisation complète de sa bibliothèque et ne modifie pas son pipeline Cor
 
 Les migrations historiques restent dans `streamlit/alembic/versions/`.
 La configuration du backend les réutilise et ajoute les nouvelles révisions,
-dont la table des conversations du coach.
+dont la table des conversations du coach, la vérification d’email et le choix du
+joueur analysé.
 
 Depuis la racine, avec l’environnement Python du backend activé :
 
@@ -188,6 +203,7 @@ Avant une fusion :
 - [Application Streamlit](streamlit/README.md)
 - [API commune](backend/README.md)
 - [Déploiement (Vercel et AWS EC2)](backend/DEPLOY.md)
+- [Évaluation des coachs (guide du jury)](scripts/eval/jury.md)
 - [Exemple de coaching mobile](docs/ios/USAGE_EXAMPLE_LLM.swift)
 - [Maquettes](docs/mockups/)
 - [Médias de démonstration](docs/media/)
